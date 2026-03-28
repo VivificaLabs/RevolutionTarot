@@ -1,5 +1,3 @@
-import Link from 'next/link'
-
 export default function Hero() {
   return (
     <section id="home" style={{
@@ -51,14 +49,14 @@ export default function Hero() {
             color: 'var(--ink)',
             marginBottom: 8,
           }}>
-            "Você não veio aqui para fazer a escolha. Você já a fez. Você está aqui para tentar entender por que a fez."
+            &quot;Você não veio aqui para fazer a escolha. Você já a fez. Você está aqui para tentar entender por que a fez.&quot;
           </blockquote>
           <span style={{
             fontSize: '0.6rem', fontWeight: 700,
             letterSpacing: '0.14em', textTransform: 'uppercase',
             color: 'var(--muted)',
           }}>
-            // Oráculo, Matrix
+            {/* Oráculo, Matrix */}
           </span>
         </div>
 

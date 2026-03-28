@@ -88,7 +88,7 @@ export default function Sobre() {
               color: 'var(--ink)',
               marginBottom: 28,
             }}>
-              "Não precisa acreditar em magia. Precisa estar disposta a olhar pra si mesma."
+              &quot;Não precisa acreditar em magia. Precisa estar disposta a olhar pra si mesma.&quot;
             </p>
 
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>

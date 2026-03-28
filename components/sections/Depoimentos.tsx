@@ -22,7 +22,7 @@ export default function Depoimentos() {
               fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(1.5rem, 2.5vw, 2.1rem)',
               fontStyle: 'italic', fontWeight: 300, lineHeight: 1.4, color: 'var(--ink)', marginBottom: 28, position: 'relative',
             }}>
-              <span style={{ position: 'absolute', top: -20, left: -20, fontSize: '5rem', color: 'rgba(0,245,212,0.12)', fontFamily: "'Cormorant Garamond', serif", lineHeight: 1, pointerEvents: 'none' }}>"</span>
+              <span style={{ position: 'absolute', top: -20, left: -20, fontSize: '5rem', color: 'rgba(0,245,212,0.12)', fontFamily: "'Cormorant Garamond', serif", lineHeight: 1, pointerEvents: 'none' }}>&quot;</span>
               Eu sou super cética, mas a leitura dela foi cirúrgica. Ela disse uma coisa que eu nunca tinha falado pra ninguém.
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: '0.68rem' }}>
