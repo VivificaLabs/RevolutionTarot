@@ -1,6 +1,6 @@
 const ITEMS = [
-  'Revolution Tarot', 'Leitura sem filtro', 'Tarot + Lógica',
-  'Sem promessa mágica', 'Clareza de verdade', 'Dev & Tarologa', 'Sistema ativo',
+  'Revolution Tarot', 'Leitura sem frescura', 'Lógica & Tarot & Energia',
+  'Sem promessa mágica', 'Autoconhecimento estruturado', 'Dev & Tarologa', 'Status: ONLINE'
 ]
 
 export default function Ticker() {

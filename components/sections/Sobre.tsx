@@ -1,9 +1,9 @@
 import SectionLabel from '../ui/SectionLabel'
 
-const TAGS = ['Leitura direta', 'Sem julgamento', 'Foco em clareza', 'Tarot + lógica', 'Entrega prática']
+const TAGS = ['Leitura sem frescura', 'Sem julgamentos', 'Foco no entendimento', 'Gratiluz aqui não tem vez', 'Adaptado ao seu contexto']
 
 const LIST_ITEMS = [
-  'Tiragens por escrito ou videochamada',
+  'Entrega por áudios e fotos, pra você consumir no seu tempo',
   'Sem enrolação, direto ao ponto',
   'Abordagem prática e acolhedora',
   'Palavrão incluso, drama não',
@@ -14,7 +14,7 @@ export default function Sobre() {
   return (
     <section id="tarologa">
       <div style={{ maxWidth: 1300, margin: '0 auto', padding: '96px 48px' }}>
-        <SectionLabel text="A Tarologa" num="// 01" />
+        <SectionLabel text="A Taróloga" num="// 01" />
 
         <div style={{
           display: 'grid',
@@ -33,7 +33,7 @@ export default function Sobre() {
               marginBottom: 28,
               color: 'var(--ink)',
             }}>
-              Tarologa de<br />exatas.{' '}
+              Taróloga de<br />exatas.{' '}
               <em style={{ fontStyle: 'italic', color: 'var(--gold)' }}>Sem<br />contradição.</em>
             </h2>
 
