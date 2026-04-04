@@ -452,7 +452,7 @@ function Modal({
 
         {/* CTA */}
         <a
-          href="#agendar"
+          href={consulta.orcamento ? 'http://wa.me/351939189631' : '#agendar'}
           onClick={onFechar}
           style={{
             display: 'block',
