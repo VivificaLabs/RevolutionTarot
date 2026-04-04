@@ -101,11 +101,11 @@ export default function Navbar() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         <div style={{ display: 'flex', gap: 8 }}>
           {[
-            { label: 'WhatsApp', icon: <IconWhatsApp />, href: '#' },
-            { label: 'Instagram', icon: <IconInstagram />, href: '#' },
-            { label: 'TikTok', icon: <IconTikTok />, href: '#' },
+            { label: 'WhatsApp', icon: <IconWhatsApp />, href: 'http://wa.me/351939189631' },
+            { label: 'Instagram', icon: <IconInstagram />, href: 'https://instagram.com/revolution.tarot' },
+            { label: 'TikTok', icon: <IconTikTok />, href: 'https://tiktok.com/@revolution.tarot' },
           ].map(({ label, icon, href }) => (
-            <a key={label} href={href} aria-label={label} style={{
+            <a key={label} href={href} aria-label={label} target="_blank" rel="noopener noreferrer" style={{
               width: 28, height: 28,
               border: '1px solid rgba(0,245,212,0.2)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',

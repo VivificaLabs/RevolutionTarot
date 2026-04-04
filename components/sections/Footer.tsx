@@ -11,9 +11,9 @@ function IconTikTok() {
 }
 
 const SOCIALS = [
-  { label: 'WhatsApp',  icon: <IconWhatsApp />,  href: '#' },
-  { label: 'Instagram', icon: <IconInstagram />, href: '#' },
-  { label: 'TikTok',    icon: <IconTikTok />,    href: '#' },
+  { label: 'WhatsApp',  icon: <IconWhatsApp />,  href: 'http://wa.me/351939189631' },
+  { label: 'Instagram', icon: <IconInstagram />, href: 'https://instagram.com/revolution.tarot' },
+  { label: 'TikTok',    icon: <IconTikTok />,    href: 'https://tiktok.com/@revolution.tarot' },
 ]
 
 const socialBase = {
