@@ -82,8 +82,6 @@ export default function Navbar() {
 
       {/* Links centrais — Escondido em mobile */}
       <ul style={{ 
-        display: 'none',
-        '@media (min-width: 768px)': { display: 'flex' },
         gap: 28, 
         listStyle: 'none', 
         alignItems: 'center' 
@@ -109,7 +107,7 @@ export default function Navbar() {
       </ul>
 
       {/* Social + CTA — Escondido em mobile */}
-      <div style={{ display: 'none' }} className="hidden md:flex">
+      <div className="hidden md:flex">
         <div style={{ display: 'flex', gap: 8, marginRight: 14 }}>
           {[
             { label: 'WhatsApp', icon: <IconWhatsApp />, href: 'http://wa.me/351939189631' },

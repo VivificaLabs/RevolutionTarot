@@ -101,7 +101,7 @@ export default function Depoimentos() {
               color: 'var(--cyan)',
               marginBottom: 16,
             }}>
-              // {d.titulo}
+              {d.titulo}
             </p>
 
             {/* Texto completo */}
@@ -148,7 +148,7 @@ export default function Depoimentos() {
                 letterSpacing: '0.1em',
                 color: 'var(--muted)',
               }}>
-                // {d.nome}
+                {d.nome}
               </span>
             </div>
 
@@ -250,7 +250,7 @@ function MiniCard({
         color: ativo ? 'var(--cyan)' : 'rgba(0,245,212,0.4)',
         transition: 'color 0.2s',
       }}>
-        // {nome}
+        {nome}
       </div>
     </div>
   )
