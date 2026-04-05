@@ -29,13 +29,13 @@ const DEPOIMENTOS: Depoimento[] = [
     titulo: 'Explicações completinhas e fáceis de entender.',
     texto: 'Eu amo que seus áudios são sempre com explicações completinhas e fáceis de entender. As tiragens trimestrais tem me ajudado bastante mentalmente, meio que me preparando pra não surtar (ou surtar entendendo o surto).',
     emoji: '🧠',
-    nome: 'Consulente · 2025',
+    nome: 'Daniela M. · 2025',
   },
   {
     titulo: 'Aplicabilidade das cartas é incrível.',
     texto: 'Você sabe que sou um descrente nato, mas gosto muito de ouvir o que você fala porque a aplicabilidade que as cartas trazem é incrível, mas o que você fala transpassa o que consigo explicar. Obrigada pela leitura mais uma vez.',
     emoji: '🖥️',
-    nome: 'Consulente · Desenvolvedor de Software',
+    nome: 'Jean C. · Desenvolvedor de Software',
   },
   {
     titulo: 'La magia estuvo presente desde el primer momento.',
