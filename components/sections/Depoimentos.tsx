@@ -14,28 +14,40 @@ interface Depoimento {
 
 const DEPOIMENTOS: Depoimento[] = [
   {
-    titulo: 'Cirúrgica.',
-    texto: 'Eu sou super cética, mas a leitura dela foi cirúrgica. Ela disse uma coisa que eu nunca tinha falado pra ninguém — e acertou em cheio. Saí da sessão com mais clareza do que esperava.',
-    emoji: '👩‍💼',
-    nome: 'Ana P. · Analista de dados',
+    titulo: 'Cuidado e carinho.',
+    texto: 'A Oli fez uma leitura pra mim durante um momento delicado e sinto que me ajudou a ver as coisas com muito mais clareza. Explicou com muito cuidado e carinho, fiquei encantada. Não tenho como recomendar mais!',
+    emoji: '🫧',
+    nome: 'Carol S. · Programadora',
   },
   {
-    titulo: 'Finalmente uma tarologa direta.',
-    texto: 'Finalmente uma tarologa que não fica em cima do muro. Ela olhou as cartas e disse: "isso aqui é sobre o trabalho, né?" Era exatamente isso. Sem rodeio, sem linguagem vaga.',
-    emoji: '💻',
-    nome: 'Renata M. · Engenheira',
+    titulo: 'Me ajudando a tomar a decisão.',
+    texto: 'Suas cartas me ajudaram a tomar a decisão que eu precisava. Você disse para eu fazer mais o que eu achava certo e pensar menos e fazer mais, e aí as dúvidas que eu tinha parece que foram esclarecidas. Obrigada!',
+    emoji: '🚗',
+    nome: 'Consulente · 2025',
   },
   {
-    titulo: 'Saí com um plano de ação.',
-    texto: 'Cheguei cética, saí com um plano de ação. Não esperava isso de uma tiragem de tarot — mas faz todo sentido com a abordagem dela. É diferente de tudo que já vi.',
-    emoji: '📊',
-    nome: 'Carol T. · Product Manager',
+    titulo: 'Explicações completinhas e fáceis de entender.',
+    texto: 'Eu amo que seus áudios são sempre com explicações completinhas e fáceis de entender. As tiragens trimestrais tem me ajudado bastante mentalmente, meio que me preparando pra não surtar (ou surtar entendendo o surto).',
+    emoji: '🧠',
+    nome: 'Consulente · 2025',
   },
   {
-    titulo: 'Sem linguagem hermética.',
-    texto: 'Direto ao ponto, sem aquela linguagem hermética que afasta quem não é do meio. Ela traduz as cartas de um jeito que qualquer pessoa analítica consegue absorver.',
+    titulo: 'Aplicabilidade das cartas é incrível.',
+    texto: 'Você sabe que sou um descrente nato, mas gosto muito de ouvir o que você fala porque a aplicabilidade que as cartas trazem é incrível, mas o que você fala transpassa o que consigo explicar. Obrigada pela leitura mais uma vez.',
     emoji: '🖥️',
-    nome: 'Fernanda K. · Dev front-end',
+    nome: 'Consulente · Desenvolvedor de Software',
+  },
+  {
+    titulo: 'La magia estuvo presente desde el primer momento.',
+    texto: 'La magia estuvo presente desde el primer momento de la lectura, estoy impresionada. Me sentí muy contenta por el análisis y por la explicación tan acertada: ¡es que todo tenía que ver con mi vida y se entrelazaba de una manera increíble! Empática y asertivamente me hiciste ver aspectos interesantes de mi presente que aún no eran muy claros, ¡muchas gracias!',
+    emoji: '👑',
+    nome: 'Consulente · 2025',
+  },
+  {
+    titulo: 'Me levaram às minhas melhores decisões de 2025.',
+    texto: 'Todas as tiragens que eu fiz com você, TODAS desse ano, me levaram às minhas melhores decisões de 2025. E não foi só os rolês de "ai, vai dar certo", mas foram os conselhos de COMO também, da postura que eu tinha que ter em determinadas situações. Sério, você é impecável.',
+    emoji: '💰',
+    nome: 'Consulente · 2026',
   },
 ]
 
