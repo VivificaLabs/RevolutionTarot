@@ -10,7 +10,6 @@ export const metadata: Metadata = {
   creator: 'Revolution Tarot',
   publisher: 'Revolution Tarot',
   metadataBase: new URL('https://www.revolutiontarot.com'),
-  canonical: 'https://www.revolutiontarot.com',
   alternates: {
     canonical: 'https://www.revolutiontarot.com',
   },
