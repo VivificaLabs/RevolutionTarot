@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import {
   TIRAGENS, IDIOMAS, FUSOS, HORARIOS_AO_VIVO_LISBOA, PERIODOS_URGENCIA,
-  SIMBOLOS, COTACOES,
+  SIMBOLOS,
   precoComUrgencia, converterPreco, formatarPreco,
   type Moeda, type Idioma, type Canal, type MetodoPagamento,
   type DadosStep1, type DadosStep2, type DadosStep3,
@@ -221,7 +221,7 @@ function Step1({
   return (
     <div>
       <div style={S.infoBox}>
-        <span style={{ color: 'var(--cyan)', fontWeight: 700 }}>// passo 01</span>
+        <span style={{ color: 'var(--cyan)', fontWeight: 700 }}>Passo 01</span>
         <br />
         O primeiro passo do seu agendamento é escolher qual tipo de leitura você quer.
       </div>
@@ -660,7 +660,7 @@ function Step3({
       </div>
 
       <div style={S.infoBox}>
-        <span style={{ color: 'var(--cyan)', fontWeight: 700 }}>// passo 03</span>
+        <span style={{ color: 'var(--cyan)', fontWeight: 700 }}>Passo 03</span>
         <br />
         Preciso de alguns dados seus para a tiragem e entrega. Bora?
       </div>
@@ -1059,7 +1059,7 @@ function Step5({
       </h2>
 
       <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginBottom: 32 }}>
-        // as cartas já sabem que você vem aí
+        As cartas já sabem que você vem aí
       </p>
 
       <div style={{ ...S.resumoBox, textAlign: 'left', maxWidth: 480, margin: '0 auto 32px' }}>
