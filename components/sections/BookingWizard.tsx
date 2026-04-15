@@ -226,6 +226,33 @@ function Step1({
         O primeiro passo do seu agendamento é escolher qual tipo de leitura você quer.
       </div>
 
+      {/* Moeda */}
+      <div style={S.fieldGroup}>
+        <label style={S.label}>Moeda</label>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {(['BRL', 'USD', 'EUR'] as Moeda[]).map(m => (
+            <button
+              key={m}
+              onClick={() => onChange({ ...dados, moeda: m })}
+              style={{
+                background: moeda === m ? 'var(--cyan)' : 'transparent',
+                color: moeda === m ? 'var(--bg)' : 'var(--muted)',
+                border: `1px solid ${moeda === m ? 'var(--cyan)' : 'rgba(0,245,212,0.2)'}`,
+                padding: '7px 16px',
+                fontFamily: "'Space Mono', monospace",
+                fontSize: '0.65rem',
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              {SIMBOLOS[m]} {m}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Leitura desejada */}
       <div style={S.fieldGroup}>
         <label style={S.label}>Leitura desejada <span style={{ color: 'var(--magenta)' }}>*</span></label>
@@ -271,33 +298,6 @@ function Step1({
               </div>
             )
           })}
-        </div>
-      </div>
-
-      {/* Moeda */}
-      <div style={S.fieldGroup}>
-        <label style={S.label}>Moeda</label>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {(['BRL', 'USD', 'EUR'] as Moeda[]).map(m => (
-            <button
-              key={m}
-              onClick={() => onChange({ ...dados, moeda: m })}
-              style={{
-                background: moeda === m ? 'var(--cyan)' : 'transparent',
-                color: moeda === m ? 'var(--bg)' : 'var(--muted)',
-                border: `1px solid ${moeda === m ? 'var(--cyan)' : 'rgba(0,245,212,0.2)'}`,
-                padding: '7px 16px',
-                fontFamily: "'Space Mono', monospace",
-                fontSize: '0.65rem',
-                fontWeight: 700,
-                letterSpacing: '0.1em',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
-              {SIMBOLOS[m]} {m}
-            </button>
-          ))}
         </div>
       </div>
 
