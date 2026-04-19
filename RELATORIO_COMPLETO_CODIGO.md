@@ -31,7 +31,7 @@ Backend:   Next.js API Routes + Node.js
 Database:  Supabase (PostgreSQL)
 Payments:  Stripe
 CMS:       Sanity
-Calendar:  Cal.com (integração externa)
+Calendar:  Cal.eu (integração externa)
 ```
 
 ### 2.2 Estrutura de Pastas
@@ -307,7 +307,7 @@ npm run test:coverage  # Ver cobertura completa
   - Calcula urgência
 
 ✅ POST /api/cal/agendar
-  - Cria booking em cal.com
+  - Cria booking em cal.eu
   - Falha sem eventTypeId
 
 ✅ GET /api/cal/slots
@@ -358,7 +358,7 @@ npm run test:watch  # Modo watch para desenvolvimento
 - [ ] Implementar autenticação básica (JWT)
 - [ ] Criar React Error Boundary para componentes
 - [ ] Testar e documentar WebHook Stripe
-- [ ] Mock/teste de Cal.com integration
+- [ ] Mock/teste de Cal.eu integration
 
 #### Médio Prazo (2-4 sprints)
 - [ ] Implementar caching (Redis/SWR)
@@ -483,7 +483,7 @@ export async function POST(req: NextRequest) {
 1. **Arquitetura sólida** com Next.js App Router
 2. **Design system consistente** com Tailwind + CSS custom
 3. **Database bem estruturada** no Supabase
-4. **Integração Stripe/Cal.com** funcionando
+4. **Integração Stripe/Cal.eu** funcionando
 5. **SEO otimizado** com metadata
 6. **Responsive design** completo
 

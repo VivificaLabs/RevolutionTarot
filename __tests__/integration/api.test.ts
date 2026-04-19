@@ -131,7 +131,7 @@ describe('API Integration Tests', () => {
       metodoPagamento: 'pix',
       stripePaymentId: 'pi_1234567890',
 
-      // Cal.com
+      // Cal.eu
       calBookingId: null,
       calBookingUid: null,
     }
@@ -204,10 +204,10 @@ describe('API Integration Tests', () => {
     })
   })
 
-  // ── Cal.com Agendar API ───────────────────────────────────────────────────────
+  // ── Cal.eu Agendar API ───────────────────────────────────────────────────────
 
   describe('POST /api/cal/agendar', () => {
-    it('deve criar booking em cal.com', () => {
+    it('deve criar booking em cal.eu', () => {
       const calPayload = {
         eventTypeId: 123,
         startTime: '2026-05-15T14:00:00.000Z',
@@ -235,7 +235,7 @@ describe('API Integration Tests', () => {
     })
   })
 
-  // ── Cal.com Slots API ─────────────────────────────────────────────────────────
+  // ── Cal.eu Slots API ─────────────────────────────────────────────────────────
 
   describe('GET /api/cal/slots', () => {
     it('deve retornar horários disponíveis', () => {
