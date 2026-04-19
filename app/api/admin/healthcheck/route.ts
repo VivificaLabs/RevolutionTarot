@@ -14,7 +14,6 @@ import {
   VALIDACOES_ENV,
 } from '@/lib/admin-auth'
 
-const CAL_TOKEN = process.env.CAL_API_KEY!
 const CAL_BASE = process.env.CAL_API_BASE_URL ?? 'https://api.cal.eu'
 
 export const dynamic = 'force-dynamic'
