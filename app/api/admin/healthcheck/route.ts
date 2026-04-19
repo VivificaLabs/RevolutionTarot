@@ -14,6 +14,8 @@ import {
   VALIDACOES_ENV,
 } from '@/lib/admin-auth'
 
+const CAL_BASE = process.env.CAL_API_BASE_URL ?? 'https://api.cal.eu'
+
 export const dynamic = 'force-dynamic'
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
@@ -21,9 +23,9 @@ export const dynamic = 'force-dynamic'
 type Status = 'ok' | 'erro' | 'aviso'
 
 interface CheckResult {
-  nome:     string
-  status:   Status
-  detalhe:  string
+  nome: string
+  status: Status
+  detalhe: string
   latencia?: number
 }
 
@@ -47,8 +49,8 @@ function checkEnvs(): CheckResult[] {
 
     const { ok, motivo } = validar(val)
     return {
-      nome:    `ENV · ${nome}`,
-      status:  ok ? 'ok' : 'aviso' as Status,
+      nome: `ENV · ${nome}`,
+      status: ok ? 'ok' : 'aviso' as Status,
       // Nunca mostra o valor — só o resultado da validação
       detalhe: ok ? `Definida · ${motivo}` : `Definida mas inválida: ${motivo}`,
     }
@@ -75,9 +77,9 @@ async function checkStripe(): Promise<CheckResult[]> {
     const modoLive = key.startsWith('sk_live_')
     return [
       {
-        nome:     'Stripe · Conectividade',
-        status:   'ok',
-        detalhe:  `Conectado · ${modoLive ? '🔴 modo LIVE — pagamentos reais' : '🟡 modo TEST — pagamentos simulados'}`,
+        nome: 'Stripe · Conectividade',
+        status: 'ok',
+        detalhe: `Conectado · ${modoLive ? '🔴 modo LIVE — pagamentos reais' : '🟡 modo TEST — pagamentos simulados'}`,
         latencia: ms,
       },
     ]
@@ -86,50 +88,72 @@ async function checkStripe(): Promise<CheckResult[]> {
   }
 }
 
+// Substituição parcial do app/api/admin/healthcheck/route.ts
+// Apenas as funções checkCalCom foram atualizadas para v2.
+// O resto do ficheiro permanece igual.
+//
+// Migrado de Cal.eu API v1 → v2
+// v1 base: https://api.cal.eu/v1      (descomissionada)
+// v2 base: https://api.cal.eu/v2      (atual)
 async function checkCalCom(): Promise<CheckResult[]> {
   const token = process.env.CAL_API_KEY
-  if (!token) return [{ nome: 'Cal.com · Conectividade', status: 'erro', detalhe: 'Chave não definida' }]
+  if (!token) return [{ nome: 'Cal.eu · Conectividade', status: 'erro', detalhe: 'Chave não definida' }]
 
   const resultados: CheckResult[] = []
 
-  // Conectividade
+  // ── Conectividade: GET /v2/me ─────────────────────────────────────────────
   try {
     const { resultado, ms } = await medir(async () => {
-      const res = await fetch('https://api.cal.com/v1/me', {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await fetch(`${CAL_BASE}/v2/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       })
-      return { ok: res.ok, data: await res.json() }
+      return { ok: res.ok, status: res.status, data: await res.json() }
     })
 
     if (!resultado.ok) {
-      resultados.push({ nome: 'Cal.com · Conectividade', status: 'erro', detalhe: resultado.data?.message ?? 'Token inválido' })
+      resultados.push({
+        nome: 'Cal.eu · Conectividade',
+        status: 'erro',
+        detalhe: resultado.data?.error?.message ?? resultado.data?.message ?? `HTTP ${resultado.status}`,
+      })
     } else {
-      resultados.push({ nome: 'Cal.com · Conectividade', status: 'ok', detalhe: 'Conectado', latencia: ms })
+      resultados.push({
+        nome: 'Cal.eu · Conectividade',
+        status: 'ok',
+        detalhe: 'Conectado',
+        latencia: ms,
+      })
     }
   } catch (e) {
-    resultados.push({ nome: 'Cal.com · Conectividade', status: 'erro', detalhe: `Erro de rede: ${String(e)}` })
+    resultados.push({ nome: 'Cal.eu · Conectividade', status: 'erro', detalhe: `Erro de rede: ${String(e)}` })
     return resultados
   }
 
-  // Event types (só conta — não expõe IDs ou nomes)
+  // ── Event Types: GET /v2/event-types ─────────────────────────────────────
   try {
     const { resultado } = await medir(async () => {
-      const res = await fetch('https://api.cal.com/v1/event-types', {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await fetch(`${CAL_BASE}/v2/event-types`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'cal-api-version': '2024-06-14',
+        },
       })
       return res.json()
     })
 
-    const total = resultado.event_types?.length ?? 0
+    // v2 resposta: { status: "success", data: [ ...eventTypes ] }
+    const tipos = resultado.data ?? []
     resultados.push({
-      nome:    'Cal.com · Event Types',
-      status:  total > 0 ? 'ok' : 'aviso',
-      detalhe: total > 0
-        ? `${total} event type(s) configurado(s)`
-        : 'Nenhum event type criado — cria em cal.com/event-types',
+      nome: 'Cal.eu · Event Types',
+      status: tipos.length > 0 ? 'ok' : 'aviso',
+      detalhe: tipos.length > 0
+        ? `${tipos.length} event type(s) configurado(s)`
+        : 'Nenhum event type criado — cria em cal.eu/event-types',
     })
   } catch {
-    resultados.push({ nome: 'Cal.com · Event Types', status: 'aviso', detalhe: 'Não foi possível verificar' })
+    resultados.push({ nome: 'Cal.eu · Event Types', status: 'aviso', detalhe: 'Não foi possível verificar' })
   }
 
   return resultados
@@ -155,9 +179,9 @@ async function checkSupabase(): Promise<CheckResult[]> {
     })
 
     resultados.push({
-      nome:     'Supabase · Conexão',
-      status:   resultado.ok ? 'ok' : 'erro',
-      detalhe:  resultado.ok ? 'Projeto acessível' : `HTTP ${resultado.status}`,
+      nome: 'Supabase · Conexão',
+      status: resultado.ok ? 'ok' : 'erro',
+      detalhe: resultado.ok ? 'Projeto acessível' : `HTTP ${resultado.status}`,
       latencia: ms,
     })
 
@@ -179,8 +203,8 @@ async function checkSupabase(): Promise<CheckResult[]> {
       })
 
       resultados.push({
-        nome:    `Supabase · tabela ${tabela}`,
-        status:  resultado.ok ? 'ok' : 'erro',
+        nome: `Supabase · tabela ${tabela}`,
+        status: resultado.ok ? 'ok' : 'erro',
         detalhe: resultado.ok
           ? 'Tabela acessível'
           : resultado.status === 404
@@ -232,9 +256,9 @@ export async function GET(req: NextRequest) {
 
   const resumo = {
     total: todos.length,
-    ok:    todos.filter(c => c.status === 'ok').length,
+    ok: todos.filter(c => c.status === 'ok').length,
     aviso: todos.filter(c => c.status === 'aviso').length,
-    erro:  todos.filter(c => c.status === 'erro').length,
+    erro: todos.filter(c => c.status === 'erro').length,
   }
 
   return NextResponse.json(

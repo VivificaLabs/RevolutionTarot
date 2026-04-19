@@ -24,8 +24,8 @@ export interface Tiragem {
   nome: string
   subtitulo: string
   precoBRL: number
-  // IDs dos Event Types no Cal.com
-  // Preenche após criar os events em cal.com/event-types
+  // IDs dos Event Types no Cal.eu
+  // Preenche após criar os events em cal.eu/event-types
   // Urgente e não-urgente podem ter IDs diferentes (disponibilidades distintas)
   calEventTypeId: number
   calEventTypeIdUrgente: number
@@ -38,8 +38,8 @@ export const TIRAGENS: Tiragem[] = [
     nome: 'Tarot Express',
     subtitulo: 'tiragem rápida',
     precoBRL: 60,
-    calEventTypeId: 0,         // ← preencher após criar no Cal.com
-    calEventTypeIdUrgente: 0,  // ← preencher após criar no Cal.com
+    calEventTypeId: 0,         // ← preencher após criar no Cal.eu
+    calEventTypeIdUrgente: 0,  // ← preencher após criar no Cal.eu
     aoVivo: false,
   },
   {

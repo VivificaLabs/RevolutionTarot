@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     nome, email, canal, contato, indicadoPor, nota,
     // Step 4
     metodoPagamento, stripePaymentId,
-    // Cal.com (preenchido após criar o booking)
+    // Cal.eu (preenchido após criar o booking)
     calBookingId, calBookingUid,
   } = body
 
