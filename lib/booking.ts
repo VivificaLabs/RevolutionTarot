@@ -24,12 +24,7 @@ export interface Tiragem {
   nome: string
   subtitulo: string
   precoBRL: number
-  // IDs dos Event Types no Cal.eu
-  // Preenche após criar os events em cal.eu/event-types
-  // Urgente e não-urgente podem ter IDs diferentes (disponibilidades distintas)
-  calEventTypeId: number
-  calEventTypeIdUrgente: number
-  aoVivo: boolean        // se true → só sáb/dom + horários fixos
+  aoVivo: boolean        // se true → use event type "ao-vivasso"
 }
 
 export const TIRAGENS: Tiragem[] = [
@@ -38,8 +33,6 @@ export const TIRAGENS: Tiragem[] = [
     nome: 'Tarot Express',
     subtitulo: 'tiragem rápida',
     precoBRL: 60,
-    calEventTypeId: 0,         // ← preencher após criar no Cal.eu
-    calEventTypeIdUrgente: 0,  // ← preencher após criar no Cal.eu
     aoVivo: false,
   },
   {
@@ -47,8 +40,6 @@ export const TIRAGENS: Tiragem[] = [
     nome: 'Zoom no Caos',
     subtitulo: 'tiragem por área',
     precoBRL: 150,
-    calEventTypeId: 0,
-    calEventTypeIdUrgente: 0,
     aoVivo: false,
   },
   {
@@ -56,8 +47,6 @@ export const TIRAGENS: Tiragem[] = [
     nome: 'Spoilers Controlados',
     subtitulo: 'tiragem preditiva',
     precoBRL: 120,
-    calEventTypeId: 0,
-    calEventTypeIdUrgente: 0,
     aoVivo: false,
   },
   {
@@ -65,8 +54,6 @@ export const TIRAGENS: Tiragem[] = [
     nome: 'Diagnóstico Místico',
     subtitulo: 'tiragem geral',
     precoBRL: 180,
-    calEventTypeId: 0,
-    calEventTypeIdUrgente: 0,
     aoVivo: false,
   },
   {
@@ -74,8 +61,6 @@ export const TIRAGENS: Tiragem[] = [
     nome: 'Ao vivásso',
     subtitulo: 'videochamada · 50 min',
     precoBRL: 600,
-    calEventTypeId: 0,
-    calEventTypeIdUrgente: 0,
     aoVivo: true,
   },
 ]

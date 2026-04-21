@@ -9,6 +9,31 @@ import {
   type DadosStep1, type DadosStep2, type DadosStep3,
 } from '@/lib/booking'
 
+// ── Configuração ──────────────────────────────────────────────────────────────
+//
+// NEXT_PUBLIC_ENABLE_STRIPE: define se Stripe (Cartão de Crédito) está habilitado
+//   - true: mostra opção de pagamento por Cartão
+//   - false (padrão): oculta Cartão, deixa apenas Pix e Revolut
+//
+// Usar em .env.local:
+//   NEXT_PUBLIC_ENABLE_STRIPE=true
+
+const STRIPE_ENABLED = process.env.NEXT_PUBLIC_ENABLE_STRIPE === 'true'
+
+// ── Cal.eu Event Types ────────────────────────────────────────────────────────
+//
+// Mapeamento de tipos de evento para IDs numéricos no Cal.eu
+// Atualizar com os IDs corretos do seu workspace Cal.eu
+//
+// IMPORTANTE: obter IDs em https://cal.eu/admin/apps/installed/cal-com
+// ou via API: GET /v2/event-types
+
+const CAL_EVENT_TYPES = {
+  'tiragem-padrao': parseInt(process.env.NEXT_PUBLIC_CAL_ET_PADRAO || '1'),
+  'tiragem-urgente': parseInt(process.env.NEXT_PUBLIC_CAL_ET_URGENTE || '2'),
+  'ao-vivasso': parseInt(process.env.NEXT_PUBLIC_CAL_ET_AO_VIVO || '3'),
+}
+
 // ── Estilos base reutilizáveis ────────────────────────────────────────────────
 
 const S = {
@@ -854,74 +879,96 @@ function Step4({
 
   const [cartao, setCartao] = useState({ numero: '', validade: '', cvv: '' })
   const [carregando, setCarregando] = useState(false)
-  const [erroStripe, setErroStripe] = useState('')
-  const [erroAgendamento, setErroAgendamento] = useState('')
+  const [erro, setErro] = useState('')
 
-  // Métodos disponíveis para a moeda selecionada
-  const metodosDisponiveis = metodosPorMoeda(moeda)
+  // Métodos disponíveis para a moeda selecionada, respeitando flags de feature
+  const metodosDisponivelsPorMoeda = metodosPorMoeda(moeda)
+  const metodosDisponiveis = STRIPE_ENABLED 
+    ? metodosDisponivelsPorMoeda 
+    : metodosDisponivelsPorMoeda.filter(m => m !== 'cartao')
   
   // Se o método selecionado deixou de estar disponível, reseta a seleção
   if (metodo && !metodosDisponiveis.includes(metodo)) {
     onMetodo(null)
   }
 
-  async function handleCartao() {
-    setCarregando(true)
-    setErroStripe('')
+  async function confirmarFluxo() {
+    // 1. CRIAR EVENTO NO CAL.EU FIRST (obrigatório)
+    console.log('[STEP4_FLUXO] Etapa 1/3: Criando evento no Cal.eu...')
+    let calIds = { calBookingId: undefined, calBookingUid: undefined }
     try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          valorBRL: totalBRL,
-          moeda,
-          descricao: `${tiragem?.nome} — Revolution Tarot`,
-          email: step3.email,
-          nome: step3.nome,
-        }),
-      })
-      const data = await res.json()
-      if (data.error) { setErroStripe(data.error); return }
-      // Em produção: usar @stripe/stripe-js para confirmar com data.clientSecret
-      // Por ora, salva agendamento e avança
+      calIds = await criarEventoCaleu(step1, step2, step3)
+      console.log('[STEP4_FLUXO] ✅ Cal.eu sucesso:', calIds)
+    } catch (erroCaleu) {
+      console.error('[STEP4_FLUXO] ❌ Cal.eu falhou (bloqueando):', erroCaleu)
+      const msg = erroCaleu instanceof Error ? erroCaleu.message : 'erro desconhecido'
+      setErro(`Erro ao criar evento no calendário: ${msg}`)
+      throw erroCaleu
+    }
+
+    // 2. PROCESSAR PAGAMENTO (se Cartão E Stripe habilitado)
+    let stripePaymentId: string | undefined = undefined
+    if (STRIPE_ENABLED && metodo === 'cartao') {
+      console.log('[STEP4_FLUXO] Etapa 2/3: Processando pagamento Stripe...')
       try {
-        await salvarAgendamento(
-          step1, step2, step3, 
-          metodo, desconto,
-          data.paymentId, // stripePaymentId
-          undefined, undefined // calBookingId, calBookingUid
-        )
-        onNext()
-      } catch (erroSalvar) {
-        setErroStripe(`Pagamento processado, mas erro ao salvar agendamento: ${erroSalvar instanceof Error ? erroSalvar.message : 'desconhecido'}`)
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            valorBRL: totalBRL,
+            moeda,
+            descricao: `${tiragem?.nome} — Revolution Tarot`,
+            email: step3.email,
+            nome: step3.nome,
+          }),
+        })
+        const data = await res.json()
+        if (data.error) {
+          console.error('[STEP4_FLUXO] ❌ Stripe falhou:', data.error)
+          throw new Error(data.error)
+        }
+        stripePaymentId = data.paymentId
+        console.log('[STEP4_FLUXO] ✅ Stripe sucesso:', { stripePaymentId })
+      } catch (erroStripe) {
+        console.error('[STEP4_FLUXO] ❌ Pagamento falhou (bloqueando):', erroStripe)
+        const msg = erroStripe instanceof Error ? erroStripe.message : 'erro desconhecido'
+        setErro(`Erro ao processar pagamento: ${msg}`)
+        throw erroStripe
       }
-    } catch {
-      setErroStripe('Erro ao processar pagamento. Tente novamente.')
-    } finally {
-      setCarregando(false)
+    } else {
+      console.log('[STEP4_FLUXO] Etapa 2/3: Pulando (método Pix/Revolut)')
+    }
+
+    // 3. SALVAR AGENDAMENTO EM SUPABASE
+    console.log('[STEP4_FLUXO] Etapa 3/3: Salvando agendamento em Supabase...')
+    try {
+      await salvarAgendamento(
+        step1, step2, step3,
+        metodo, desconto,
+        stripePaymentId,
+        calIds.calBookingId,
+        calIds.calBookingUid
+      )
+      console.log('[STEP4_FLUXO] ✅ Supabase sucesso, avançando para Step5')
+      onNext()
+    } catch (erroSupabase) {
+      console.error('[STEP4_FLUXO] ❌ Supabase falhou (bloqueando):', erroSupabase)
+      const msg = erroSupabase instanceof Error ? erroSupabase.message : 'erro desconhecido'
+      setErro(`Erro ao salvar agendamento: ${msg}`)
+      throw erroSupabase
     }
   }
 
   async function handleConfirmar() {
     if (!podeProsseguir) return
-    
-    if (metodo === 'cartao') {
-      handleCartao()
-      return
-    }
 
-    // Para Pix e Revolut
     setCarregando(true)
-    setErroAgendamento('')
+    setErro('')
+
     try {
-      await salvarAgendamento(
-        step1, step2, step3, 
-        metodo, desconto
-      )
-      onNext()
+      await confirmarFluxo()
     } catch (erro) {
-      setErroAgendamento(erro instanceof Error ? erro.message : 'Erro ao confirmar agendamento')
-      console.error('Erro ao confirmar agendamento:', erro)
+      console.error('[STEP4_FLUXO] Fluxo abortado em erro:', erro)
     } finally {
       setCarregando(false)
     }
@@ -1005,7 +1052,7 @@ function Step4({
       )}
 
       {/* Cartão */}
-      {metodosDisponiveis.includes('cartao') && (
+      {STRIPE_ENABLED && metodosDisponiveis.includes('cartao') && (
         <div
           style={{
             ...S.card,
@@ -1057,15 +1104,9 @@ function Step4({
         </div>
       )}
 
-      {erroStripe && (
+      {erro && (
         <div style={{ fontSize: '0.72rem', color: 'var(--magenta)', marginBottom: 12 }}>
-          ⚠️ {erroStripe}
-        </div>
-      )}
-
-      {erroAgendamento && (
-        <div style={{ fontSize: '0.72rem', color: 'var(--magenta)', marginBottom: 12 }}>
-          ⚠️ {erroAgendamento}
+          ⚠️ {erro}
         </div>
       )}
 
@@ -1151,6 +1192,95 @@ function Step5({
       </p>
     </div>
   )
+}
+
+// ── Função helper: criar evento no Cal.eu ────────────────────────────────
+
+async function criarEventoCaleu(
+  step1: Partial<DadosStep1>,
+  step2: Partial<DadosStep2>,
+  step3: Partial<DadosStep3>,
+) {
+  try {
+    const tiragem = TIRAGENS.find(t => t.id === step1.tiragemId)
+    if (!tiragem) {
+      throw new Error(`Tiragem não encontrada: ${step1.tiragemId}`)
+    }
+
+    // Seleciona o eventTypeId baseado em tipo de tiragem e urgência
+    let tipoEvento: 'ao-vivasso' | 'tiragem-urgente' | 'tiragem-padrao'
+    
+    if (tiragem.aoVivo) {
+      tipoEvento = 'ao-vivasso'
+    } else if (step1.urgencia) {
+      tipoEvento = 'tiragem-urgente'
+    } else {
+      tipoEvento = 'tiragem-padrao'
+    }
+
+    const eventTypeId = CAL_EVENT_TYPES[tipoEvento]
+
+    if (!eventTypeId) {
+      throw new Error(`EventTypeId não configurado para tipo: ${tipoEvento}`)
+    }
+
+    // Monta a data/hora no formato ISO-8601 esperado pelo Cal.eu
+    // Step2.data vem em formato "YYYY-MM-DD"
+    // - ao-vivo / urgente: step2.hora contém a hora Lisboa (number)
+    // - tiragem padrão (entrega assíncrona): sem hora específica → usa 23:00 Lisboa
+    let startTime: string
+
+    if (step2.hora !== null && step2.hora !== undefined) {
+      const hora = String(step2.hora).padStart(2, '0')
+      startTime = `${step2.data}T${hora}:00:00.000Z`
+    } else {
+      // Tiragem padrão: entrega até as 23h do dia — usa 23:00 Lisboa como hora do evento
+      startTime = `${step2.data}T23:00:00.000Z`
+    }
+
+    console.log('[CLIENTE_CAL] Criando evento Cal.eu', {
+      tipoEvento,
+      eventTypeId,
+      startTime,
+      nome: step3.nome,
+      email: step3.email,
+      tiragem: tiragem.nome,
+      urgencia: step1.urgencia,
+    })
+
+    const res = await fetch('/api/cal/agendar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        eventTypeId,
+        startTime,
+        nome: step3.nome,
+        email: step3.email,
+        idioma: step1.idioma,
+        tiragem: tiragem.nome,
+        urgencia: step1.urgencia,
+        nota: step3.nota,
+        fusoCliente: step2.fusoTz,
+      }),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      console.error('[CLIENTE_CAL] Erro ao criar evento:', data)
+      throw new Error(data.error || data.detail || 'Erro ao criar evento Cal.eu')
+    }
+
+    console.log('[CLIENTE_CAL] Evento criado com sucesso:', data)
+    return {
+      calBookingId: data.bookingId,
+      calBookingUid: data.bookingUid,
+    }
+  } catch (error) {
+    console.error('[CLIENTE_CAL] Falha ao criar evento:', error)
+    throw error
+  }
 }
 
 // ── Função helper: salvar agendamento no backend ────────────────────────────
