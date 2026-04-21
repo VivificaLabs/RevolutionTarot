@@ -828,6 +828,7 @@ function Step3({
 
 function Step4({
   step1,
+  step2,
   step3,
   desconto,
   onNext,
@@ -836,6 +837,7 @@ function Step4({
   metodo,
 }: {
   step1: Partial<DadosStep1>
+  step2: Partial<DadosStep2>
   step3: Partial<DadosStep3>
   desconto: number
   onNext: () => void
@@ -853,6 +855,7 @@ function Step4({
   const [cartao, setCartao] = useState({ numero: '', validade: '', cvv: '' })
   const [carregando, setCarregando] = useState(false)
   const [erroStripe, setErroStripe] = useState('')
+  const [erroAgendamento, setErroAgendamento] = useState('')
 
   // Métodos disponíveis para a moeda selecionada
   const metodosDisponiveis = metodosPorMoeda(moeda)
@@ -880,10 +883,45 @@ function Step4({
       const data = await res.json()
       if (data.error) { setErroStripe(data.error); return }
       // Em produção: usar @stripe/stripe-js para confirmar com data.clientSecret
-      // Por ora avança para confirmação
-      onNext()
+      // Por ora, salva agendamento e avança
+      try {
+        await salvarAgendamento(
+          step1, step2, step3, 
+          metodo, desconto,
+          data.paymentId, // stripePaymentId
+          undefined, undefined // calBookingId, calBookingUid
+        )
+        onNext()
+      } catch (erroSalvar) {
+        setErroStripe(`Pagamento processado, mas erro ao salvar agendamento: ${erroSalvar instanceof Error ? erroSalvar.message : 'desconhecido'}`)
+      }
     } catch {
       setErroStripe('Erro ao processar pagamento. Tente novamente.')
+    } finally {
+      setCarregando(false)
+    }
+  }
+
+  async function handleConfirmar() {
+    if (!podeProsseguir) return
+    
+    if (metodo === 'cartao') {
+      handleCartao()
+      return
+    }
+
+    // Para Pix e Revolut
+    setCarregando(true)
+    setErroAgendamento('')
+    try {
+      await salvarAgendamento(
+        step1, step2, step3, 
+        metodo, desconto
+      )
+      onNext()
+    } catch (erro) {
+      setErroAgendamento(erro instanceof Error ? erro.message : 'Erro ao confirmar agendamento')
+      console.error('Erro ao confirmar agendamento:', erro)
     } finally {
       setCarregando(false)
     }
@@ -1014,23 +1052,28 @@ function Step4({
                   onChange={e => setCartao(c => ({ ...c, cvv: e.target.value }))}
                 />
               </div>
-              {erroStripe && (
-                <div style={{ fontSize: '0.72rem', color: 'var(--magenta)' }}>{erroStripe}</div>
-              )}
             </div>
           )}
         </div>
       )}
 
+      {erroStripe && (
+        <div style={{ fontSize: '0.72rem', color: 'var(--magenta)', marginBottom: 12 }}>
+          ⚠️ {erroStripe}
+        </div>
+      )}
+
+      {erroAgendamento && (
+        <div style={{ fontSize: '0.72rem', color: 'var(--magenta)', marginBottom: 12 }}>
+          ⚠️ {erroAgendamento}
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-        <button style={S.btnSecondary} onClick={onBack}>← Voltar</button>
+        <button style={S.btnSecondary} onClick={onBack} disabled={carregando}>← Voltar</button>
         <button
           style={{ ...S.btnPrimary, opacity: podeProsseguir && !carregando ? 1 : 0.4, cursor: podeProsseguir ? 'pointer' : 'not-allowed' }}
-          onClick={() => {
-            if (!podeProsseguir) return
-            if (metodo === 'cartao') { handleCartao(); return }
-            onNext()
-          }}
+          onClick={handleConfirmar}
           disabled={!podeProsseguir || carregando}
         >
           {carregando ? 'Processando...' : metodo === 'cartao' ? 'Pagar →' : 'Confirmar →'}
@@ -1108,6 +1151,83 @@ function Step5({
       </p>
     </div>
   )
+}
+
+// ── Função helper: salvar agendamento no backend ────────────────────────────
+
+async function salvarAgendamento(
+  step1: Partial<DadosStep1>,
+  step2: Partial<DadosStep2>,
+  step3: Partial<DadosStep3>,
+  metodoPagamento: MetodoPagamento | null,
+  desconto: number,
+  stripePaymentId?: string,
+  calBookingId?: string,
+  calBookingUid?: string,
+) {
+  const tiragem = TIRAGENS.find(t => t.id === step1.tiragemId)
+  const precoBRL = step1.urgencia ? precoComUrgencia(tiragem?.precoBRL ?? 0) : (tiragem?.precoBRL ?? 0)
+  const descontoValorBRL = precoBRL * (desconto / 100)
+  const totalBRL = precoBRL - descontoValorBRL
+
+  // Formata o contato completo (país + número para WhatsApp)
+  let contatoCompleto = step3.contatoWhatsapp ?? ''
+  if (step3.canal === 'whatsapp' && step3.contatoWhatsappPais) {
+    contatoCompleto = `${step3.contatoWhatsappPais}${step3.contatoWhatsapp}`
+  }
+
+  const payload = {
+    // Step 1
+    tiragemId: step1.tiragemId,
+    tiragemNome: tiragem?.nome,
+    idioma: step1.idioma,
+    urgencia: step1.urgencia,
+    moeda: step1.moeda,
+    precoBrl: precoBRL,
+    cupomCodigo: step3.cupom,
+    cupomDesconto: desconto,
+    totalBrl: totalBRL,
+    // Step 2
+    dataAgendada: step2.data,
+    horaLisboa: step2.hora ?? null,
+    periodo: step2.periodo ?? null,
+    fusoCliente: step2.fusoTz,
+    // Step 3
+    nome: step3.nome,
+    email: step3.email,
+    canal: step3.canal,
+    contato: contatoCompleto,
+    indicadoPor: step3.indicadoPor,
+    nota: step3.nota,
+    // Step 4
+    metodoPagamento,
+    stripePaymentId,
+    // Cal.eu
+    calBookingId,
+    calBookingUid,
+  }
+
+  try {
+    const res = await fetch('/api/agendamentos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      console.error('[CLIENTE] Erro ao salvar agendamento:', data)
+      throw new Error(data.error || data.detail || 'Erro ao processar agendamento')
+    }
+
+    console.log('[CLIENTE] Agendamento salvo com sucesso:', data)
+    return data
+  } catch (error) {
+    console.error('[CLIENTE] Falha na requisição:', error)
+    throw error
+  }
 }
 
 // ── Wizard principal ──────────────────────────────────────────────────────────
@@ -1200,6 +1320,7 @@ export default function BookingWizard() {
         {step === 3 && (
           <Step4
             step1={step1}
+            step2={step2}
             step3={step3}
             desconto={desconto}
             metodo={metodo}
