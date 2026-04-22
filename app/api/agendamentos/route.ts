@@ -6,15 +6,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
-function logInfo(step: string, data: any) {
-  console.log(`[AGENDAMENTOS] ${new Date().toISOString()} | ${step}`, 
+function logInfo(step: string, data: unknown) {
+  console.log(`[AGENDAMENTOS] ${new Date().toISOString()} | ${step}`,
     typeof data === 'string' ? data : JSON.stringify(data, null, 2))
 }
 
-function logError(step: string, error: any) {
-  console.error(`[AGENDAMENTOS_ERROR] ${new Date().toISOString()} | ${step}`, 
-    error instanceof Error 
-      ? { message: error.message, stack: error.stack } 
+function logError(step: string, error: unknown) {
+  console.error(`[AGENDAMENTOS_ERROR] ${new Date().toISOString()} | ${step}`,
+    error instanceof Error
+      ? { message: error.message, stack: error.stack }
       : JSON.stringify(error, null, 2))
 }
 

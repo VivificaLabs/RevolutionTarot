@@ -7,15 +7,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
-function logInfo(step: string, data: any) {
-  console.log(`[UPDATE_CAL] ${new Date().toISOString()} | ${step}`, 
+function logInfo(step: string, data: unknown) {
+  console.log(`[UPDATE_CAL] ${new Date().toISOString()} | ${step}`,
     typeof data === 'string' ? data : JSON.stringify(data, null, 2))
 }
 
-function logError(step: string, error: any) {
-  console.error(`[UPDATE_CAL_ERROR] ${new Date().toISOString()} | ${step}`, 
-    error instanceof Error 
-      ? { message: error.message, stack: error.stack } 
+function logError(step: string, error: unknown) {
+  console.error(`[UPDATE_CAL_ERROR] ${new Date().toISOString()} | ${step}`,
+    error instanceof Error
+      ? { message: error.message, stack: error.stack }
       : JSON.stringify(error, null, 2))
 }
 
@@ -37,15 +37,13 @@ export async function PATCH(req: NextRequest) {
     // Atualiza o agendamento com os IDs do Cal.eu
     logInfo('AGENDAMENTO_UPDATE_START', { agendamentoId })
 
-    const { data, error: erroUpdate } = await supabase
+    const { error: erroUpdate } = await supabase
       .from('agendamentos')
       .update({
         cal_booking_id: calBookingId,
         cal_booking_uid: calBookingUid,
       })
       .eq('id', agendamentoId)
-      .select('id')
-      .single()
 
     if (erroUpdate) {
       logError('AGENDAMENTO_UPDATE_FAILED', erroUpdate)

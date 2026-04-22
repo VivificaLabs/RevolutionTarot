@@ -9,15 +9,15 @@ import { NextRequest, NextResponse } from 'next/server'
 const CAL_TOKEN = process.env.CAL_API_KEY!
 const CAL_BASE  = process.env.CAL_API_BASE_URL ?? 'https://api.cal.eu'
 
-function logInfo(step: string, data: any) {
-  console.log(`[CAL_SLOTS] ${new Date().toISOString()} | ${step}`, 
+function logInfo(step: string, data: unknown) {
+  console.log(`[CAL_SLOTS] ${new Date().toISOString()} | ${step}`,
     typeof data === 'string' ? data : JSON.stringify(data, null, 2))
 }
 
-function logError(step: string, error: any) {
-  console.error(`[CAL_SLOTS_ERROR] ${new Date().toISOString()} | ${step}`, 
-    error instanceof Error 
-      ? { message: error.message, stack: error.stack } 
+function logError(step: string, error: unknown) {
+  console.error(`[CAL_SLOTS_ERROR] ${new Date().toISOString()} | ${step}`,
+    error instanceof Error
+      ? { message: error.message, stack: error.stack }
       : JSON.stringify(error, null, 2))
 }
 
