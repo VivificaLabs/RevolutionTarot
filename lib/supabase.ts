@@ -4,25 +4,16 @@
 
 import { createClient } from '@supabase/supabase-js'
 
-// Lazy singleton — inicializado apenas na primeira chamada (não no build)
-let _client: ReturnType<typeof createClient> | null = null
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const key = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-function getClient() {
-  if (!_client) {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!url || !key) {
-      throw new Error('Variáveis NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY não definidas.')
-    }
-    _client = createClient(url, key, { auth: { persistSession: false } })
-  }
-  return _client
+if (!url || !key) {
+  throw new Error('Variáveis NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY não definidas.')
 }
 
-export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
-  get(_target, prop) {
-    return (getClient() as Record<string | symbol, unknown>)[prop]
-  },
+// Singleton — reutiliza a mesma instância em toda a aplicação
+export const supabase = createClient(url, key, {
+  auth: { persistSession: false },
 })
 
 // ── Tipos espelho das tabelas ─────────────────────────────────
