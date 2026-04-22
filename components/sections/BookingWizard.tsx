@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   TIRAGENS, IDIOMAS, FUSOS, HORARIOS_AO_VIVO_LISBOA, PERIODOS_URGENCIA,
   SIMBOLOS, metodosPorMoeda,
@@ -8,6 +8,31 @@ import {
   type Moeda, type Idioma, type Canal, type MetodoPagamento,
   type DadosStep1, type DadosStep2, type DadosStep3,
 } from '@/lib/booking'
+
+// ── Configuração ──────────────────────────────────────────────────────────────
+//
+// NEXT_PUBLIC_ENABLE_STRIPE: define se Stripe (Cartão de Crédito) está habilitado
+//   - true: mostra opção de pagamento por Cartão
+//   - false (padrão): oculta Cartão, deixa apenas Pix e Revolut
+//
+// Usar em .env.local:
+//   NEXT_PUBLIC_ENABLE_STRIPE=true
+
+const STRIPE_ENABLED = process.env.NEXT_PUBLIC_ENABLE_STRIPE === 'true'
+
+// ── Cal.eu Event Types ────────────────────────────────────────────────────────
+//
+// Mapeamento de tipos de evento para IDs numéricos no Cal.eu
+// Atualizar com os IDs corretos do seu workspace Cal.eu
+//
+// IMPORTANTE: obter IDs em https://cal.eu/admin/apps/installed/cal-com
+// ou via API: GET /v2/event-types
+
+const CAL_EVENT_TYPES = {
+  'tiragem-padrao': parseInt(process.env.NEXT_PUBLIC_CAL_ET_PADRAO || '1'),
+  'tiragem-urgente': parseInt(process.env.NEXT_PUBLIC_CAL_ET_URGENTE || '2'),
+  'ao-vivasso': parseInt(process.env.NEXT_PUBLIC_CAL_ET_AO_VIVO || '3'),
+}
 
 // ── Estilos base reutilizáveis ────────────────────────────────────────────────
 
@@ -397,6 +422,43 @@ function Step2({
   const urgencia = step1.urgencia ?? false
   const precoBRL = urgencia ? precoComUrgencia(tiragem?.precoBRL ?? 0) : (tiragem?.precoBRL ?? 0)
   const fuso = FUSOS.find(f => f.tz === (dados.fusoTz ?? 'Europe/Lisbon')) ?? FUSOS[0]
+  const ehRegular = !tiragem?.aoVivo && !urgencia
+
+  const [slots, setSlots] = useState<string[]>([])
+  const [slotsCarregando, setSlotsCarregando] = useState(false)
+  const [slotsErro, setSlotsErro] = useState('')
+
+  useEffect(() => {
+    if (!ehRegular || !dados.data) { setSlots([]); return }
+    const id = CAL_EVENT_TYPES['tiragem-padrao']
+    setSlotsCarregando(true)
+    setSlotsErro('')
+    setSlots([])
+    fetch(`/api/cal/slots?eventTypeId=${id}&data=${dados.data}`)
+      .then(r => r.json())
+      .then(d => {
+        console.log('[CLIENTE_SLOTS] resposta da API:', d)
+        if (d.error) setSlotsErro(d.error)
+        else setSlots(d.slots ?? [])
+      })
+      .catch(() => setSlotsErro('Erro ao buscar horários disponíveis'))
+      .finally(() => setSlotsCarregando(false))
+  }, [dados.data, ehRegular]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Agrupa slots disponíveis em Manhã / Tarde / Noite (hora Lisboa)
+  const slotsPorPeriodo = [
+    { label: 'Manhã', de: 6,  ate: 12 },
+    { label: 'Tarde', de: 12, ate: 18 },
+    { label: 'Noite', de: 18, ate: 24 },
+  ].map(p => {
+    const disponiveis = slots.filter(s => {
+      const h = parseInt(new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Europe/Lisbon', hour: 'numeric', hour12: false,
+      }).format(new Date(s)))
+      return h >= p.de && h < p.ate
+    })
+    return { label: p.label, primeiroSlot: disponiveis[0] ?? null }
+  }).filter(p => p.primeiroSlot !== null)
 
   // Dias permitidos
   const hoje = new Date()
@@ -433,8 +495,8 @@ function Step2({
 
   const dataSel = dados.data ?? null
   const tudo = !!dataSel && (
-    !tiragem?.aoVivo && !urgencia
-      ? true
+    ehRegular
+      ? !!dados.slotISO
       : !!(dados.hora !== null && dados.hora !== undefined) || !!dados.periodo
   )
 
@@ -470,7 +532,7 @@ function Step2({
         <select
           style={S.select}
           value={dados.fusoTz ?? 'Europe/Lisbon'}
-          onChange={e => onChange({ ...dados, fusoTz: e.target.value, hora: null, periodo: null })}
+          onChange={e => onChange({ ...dados, fusoTz: e.target.value, hora: null, periodo: null, slotISO: null })}
         >
           {FUSOS.map(f => (
             <option key={f.tz} value={f.tz}>{f.label}</option>
@@ -507,7 +569,7 @@ function Step2({
                 return (
                   <div
                     key={di}
-                    onClick={() => disponivel && onChange({ ...dados, data: iso, hora: null, periodo: null })}
+                    onClick={() => disponivel && onChange({ ...dados, data: iso, hora: null, periodo: null, slotISO: null })}
                     style={{
                       textAlign: 'center',
                       padding: '10px 4px',
@@ -564,6 +626,55 @@ function Step2({
               )
             })}
           </div>
+        </div>
+      )}
+
+      {/* Slots Cal.eu — Tiragens regulares */}
+      {dataSel && ehRegular && (
+        <div style={S.fieldGroup}>
+          <label style={S.label}>Período preferido (Lisboa)</label>
+          {slotsCarregando && (
+            <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>Buscando horários...</div>
+          )}
+          {slotsErro && (
+            <div style={{ fontSize: '0.72rem', color: 'var(--magenta)' }}>⚠️ {slotsErro}</div>
+          )}
+          {!slotsCarregando && !slotsErro && slotsPorPeriodo.length === 0 && (
+            <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>Nenhum horário disponível para este dia.</div>
+          )}
+          {!slotsCarregando && slotsPorPeriodo.length > 0 && (
+            <>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {slotsPorPeriodo.map(({ label, primeiroSlot }) => {
+                  const sel = dados.slotISO === primeiroSlot
+                  return (
+                    <button
+                      key={label}
+                      onClick={() => onChange({ ...dados, slotISO: primeiroSlot })}
+                      style={{
+                        background: sel ? 'var(--cyan)' : 'transparent',
+                        color: sel ? 'var(--bg)' : 'var(--muted)',
+                        border: `1px solid ${sel ? 'var(--cyan)' : 'var(--border)'}`,
+                        padding: '10px 20px',
+                        fontFamily: "'Space Mono', monospace",
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      {label}
+                    </button>
+                  )
+                })}
+              </div>
+              {dados.slotISO && (
+                <div style={{ fontSize: '0.68rem', color: 'var(--magenta)', marginTop: 10, lineHeight: 1.5 }}>
+                  ⚠️ Horário preferencial — não há garantia de entrega nesse período. A tiragem será entregue com certeza até as 23h de Lisboa do dia selecionado.
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
 
@@ -828,6 +939,7 @@ function Step3({
 
 function Step4({
   step1,
+  step2,
   step3,
   desconto,
   onNext,
@@ -836,6 +948,7 @@ function Step4({
   metodo,
 }: {
   step1: Partial<DadosStep1>
+  step2: Partial<DadosStep2>
   step3: Partial<DadosStep3>
   desconto: number
   onNext: () => void
@@ -852,38 +965,96 @@ function Step4({
 
   const [cartao, setCartao] = useState({ numero: '', validade: '', cvv: '' })
   const [carregando, setCarregando] = useState(false)
-  const [erroStripe, setErroStripe] = useState('')
+  const [erro, setErro] = useState('')
 
-  // Métodos disponíveis para a moeda selecionada
-  const metodosDisponiveis = metodosPorMoeda(moeda)
+  // Métodos disponíveis para a moeda selecionada, respeitando flags de feature
+  const metodosDisponivelsPorMoeda = metodosPorMoeda(moeda)
+  const metodosDisponiveis = STRIPE_ENABLED 
+    ? metodosDisponivelsPorMoeda 
+    : metodosDisponivelsPorMoeda.filter(m => m !== 'cartao')
   
   // Se o método selecionado deixou de estar disponível, reseta a seleção
   if (metodo && !metodosDisponiveis.includes(metodo)) {
     onMetodo(null)
   }
 
-  async function handleCartao() {
-    setCarregando(true)
-    setErroStripe('')
+  async function confirmarFluxo() {
+    // 1. CRIAR EVENTO NO CAL.EU FIRST (obrigatório)
+    console.log('[STEP4_FLUXO] Etapa 1/3: Criando evento no Cal.eu...')
+    let calIds = { calBookingId: undefined, calBookingUid: undefined }
     try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          valorBRL: totalBRL,
-          moeda,
-          descricao: `${tiragem?.nome} — Revolution Tarot`,
-          email: step3.email,
-          nome: step3.nome,
-        }),
-      })
-      const data = await res.json()
-      if (data.error) { setErroStripe(data.error); return }
-      // Em produção: usar @stripe/stripe-js para confirmar com data.clientSecret
-      // Por ora avança para confirmação
+      calIds = await criarEventoCaleu(step1, step2, step3)
+      console.log('[STEP4_FLUXO] ✅ Cal.eu sucesso:', calIds)
+    } catch (erroCaleu) {
+      console.error('[STEP4_FLUXO] ❌ Cal.eu falhou (bloqueando):', erroCaleu)
+      const msg = erroCaleu instanceof Error ? erroCaleu.message : 'erro desconhecido'
+      setErro(`Erro ao criar evento no calendário: ${msg}`)
+      throw erroCaleu
+    }
+
+    // 2. PROCESSAR PAGAMENTO (se Cartão E Stripe habilitado)
+    let stripePaymentId: string | undefined = undefined
+    if (STRIPE_ENABLED && metodo === 'cartao') {
+      console.log('[STEP4_FLUXO] Etapa 2/3: Processando pagamento Stripe...')
+      try {
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            valorBRL: totalBRL,
+            moeda,
+            descricao: `${tiragem?.nome} — Revolution Tarot`,
+            email: step3.email,
+            nome: step3.nome,
+          }),
+        })
+        const data = await res.json()
+        if (data.error) {
+          console.error('[STEP4_FLUXO] ❌ Stripe falhou:', data.error)
+          throw new Error(data.error)
+        }
+        stripePaymentId = data.paymentId
+        console.log('[STEP4_FLUXO] ✅ Stripe sucesso:', { stripePaymentId })
+      } catch (erroStripe) {
+        console.error('[STEP4_FLUXO] ❌ Pagamento falhou (bloqueando):', erroStripe)
+        const msg = erroStripe instanceof Error ? erroStripe.message : 'erro desconhecido'
+        setErro(`Erro ao processar pagamento: ${msg}`)
+        throw erroStripe
+      }
+    } else {
+      console.log('[STEP4_FLUXO] Etapa 2/3: Pulando (método Pix/Revolut)')
+    }
+
+    // 3. SALVAR AGENDAMENTO EM SUPABASE
+    console.log('[STEP4_FLUXO] Etapa 3/3: Salvando agendamento em Supabase...')
+    try {
+      await salvarAgendamento(
+        step1, step2, step3,
+        metodo, desconto,
+        stripePaymentId,
+        calIds.calBookingId,
+        calIds.calBookingUid
+      )
+      console.log('[STEP4_FLUXO] ✅ Supabase sucesso, avançando para Step5')
       onNext()
-    } catch {
-      setErroStripe('Erro ao processar pagamento. Tente novamente.')
+    } catch (erroSupabase) {
+      console.error('[STEP4_FLUXO] ❌ Supabase falhou (bloqueando):', erroSupabase)
+      const msg = erroSupabase instanceof Error ? erroSupabase.message : 'erro desconhecido'
+      setErro(`Erro ao salvar agendamento: ${msg}`)
+      throw erroSupabase
+    }
+  }
+
+  async function handleConfirmar() {
+    if (!podeProsseguir) return
+
+    setCarregando(true)
+    setErro('')
+
+    try {
+      await confirmarFluxo()
+    } catch (erro) {
+      console.error('[STEP4_FLUXO] Fluxo abortado em erro:', erro)
     } finally {
       setCarregando(false)
     }
@@ -967,7 +1138,7 @@ function Step4({
       )}
 
       {/* Cartão */}
-      {metodosDisponiveis.includes('cartao') && (
+      {STRIPE_ENABLED && metodosDisponiveis.includes('cartao') && (
         <div
           style={{
             ...S.card,
@@ -1014,23 +1185,22 @@ function Step4({
                   onChange={e => setCartao(c => ({ ...c, cvv: e.target.value }))}
                 />
               </div>
-              {erroStripe && (
-                <div style={{ fontSize: '0.72rem', color: 'var(--magenta)' }}>{erroStripe}</div>
-              )}
             </div>
           )}
         </div>
       )}
 
+      {erro && (
+        <div style={{ fontSize: '0.72rem', color: 'var(--magenta)', marginBottom: 12 }}>
+          ⚠️ {erro}
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-        <button style={S.btnSecondary} onClick={onBack}>← Voltar</button>
+        <button style={S.btnSecondary} onClick={onBack} disabled={carregando}>← Voltar</button>
         <button
           style={{ ...S.btnPrimary, opacity: podeProsseguir && !carregando ? 1 : 0.4, cursor: podeProsseguir ? 'pointer' : 'not-allowed' }}
-          onClick={() => {
-            if (!podeProsseguir) return
-            if (metodo === 'cartao') { handleCartao(); return }
-            onNext()
-          }}
+          onClick={handleConfirmar}
           disabled={!podeProsseguir || carregando}
         >
           {carregando ? 'Processando...' : metodo === 'cartao' ? 'Pagar →' : 'Confirmar →'}
@@ -1108,6 +1278,182 @@ function Step5({
       </p>
     </div>
   )
+}
+
+// Converte hora local de Lisboa (number) + data (YYYY-MM-DD) para ISO UTC
+// Usa Intl para calcular o offset correto incluindo DST automaticamente
+function lisboaHoraParaISO(data: string, horaLisboa: number): string {
+  const probe = new Date(`${data}T12:00:00Z`)
+  const horaProbeEmLisboa = parseInt(
+    new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Lisbon', hour: 'numeric', hour12: false }).format(probe)
+  )
+  const offsetHoras = horaProbeEmLisboa - 12 // +1 no verão, 0 no inverno
+  const horaUTC = ((horaLisboa - offsetHoras) % 24 + 24) % 24
+  return `${data}T${String(horaUTC).padStart(2, '0')}:00:00.000Z`
+}
+
+// ── Função helper: criar evento no Cal.eu ────────────────────────────────
+
+async function criarEventoCaleu(
+  step1: Partial<DadosStep1>,
+  step2: Partial<DadosStep2>,
+  step3: Partial<DadosStep3>,
+) {
+  try {
+    const tiragem = TIRAGENS.find(t => t.id === step1.tiragemId)
+    if (!tiragem) {
+      throw new Error(`Tiragem não encontrada: ${step1.tiragemId}`)
+    }
+
+    // Seleciona o eventTypeId baseado em tipo de tiragem e urgência
+    let tipoEvento: 'ao-vivasso' | 'tiragem-urgente' | 'tiragem-padrao'
+    
+    if (tiragem.aoVivo) {
+      tipoEvento = 'ao-vivasso'
+    } else if (step1.urgencia) {
+      tipoEvento = 'tiragem-urgente'
+    } else {
+      tipoEvento = 'tiragem-padrao'
+    }
+
+    const eventTypeId = CAL_EVENT_TYPES[tipoEvento]
+
+    if (!eventTypeId) {
+      throw new Error(`EventTypeId não configurado para tipo: ${tipoEvento}`)
+    }
+
+    // Monta o startTime para o Cal.eu:
+    // - Tiragem regular: usa slotISO retornado pelo /api/cal/slots (já em UTC)
+    // - Ao vivo / urgente: converte hora Lisboa → UTC
+    let startTime: string
+    if (step2.slotISO) {
+      startTime = step2.slotISO
+    } else if (step2.hora !== null && step2.hora !== undefined) {
+      startTime = lisboaHoraParaISO(step2.data!, step2.hora)
+    } else {
+      throw new Error('Horário não selecionado')
+    }
+
+    console.log('[CLIENTE_CAL] Criando evento Cal.eu', {
+      tipoEvento,
+      eventTypeId,
+      startTime,
+      nome: step3.nome,
+      email: step3.email,
+      tiragem: tiragem.nome,
+      urgencia: step1.urgencia,
+    })
+
+    const res = await fetch('/api/cal/agendar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        eventTypeId,
+        startTime,
+        nome: step3.nome,
+        email: step3.email,
+        idioma: step1.idioma,
+        tiragem: tiragem.nome,
+        urgencia: step1.urgencia,
+        nota: step3.nota,
+        fusoCliente: step2.fusoTz,
+      }),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      console.error('[CLIENTE_CAL] Erro ao criar evento:', data)
+      throw new Error(data.error || data.detail || 'Erro ao criar evento Cal.eu')
+    }
+
+    console.log('[CLIENTE_CAL] Evento criado com sucesso:', data)
+    return {
+      calBookingId: data.bookingId,
+      calBookingUid: data.bookingUid,
+    }
+  } catch (error) {
+    console.error('[CLIENTE_CAL] Falha ao criar evento:', error)
+    throw error
+  }
+}
+
+// ── Função helper: salvar agendamento no backend ────────────────────────────
+
+async function salvarAgendamento(
+  step1: Partial<DadosStep1>,
+  step2: Partial<DadosStep2>,
+  step3: Partial<DadosStep3>,
+  metodoPagamento: MetodoPagamento | null,
+  desconto: number,
+  stripePaymentId?: string,
+  calBookingId?: string,
+  calBookingUid?: string,
+) {
+  const tiragem = TIRAGENS.find(t => t.id === step1.tiragemId)
+  const precoBRL = step1.urgencia ? precoComUrgencia(tiragem?.precoBRL ?? 0) : (tiragem?.precoBRL ?? 0)
+  const descontoValorBRL = precoBRL * (desconto / 100)
+  const totalBRL = precoBRL - descontoValorBRL
+
+  // Formata o contato completo (país + número para WhatsApp)
+  let contatoCompleto = step3.contatoWhatsapp ?? ''
+  if (step3.canal === 'whatsapp' && step3.contatoWhatsappPais) {
+    contatoCompleto = `${step3.contatoWhatsappPais}${step3.contatoWhatsapp}`
+  }
+
+  const payload = {
+    // Step 1
+    tiragemId: step1.tiragemId,
+    tiragemNome: tiragem?.nome,
+    idioma: step1.idioma,
+    urgencia: step1.urgencia,
+    moeda: step1.moeda,
+    precoBrl: precoBRL,
+    cupomCodigo: step3.cupom,
+    cupomDesconto: desconto,
+    totalBrl: totalBRL,
+    // Step 2
+    dataAgendada: step2.data,
+    horaLisboa: step2.hora ?? null,
+    periodo: step2.periodo ?? null,
+    fusoCliente: step2.fusoTz,
+    // Step 3
+    nome: step3.nome,
+    email: step3.email,
+    canal: step3.canal,
+    contato: contatoCompleto,
+    indicadoPor: step3.indicadoPor,
+    nota: step3.nota,
+    // Step 4
+    metodoPagamento,
+    stripePaymentId,
+    // Cal.eu
+    calBookingId,
+    calBookingUid,
+  }
+
+  try {
+    const res = await fetch('/api/agendamentos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      console.error('[CLIENTE] Erro ao salvar agendamento:', data)
+      throw new Error(data.error || data.detail || 'Erro ao processar agendamento')
+    }
+
+    console.log('[CLIENTE] Agendamento salvo com sucesso:', data)
+    return data
+  } catch (error) {
+    console.error('[CLIENTE] Falha na requisição:', error)
+    throw error
+  }
 }
 
 // ── Wizard principal ──────────────────────────────────────────────────────────
@@ -1200,6 +1546,7 @@ export default function BookingWizard() {
         {step === 3 && (
           <Step4
             step1={step1}
+            step2={step2}
             step3={step3}
             desconto={desconto}
             metodo={metodo}
