@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia de Personalidade — Revolution Tarot</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #240321;
+  --surface: #1a0218;
+  --card:    #1e0420;
+  --ink:     #f0e6d3;
+  --muted:   #a89090;
+  --cyan:    #00f5d4;
+  --magenta: #ff2d78;
+  --gold:    #c9a84c;
+  --border:  rgba(0, 245, 212, 0.15);
+  --border2: rgba(201, 168, 76, 0.2);
+  --faint:   rgba(0, 245, 212, 0.35);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Space Mono', monospace;
+  font-weight: 400;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: crosshair;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent, transparent 2px,
+    rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 998;
+}
+
+.bg-grid {
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,245,212,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,245,212,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0.3; }
+}
+@keyframes glitch {
+  0%,90%,100% { transform: translate(0); opacity: 0; }
+  92% { transform: translate(-2px,1px); opacity: 0.5; }
+  94% { transform: translate(2px,-1px); opacity: 0.5; }
+  96% { transform: translate(0); opacity: 0; }
+}
+@keyframes scanline {
+  0%   { top: -5%; }
+  100% { top: 105%; }
+}
+@keyframes spin {
+  from { transform: translate(-50%,-50%) rotate(0deg); }
+  to   { transform: translate(-50%,-50%) rotate(360deg); }
+}
+
+.wrap {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 80px 28px 100px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── COVER ── */
+.cover {
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 96px;
+  border: 1px solid var(--border);
+  padding: 64px 52px;
+  overflow: hidden;
+}
+
+.cover-scanline {
+  position: absolute; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0.4;
+  animation: scanline 7s linear infinite;
+  pointer-events: none;
+}
+
+.cover-glow-r {
+  position: absolute; top: -80px; right: -80px;
+  width: 480px; height: 480px;
+  background: radial-gradient(circle, rgba(255,45,120,0.08) 0%, transparent 65%);
+  pointer-events: none;
+}
+.cover-glow-l {
+  position: absolute; bottom: -60px; left: -60px;
+  width: 380px; height: 380px;
+  background: radial-gradient(circle, rgba(0,245,212,0.06) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.corner {
+  position: absolute;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.5rem;
+  color: var(--faint);
+  line-height: 1.3;
+  white-space: pre;
+  letter-spacing: 0.04em;
+}
+.c-tl { top: 14px; left: 16px; }
+.c-tr { top: 14px; right: 16px; text-align: right; }
+.c-bl { bottom: 14px; left: 16px; }
+.c-br { bottom: 14px; right: 16px; text-align: right; }
+
+.cover-eyebrow {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 36px;
+  animation: fadeUp 0.6s ease both;
+}
+.ey-line { width: 32px; height: 1px; background: var(--cyan); }
+.ey-text { font-size: 0.58rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cyan); }
+.ey-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--cyan); animation: pulse 2s ease-in-out infinite; }
+
+.cover-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(3rem, 7vw, 6rem);
+  font-weight: 300;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 8px;
+  animation: fadeUp 0.6s 0.08s ease both;
+  position: relative; display: inline-block;
+}
+.cover-title em { font-style: italic; color: var(--cyan); }
+.cover-title-glitch {
+  position: absolute; inset: 0;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: inherit; font-weight: inherit;
+  line-height: inherit; letter-spacing: inherit;
+  font-style: italic; color: var(--magenta);
+  animation: glitch 8s infinite;
+  pointer-events: none; white-space: nowrap;
+}
+
+.cover-sub {
+  font-size: 0.6rem; letter-spacing: 0.24em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 44px;
+  animation: fadeUp 0.6s 0.16s ease both;
+}
+
+.cover-doc {
+  border-left: 2px solid var(--gold);
+  padding-left: 18px; margin-bottom: 48px;
+  animation: fadeUp 0.6s 0.24s ease both;
+}
+.cover-doc-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  font-weight: 300; color: var(--ink); margin-bottom: 6px;
+}
+.cover-doc-desc { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.04em; line-height: 1.8; }
+
+.cover-tags {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  animation: fadeUp 0.6s 0.32s ease both;
+}
+.ctag {
+  font-size: 0.52rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 5px 12px;
+  border: 1px solid var(--border2);
+  color: var(--muted);
+}
+
+/* ── NAV ── */
+.nav {
+  position: sticky; top: 16px; z-index: 100;
+  display: flex; justify-content: center;
+  margin-bottom: 64px;
+}
+.nav-inner {
+  background: rgba(36,3,33,0.92);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  padding: 8px 20px;
+  display: flex; gap: 2px; flex-wrap: wrap; justify-content: center;
+}
+.nav-link {
+  color: var(--muted); text-decoration: none;
+  font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 5px 10px; transition: color 0.2s; font-weight: 700;
+}
+.nav-link:hover { color: var(--cyan); }
+
+/* ── SECTION ── */
+.section { margin-bottom: 80px; }
+
+.slabel {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+}
+.slabel-line { width: 24px; height: 1px; background: var(--cyan); flex-shrink: 0; }
+.slabel-text { font-size: 0.56rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cyan); }
+.slabel-num  { margin-left: auto; font-size: 0.56rem; letter-spacing: 0.1em; color: var(--faint); }
+
+.stitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 300; line-height: 1.1; color: var(--ink); margin-bottom: 8px;
+}
+.stitle em { font-style: italic; color: var(--gold); }
+.stitle strong { font-weight: 600; color: var(--magenta); font-style: normal; }
+
+.slead {
+  font-size: 0.7rem; color: var(--muted);
+  line-height: 1.9; max-width: 560px;
+  margin-bottom: 32px; letter-spacing: 0.02em;
+}
+
+.panel {
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,0.2);
+  padding: 28px 32px; position: relative; overflow: hidden;
+}
+.panel::before {
+  content: '';
+  position: absolute; top: -1px; left: 18px; right: 18px; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+}
+.panel.gold-top::before { background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+
+/* ── QUEM É ── */
+.who-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border);
+}
+.who-card {
+  background: var(--surface);
+  padding: 26px 22px;
+  transition: background 0.2s;
+}
+.who-card:hover { background: rgba(0,245,212,0.025); }
+.wc-num { font-size: 0.54rem; font-weight: 700; letter-spacing: 0.14em; color: var(--faint); margin-bottom: 10px; }
+.wc-name { font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; color: var(--cyan); margin-bottom: 7px; line-height: 1.2; }
+.wc-desc { font-size: 0.65rem; color: var(--muted); line-height: 1.75; }
+
+/* ── MANIFESTO ── */
+.manifesto-block {
+  border-left: 2px solid var(--gold);
+  padding: 28px 32px;
+  background: rgba(0,0,0,0.2);
+  margin-bottom: 2px;
+}
+.manifesto-block p {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: clamp(1.15rem, 2.5vw, 1.6rem);
+  font-weight: 300;
+  line-height: 1.5;
+  color: var(--ink);
+  margin-bottom: 18px;
+}
+.manifesto-block p:last-of-type { margin-bottom: 0; }
+.manifesto-block p em { color: var(--cyan); font-style: normal; }
+.manifesto-block p strong { color: var(--magenta); font-weight: 400; font-style: normal; }
+
+/* ── ARQUÉTIPO ── */
+.archetype-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.arch-card {
+  background: var(--surface);
+  padding: 28px 24px;
+  transition: background 0.2s;
+}
+.arch-card:hover { background: rgba(0,245,212,0.02); }
+.arch-label { font-size: 0.54rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--faint); margin-bottom: 10px; }
+.arch-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem; font-weight: 300; line-height: 1.1;
+  margin-bottom: 12px;
+}
+.arch-name em { color: var(--gold); font-style: italic; }
+.arch-name strong { color: var(--magenta); font-weight: 600; font-style: normal; }
+.arch-desc { font-size: 0.65rem; color: var(--muted); line-height: 1.8; }
+
+/* ── DIFERENCIAIS ── */
+.diff-list {
+  display: flex; flex-direction: column;
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border);
+}
+.diff-item {
+  background: var(--surface);
+  padding: 22px 24px;
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 18px;
+  align-items: start;
+  transition: background 0.2s;
+}
+.diff-item:hover { background: rgba(0,245,212,0.02); }
+.diff-num { font-size: 0.54rem; font-weight: 700; letter-spacing: 0.12em; color: var(--faint); padding-top: 2px; }
+.diff-content {}
+.diff-title { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 300; color: var(--ink); margin-bottom: 6px; }
+.diff-title em { color: var(--cyan); font-style: italic; }
+.diff-body { font-size: 0.65rem; color: var(--muted); line-height: 1.8; }
+.diff-body strong { color: var(--ink); font-weight: 400; }
+
+/* ── PUBLICO ── */
+.audience-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border);
+}
+.aud-card {
+  background: var(--surface);
+  padding: 26px 22px;
+  transition: background 0.2s;
+}
+.aud-card:hover { background: rgba(0,245,212,0.02); }
+.aud-tag { font-size: 0.52rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; padding: 4px 10px; border: 1px solid; display: inline-block; margin-bottom: 14px; }
+.aud-tag.tc { border-color: rgba(0,245,212,0.4); color: var(--cyan); }
+.aud-tag.tm { border-color: rgba(255,45,120,0.4); color: var(--magenta); }
+.aud-tag.tg { border-color: rgba(201,168,76,0.4); color: var(--gold); }
+.aud-who { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--ink); margin-bottom: 8px; font-weight: 300; }
+.aud-pain { font-size: 0.63rem; color: var(--muted); line-height: 1.8; }
+.aud-pain strong { color: var(--ink); font-weight: 400; }
+
+/* ── COMO NÃO COMO ── */
+.cnc-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border);
+}
+.cnc-col { background: var(--surface); }
+.cnc-hd {
+  padding: 12px 18px;
+  font-size: 0.54rem; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.cnc-yes .cnc-hd { color: var(--cyan); }
+.cnc-no  .cnc-hd { color: var(--magenta); }
+.cnc-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 11px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-size: 0.63rem; color: var(--muted); line-height: 1.6;
+  transition: background 0.15s;
+}
+.cnc-item:hover { background: rgba(255,255,255,0.01); }
+.cnc-item:last-child { border-bottom: none; }
+.cnc-item .mk { flex-shrink: 0; font-weight: 700; margin-top: 1px; }
+.cnc-yes .mk { color: var(--cyan); }
+.cnc-no  .mk { color: var(--magenta); }
+
+/* ── PERGUNTAS CAIXINHA ── */
+.q-grid {
+  display: flex; flex-direction: column;
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border);
+}
+.q-item {
+  background: var(--surface);
+  padding: 0;
+  overflow: hidden;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+.q-item:hover { background: rgba(0,245,212,0.015); }
+.q-header {
+  display: grid;
+  grid-template-columns: 52px 1fr 28px;
+  align-items: center;
+  gap: 0;
+  padding: 18px 20px;
+}
+.q-num {
+  font-size: 0.54rem; font-weight: 700;
+  letter-spacing: 0.12em; color: var(--faint);
+}
+.q-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem; font-weight: 300;
+  color: var(--ink); line-height: 1.3;
+}
+.q-arrow {
+  font-size: 0.6rem; color: var(--cyan);
+  transition: transform 0.3s ease;
+  text-align: center;
+}
+.q-item.open .q-arrow { transform: rotate(90deg); }
+.q-body {
+  display: none;
+  padding: 0 20px 18px 72px;
+}
+.q-item.open .q-body { display: block; }
+.q-why {
+  font-size: 0.63rem; color: var(--muted);
+  line-height: 1.85; border-left: 2px solid var(--border);
+  padding-left: 14px; margin-bottom: 12px;
+}
+.q-why strong { color: var(--ink); font-weight: 400; }
+.q-tag {
+  font-size: 0.52rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 4px 10px; border: 1px solid;
+  display: inline-block;
+}
+
+/* ── FOOTER ── */
+.footer {
+  margin-top: 80px; padding-top: 28px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between;
+  align-items: center; flex-wrap: wrap; gap: 12px;
+}
+.footer-brand {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic; font-size: 1.05rem;
+  font-weight: 600; color: var(--ink);
+}
+.footer-brand span { color: var(--cyan); }
+.footer-copy { font-size: 0.52rem; letter-spacing: 0.08em; color: rgba(168,144,144,0.4); }
+
+@media (max-width: 640px) {
+  body { cursor: auto; }
+  .cover { padding: 36px 22px; min-height: auto; }
+  .archetype-wrap { grid-template-columns: 1fr; }
+  .cnc-grid { grid-template-columns: 1fr; }
+  .q-header { grid-template-columns: 40px 1fr 24px; }
+  .q-body { padding-left: 54px; }
+  .panel { padding: 20px 16px; }
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="wrap">
+
+  <!-- COVER -->
+  <header class="cover">
+    <div class="cover-glow-r"></div>
+    <div class="cover-glow-l"></div>
+    <div class="cover-scanline"></div>
+
+    <div class="corner c-tl">REV//TAR&#10;PERS.DOC</div>
+    <div class="corner c-tr">V.2025&#10;DRAFT</div>
+    <div class="corner c-bl">∞ sys&#10;online</div>
+    <div class="corner c-br">01–08&#10;∆∇</div>
+
+    <div class="cover-eyebrow">
+      <div class="ey-line"></div>
+      <span class="ey-text">Revolution Tarot · Guia de Personalidade · Status: ONLINE</span>
+      <div class="ey-dot"></div>
+    </div>
+
+    <div style="position:relative;display:inline-block;">
+      <div class="cover-title">Quem é<br><em>essa marca.</em></div>
+      <div class="cover-title-glitch" aria-hidden="true">Quem é essa marca.</div>
+    </div>
+    <div class="cover-sub">// personalidade · posicionamento · arquétipo · público</div>
+
+    <div class="cover-doc">
+      <div class="cover-doc-title">Para você entender — e explicar — quem você é sem depender de terceiros pra contar.</div>
+      <div class="cover-doc-desc">
+        Diferente do guia de tom de voz (como você fala) e do visual (como você aparece),<br>
+        este guia responde a pergunta mais difícil: <strong style="color:var(--ink);">quem você é</strong> e por que isso importa.
+      </div>
+    </div>
+
+    <div class="cover-tags">
+      <span class="ctag">Taróloga de Exatas</span>
+      <span class="ctag">Lógica + Intuição</span>
+      <span class="ctag">Carreira Feminina</span>
+      <span class="ctag">Autoconfiança Real</span>
+      <span class="ctag">Espiritualidade Sem Bullshit</span>
+    </div>
+  </header>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="nav-link" href="#manifesto">Manifesto</a>
+      <a class="nav-link" href="#arquetipo">Arquétipo</a>
+      <a class="nav-link" href="#quem-e">Quem é</a>
+      <a class="nav-link" href="#diferenciais">Diferenciais</a>
+      <a class="nav-link" href="#publico">Público</a>
+      <a class="nav-link" href="#como-nao">Como & Não como</a>
+      <a class="nav-link" href="#caixinha">Caixinha</a>
+      <a class="nav-link" href="#persona">Persona</a>
+    </div>
+  </nav>
+
+  <!-- 01. MANIFESTO -->
+  <section class="section" id="manifesto">
+    <div class="slabel">
+      <div class="slabel-line"></div>
+      <span class="slabel-text">01 — Manifesto</span>
+      <span class="slabel-num">// 01</span>
+    </div>
+    <h2 class="stitle">O que essa marca<br><em>acredita de verdade.</em></h2>
+    <p class="slead">Não é slogan. É o que fica quando você tira tudo que é estratégia de marketing e sobra só o que é real.</p>
+
+    <div class="manifesto-block">
+      <p>Eu não precisei escolher entre o caderno de cálculo e o baralho de cartas. <em>Eu sou os dois.</em></p>
+      <p>Tarot não é sobre acreditar cegamente. É sobre usar um espelho pra enxergar o que você já sabe, mas tem medo de admitir.</p>
+      <p>E carreira, autoestima, dinheiro, propósito — isso não fica do lado de fora da espiritualidade. <em>Isso é espiritualidade.</em></p>
+      <p>Eu acredito que mulher que pensa também sente. Que ser analítica e ser intuitiva não são opostos — são superpoderes que funcionam melhor juntos.</p>
+      <p><strong>Revolution não é sobre derrubar nada.</strong> É sobre parar de fingir que você precisa ser menos de alguma coisa pra ser aceita em qualquer lugar.</p>
+    </div>
+
+    <div class="panel" style="margin-bottom:2px;">
+      <p style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--faint);margin-bottom:14px;">// A contradição que é o coração da marca</p>
+      <p style="font-size:0.68rem;color:var(--muted);line-height:1.9;letter-spacing:0.02em;">
+        O site cita Matrix. A taróloga é de exatas. A fonte é monospace. Não é branding forçado — é <strong style="color:var(--ink);font-weight:400;">quem ela é</strong>. Essa marca existe porque uma pessoa real viveu essa tensão e decidiu não resolver: lógica e intuição podem coexistir. E mais do que coexistir — uma potencializa a outra. Essa é a premissa central. <strong style="color:var(--ink);font-weight:400;">Sem contradição.</strong>
+      </p>
+    </div>
+
+    <div class="panel">
+      <p style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--faint);margin-bottom:14px;">// A declaração de intenção — pelo que essa marca quer ser reconhecida</p>
+      <p style="font-size:0.68rem;color:var(--muted);line-height:1.9;letter-spacing:0.02em;">
+        Ajudar mulheres a se sentirem <strong style="color:var(--ink);font-weight:400;">autoconfiantes e com domínio da própria situação</strong>. Que tenham coragem de tomar as decisões que melhor as beneficiam. Que ajam mesmo quando o medo trava internamente. Que não hesitem em falar seus pontos de vista nas situações que as prejudicam ou desconfortam. Com o tarot como ferramenta: <strong style="color:var(--ink);font-weight:400;">visualizar os obstáculos invisíveis, encarar crenças prejudiciais de frente</strong> — e encontrar o caminho de atravessá-las. Uma consulta terapêutica que transforma bases, mas com aspectos práticos que podem ser aplicados no dia a dia, respeitando as limitações e o contexto social de cada consulente.
+      </p>
+    </div>
+  </section>
+
+  <!-- 02. ARQUÉTIPO -->
+  <section class="section" id="arquetipo">
+    <div class="slabel">
+      <div class="slabel-line"></div>
+      <span class="slabel-text">02 — Arquétipo de marca</span>
+      <span class="slabel-num">// 02</span>
+    </div>
+    <h2 class="stitle">Quem ela é<br><em>na estrutura profunda.</em></h2>
+    <p class="slead">Arquetipos não são rótulos — são padrões de como uma marca se relaciona com as pessoas. Revolution Tarot tem dois arquétipos em tensão criativa.</p>
+
+    <div class="archetype-wrap">
+      <div class="arch-card">
+        <div class="arch-label">// Arquétipo primário</div>
+        <div class="arch-name">A <em>Sábia</em></div>
+        <div class="arch-desc">
+          Fala com clareza. Não romantiza. Entrega verdades sem embrulho de algodão. A Sábia não cria dependência — ela transfere poder. Cada leitura termina com a consulente mais capaz de tomar suas próprias decisões, não mais viciada nas cartas. É a taróloga que explica o porquê, que conecta a carta com o contexto real de vida, que não foge de responder direto.
+        </div>
+      </div>
+      <div class="arch-card">
+        <div class="arch-label">// Arquétipo secundário</div>
+        <div class="arch-name">A <em>Revolucionária</em></div>
+        <div class="arch-desc">
+          Quebra o que não serve. A Revolucionária recusa a dicotomia falsa: racional <em>ou</em> espiritual, carreira <em>ou</em> propósito, séria <em>ou</em> sensível. Não é agressiva — é <strong style="color:var(--ink);font-weight:400;">inegociável</strong> nos seus valores. Faz perguntas que incomodam. Ocupa espaços onde as pessoas de exatas não costumam entrar e os esotéricos não costumam chegar. É onde está o branco no mapa.
+        </div>
+      </div>
+    </div>
+
+    <div class="panel gold-top">
+      <p style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:rgba(201,168,76,0.55);margin-bottom:14px;">// O que NÃO é o arquétipo desta marca</p>
+      <div style="display:flex;flex-direction:column;gap:0;">
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.63rem;color:var(--muted);line-height:1.6;">
+          <span style="color:var(--magenta);font-weight:700;flex-shrink:0;margin-top:1px;">✗</span><div>A Cuidadora — não é só acolhimento, não é só conforto. O calor existe mas não é o centro; o centro é a clareza.</div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.63rem;color:var(--muted);line-height:1.6;">
+          <span style="color:var(--magenta);font-weight:700;flex-shrink:0;margin-top:1px;">✗</span><div>A Maga — não tem misticismo decorativo, não tem "faça sua manifestação", não tem promessa de que o universo conspira se você comprar o pacote.</div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;font-size:0.63rem;color:var(--muted);line-height:1.6;">
+          <span style="color:var(--magenta);font-weight:700;flex-shrink:0;margin-top:1px;">✗</span><div>A Heroína — não é sobre ela. A narrativa não é "olha o que eu superei". É sobre transferir a capacidade de superar pras consulentes.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03. QUEM É ── -->
+  <section class="section" id="quem-e">
+    <div class="slabel">
+      <div class="slabel-line"></div>
+      <span class="slabel-text">03 — Os quatro pilares de quem ela é</span>
+      <span class="slabel-num">// 03</span>
+    </div>
+    <h2 class="stitle">Quatro facetas.<br><em>Uma só marca.</em></h2>
+    <p class="slead">Cada faceta informa decisões de conteúdo, de comunicação e de posicionamento. Se uma ação não reflete pelo menos uma delas, não é da marca.</p>
+
+    <div class="who-grid">
+      <div class="who-card">
+        <div class="wc-num">// I</div>
+        <div class="wc-name">A Analítica Intuitiva</div>
+        <div class="wc-desc">Lê cartas como quem analisa dados — sem abrir mão da sensibilidade. Conecta padrões, faz perguntas precisas, entrega diagnósticos, não devaneios. A formação em exatas não é detalhe de bio: é o método.</div>
+      </div>
+      <div class="who-card">
+        <div class="wc-num">// II</div>
+        <div class="wc-name">A Estrategista de Carreira</div>
+        <div class="wc-desc">Especialista nos nós invisíveis que travam mulheres: síndrome da impostora, medo de ocupar espaço, confusão entre propósito e mercado. Trabalha o que está abaixo da superfície — e entrega caminhos, não só reflexão.</div>
+      </div>
+      <div class="who-card">
+        <div class="wc-num">// III</div>
+        <div class="wc-name">A Amiga Honesta</div>
+        <div class="wc-desc">Diz o que precisa ser dito sem crueldade e sem algodão. Não é terapeuta, não é coach, não é guru. É a amiga que já estudou muito sobre você antes de falar — e que fala direto porque respeita sua capacidade de lidar com a verdade.</div>
+      </div>
+      <div class="who-card">
+        <div class="wc-num">// IV</div>
+        <div class="wc-name">A Práticista Espiritual</div>
+        <div class="wc-desc">Toda leitura termina com algo pra fazer no mundo real. Espiritualidade sem ancoragem prática é teoria. A carta aponta — e ela ajuda a traduzir o símbolo em ação concreta, adaptada ao contexto específico de cada pessoa.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04. DIFERENCIAIS -->
+  <section class="section" id="diferenciais">
+    <div class="slabel">
+      <div class="slabel-line"></div>
+      <span class="slabel-text">04 — Diferenciais de posicionamento</span>
+      <span class="slabel-num">// 04</span>
+    </div>
+    <h2 class="stitle">Por que ela e<br><em>não outra.</em></h2>
+    <p class="slead">Não é sobre ser melhor em tudo. É sobre ser insubstituível no que importa pra um público específico. Esses são os porquês que fecham a venda sem precisar de hard sell.</p>
+
+    <div class="diff-list">
+      <div class="diff-item">
+        <div class="diff-num">// 01</div>
+        <div class="diff-content">
+          <div class="diff-title">A taróloga que <em>não acha que é contradição</em></div>
+          <div class="diff-body">O mercado de tarot ainda trata racionalidade como ameaça. E o mercado corporativo ainda trata espiritualidade como frescura. Ela é a única que existe confortavelmente nos dois — e por isso <strong>atende mulheres que se sentiam excluídas dos dois lados</strong>. Esse é o nicho branco.</div>
+        </div>
+      </div>
+      <div class="diff-item">
+        <div class="diff-num">// 02</div>
+        <div class="diff-content">
+          <div class="diff-title">Leitura com <em>contexto e consequência</em></div>
+          <div class="diff-body">A maioria das leituras entrega o símbolo. Ela entrega o símbolo <strong>mais o diagnóstico mais o próximo passo</strong>. Não é "O Ermitão diz recolhimento." É "O Ermitão virado aqui me diz que você tá fugindo de uma decisão que já tem data de validade — o que você precisa pra se sentir pronta?"</div>
+        </div>
+      </div>
+      <div class="diff-item">
+        <div class="diff-num">// 03</div>
+        <div class="diff-content">
+          <div class="diff-title">Especialização em <em>carreira e autoconfiança feminina</em></div>
+          <div class="diff-body">Não é tarot genérico de amor e dinheiro. É tarot para <strong>mulheres em transição profissional, travadas na autoconfiança ou buscando alinhamento entre o que fazem e o que acreditam</strong>. Essa especialização permite posicionamento de autoridade — e cobra mais por isso.</div>
+        </div>
+      </div>
+      <div class="diff-item">
+        <div class="diff-num">// 04</div>
+        <div class="diff-content">
+          <div class="diff-title">Espiritualidade <em>sem dependência, sem medo, sem mistério desnecessário</em></div>
+          <div class="diff-body">Não cria ansiedade. Não vende proteção. Não transforma a consulente em dependente. O objetivo de toda leitura é deixar a pessoa <strong>mais autônoma do que chegou</strong> — e isso é raro no mercado.</div>
+        </div>
+      </div>
+      <div class="diff-item">
+        <div class="diff-num">// 05</div>
+        <div class="diff-content">
+          <div class="diff-title">Credibilidade <em>pela formação e pelo método</em></div>
+          <div class="diff-body">A formação em exatas não é curiosidade biográfica — é prova de método. Ela lê cartas com a mesma estrutura com que resolveria um problema: <strong>define a questão, identifica variáveis, testa hipóteses, entrega diagnóstico</strong>. Isso gera confiança em públicos que seriam céticos com qualquer outra taróloga.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05. PÚBLICO -->
+  <section class="section" id="publico">
+    <div class="slabel">
+      <div class="slabel-line"></div>
+      <span class="slabel-text">05 — Público: quem ela atende</span>
+      <span class="slabel-num">// 05</span>
+    </div>
+    <h2 class="stitle">Para quem<br><em>isso foi feito.</em></h2>
+    <p class="slead">Não é todo mundo. E tudo bem. Conhecer o público com precisão é o que permite falar de forma que ressoa fundo — não falar bonito pra todo mundo sem tocar ninguém.</p>
+
+    <div class="audience-grid">
+      <div class="aud-card">
+        <span class="aud-tag tc">// perfil 01</span>
+        <div class="aud-who">A trabalhadora perdida no corporativo.</div>
+        <div class="aud-pain">Entrega, se esforça, mas não sabe navegar a hierarquia nem os jogos não-escritos do ambiente. Não recebe feedback, não entende o que falta pra crescer. Sente que <strong>faz tudo certo e ainda assim não sai do lugar</strong> — e isso corrói a autoestima mais do que qualquer crítica direta.</div>
+      </div>
+      <div class="aud-card">
+        <span class="aud-tag tm">// perfil 02</span>
+        <div class="aud-who">A que não consegue se enxergar como ela realmente é.</div>
+        <div class="aud-pain">Minimiza as próprias entregas, não sabe articular seu valor, nunca se sente "boa o suficiente" pra pedir aumento, mudar de área ou lançar o projeto. <strong>O freio não é técnico — é de autopercepção.</strong> E ela suspeita disso, mas não consegue sair sozinha.</div>
+      </div>
+      <div class="aud-card">
+        <span class="aud-tag tg">// perfil 03</span>
+        <div class="aud-who">A que vive em conflito entre vida pessoal e profissional.</div>
+        <div class="aud-pain">O trabalho não fica no trabalho. Os sentimentos transbordam. Ela sabe que isso não é saudável, mas não sabe como separar sem se desligar completamente. <strong>Quer uma vida integrada — não uma onde uma parte engole a outra.</strong></div>
+      </div>
+      <div class="aud-card">
+        <span class="aud-tag tc">// perfil 04</span>
+        <div class="aud-who">A que não sabe se quer continuar o que está fazendo.</div>
+        <div class="aud-pain">Não é preguiça, não é falta de ambição. É uma dúvida real sobre identidade e direção. <strong>Fica confusa entre o que escolheu e o que de fato quer.</strong> Tem medo de abrir mão da estabilidade pra algo que "pode não funcionar" — e isso a paralisa há mais tempo do que ela admite.</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:20px;">
+      <p style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--faint);margin-bottom:14px;">// O que une todos os perfis</p>
+      <div style="display:flex;flex-direction:column;gap:0;">
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.63rem;color:var(--muted);line-height:1.7;">
+          <span style="color:var(--cyan);font-weight:700;flex-shrink:0;">&gt;</span><div><strong style="color:var(--ink);font-weight:400;">Inteligentes e exigentes.</strong> Não se contentam com respostas vagas. Vão perguntar "mas como isso funciona de verdade?". E esperam uma boa resposta.</div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.63rem;color:var(--muted);line-height:1.7;">
+          <span style="color:var(--cyan);font-weight:700;flex-shrink:0;">&gt;</span><div><strong style="color:var(--ink);font-weight:400;">Não querem ser salvas.</strong> Querem ferramentas. Querem ver com mais clareza. Querem sair da sessão com algo pra fazer, não com mais dependência de um oráculo.</div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;font-size:0.63rem;color:var(--muted);line-height:1.7;">
+          <span style="color:var(--cyan);font-weight:700;flex-shrink:0;">&gt;</span><div><strong style="color:var(--ink);font-weight:400;">Têm resistência prévia ao mercado.</strong> Já se decepcionaram com o esotérico genérico. São mais difíceis de converter — e muito mais leais quando confiam.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06. COMO & NÃO COMO -->
+  <section class="section" id="como-nao">
+    <div class="slabel">
+      <div class="slabel-line"></div>
+      <span class="slabel-text">06 — A marca é assim. Não é assado.</span>
+      <span class="slabel-num">// 06</span>
+    </div>
+    <h2 class="stitle">O que define<br><em>e o que descarta.</em></h2>
+    <p class="slead">Personalidade existe na distinção. Saber o que você não é define o que você é com mais precisão do que qualquer lista de adjetivos positivos.</p>
+
+    <div class="cnc-grid">
+      <div class="cnc-col cnc-yes">
+        <div class="cnc-hd">✓ &nbsp;É assim</div>
+        <div class="cnc-item"><span class="mk">&gt;</span><div>Direta — diz o que vê, sem rodeio, sem adoçar pra não assustar</div></div>
+        <div class="cnc-item"><span class="mk">&gt;</span><div>Contextual — a leitura fala com a situação real da pessoa, não com um arquétipo genérico</div></div>
+        <div class="cnc-item"><span class="mk">&gt;</span><div>Prática — toda sessão termina com algo palpável pra fazer ou perceber</div></div>
+        <div class="cnc-item"><span class="mk">&gt;</span><div>Analítica — conecta padrões, faz perguntas precisas, pensa junto</div></div>
+        <div class="cnc-item"><span class="mk">&gt;</span><div>Acolhedora — sem julgamento, com segurança, sem criar medo</div></div>
+        <div class="cnc-item"><span class="mk">&gt;</span><div>Especializada — carreira, autoconfiança, propósito feminino</div></div>
+        <div class="cnc-item"><span class="mk">&gt;</span><div>Irreverente quando cabe — humor e palavrão no lugar certo</div></div>
+        <div class="cnc-item"><span class="mk">&gt;</span><div>Empoderadeira — a consulente sai mais capaz, não mais dependente</div></div>
+      </div>
+      <div class="cnc-col cnc-no">
+        <div class="cnc-hd">✗ &nbsp;Não é assim</div>
+        <div class="cnc-item"><span class="mk">✗</span><div>Vaga — "pode ser que o universo indique um caminho de crescimento"</div></div>
+        <div class="cnc-item"><span class="mk">✗</span><div>Alarmista — não cria medo com "energias pesadas" ou "carta de perigo"</div></div>
+        <div class="cnc-item"><span class="mk">✗</span><div>Dependentogênica — não alimenta o ciclo de consulta por ansiedade</div></div>
+        <div class="cnc-item"><span class="mk">✗</span><div>Genérica — não faz tiragem de amor pra qualquer pessoa sem contexto</div></div>
+        <div class="cnc-item"><span class="mk">✗</span><div>Guru — não tem "missão cósmica", não tem "canal divino exclusivo"</div></div>
+        <div class="cnc-item"><span class="mk">✗</span><div>Motivacional vazia — sem frases de coach sem substância</div></div>
+        <div class="cnc-item"><span class="mk">✗</span><div>Condescendente — não explica o óbvio, não trata a consulente como frágil</div></div>
+        <div class="cnc-item"><span class="mk">✗</span><div>Promessiva — nunca "as cartas garantem", "vai dar certo", "o universo confirmou"</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07. CAIXINHA -->
+  <section class="section" id="caixinha">
+    <div class="slabel">
+      <div class="slabel-line"></div>
+      <span class="slabel-text">07 — Caixinha do Instagram</span>
+      <span class="slabel-num">// 07</span>
+    </div>
+    <h2 class="stitle">10 perguntas pra<br><em>responder com o cigano.</em></h2>
+    <p class="slead">Cada pergunta foi criada pra tocar numa dor real do público — carreira, autoconfiança, propósito. E pra mostrar, na prática, como uma leitura com método e contexto parece. Clique em cada uma pra ver o raciocínio por trás.</p>
+
+    <div class="q-grid" id="qgrid">
+
+      <div class="q-item" onclick="toggleQ(this)">
+        <div class="q-header">
+          <div class="q-num">// 01</div>
+          <div class="q-text">Sinto que deveria estar mais avançada na carreira do que estou. O que tá me travando?</div>
+          <div class="q-arrow">&gt;</div>
+        </div>
+        <div class="q-body">
+          <div class="q-why">
+            <strong>Por que essa pergunta funciona:</strong> atinge direto a síndrome da impostora e o freio interno que não aparece no currículo. É uma dor que mulheres analíticas raramente verbalizam pra um esotérico — porque soa irracional. Aqui ela pode.
+          </div>
+          <span class="q-tag" style="border-color:rgba(0,245,212,0.4);color:var(--cyan);">// carreira</span>&nbsp;
+          <span class="q-tag" style="border-color:rgba(201,168,76,0.4);color:var(--gold);">autoconfiança</span>
+        </div>
+      </div>
+
+      <div class="q-item" onclick="toggleQ(this)">
+        <div class="q-header">
+          <div class="q-num">// 02</div>
+          <div class="q-text">Tenho uma oportunidade na frente mas não consigo tomar a decisão. O que o cigano vê?</div>
+          <div class="q-arrow">&gt;</div>
+        </div>
+        <div class="q-body">
+          <div class="q-why">
+            <strong>Por que essa pergunta funciona:</strong> mostra tarot como ferramenta de tomada de decisão — não de previsão do futuro. Posiciona a leitura como análise de cenário, não como oráculo. Perfeito pra públicos céticos.
+          </div>
+          <span class="q-tag" style="border-color:rgba(0,245,212,0.4);color:var(--cyan);">// decisão</span>&nbsp;
+          <span class="q-tag" style="border-color:rgba(255,45,120,0.4);color:var(--magenta);">carreira</span>
+        </div>
+      </div>
+
+      <div class="q-item" onclick="toggleQ(this)">
+        <div class="q-header">
+          <div class="q-num">// 03</div>
+          <div class="q-text">Odeio o meu trabalho mas tenho medo de largar. Loucura ou sinal?</div>
+          <div class="q-arrow">&gt;</div>
+        </div>
+        <div class="q-body">
+          <div class="q-why">
+            <strong>Por que essa pergunta funciona:</strong> tensão clássica entre segurança e propósito. Linguagem informal ("loucura ou sinal?") convida sem intimidar. E abre espaço pra mostrar como uma leitura diferencia medo legítimo de autossabotagem.
+          </div>
+          <span class="q-tag" style="border-color:rgba(0,245,212,0.4);color:var(--cyan);">// transição</span>&nbsp;
+          <span class="q-tag" style="border-color:rgba(201,168,76,0.4);color:var(--gold);">propósito</span>
+        </div>
+      </div>
+
+      <div class="q-item" onclick="toggleQ(this)">
+        <div class="q-header">
+          <div class="q-num">// 04</div>
+          <div class="q-text">Por que sou boa no que faço mas não consigo me vender? Me dá uma carta.</div>
+          <div class="q-arrow">&gt;</div>
+        </div>
+        <div class="q-body">
+          <div class="q-why">
+            <strong>Por que essa pergunta funciona:</strong> o gap entre competência e visibilidade é real e doloroso. Mulheres que subestimam a si mesmas profissionalmente se identificam instantaneamente. E "me dá uma carta" é convite direto — informal, sem cerimônia.
+          </div>
+          <span class="q-tag" style="border-color:rgba(255,45,120,0.4);color:var(--magenta);">// visibilidade</span>&nbsp;
+          <span class="q-tag" style="border-color:rgba(201,168,76,0.4);color:var(--gold);">autoconfiança</span>
+        </div>
+      </div>
+
+      <div class="q-item" onclick="toggleQ(this)">
+        <div class="q-header">
+          <div class="q-num">// 05</div>
+          <div class="q-text">Sempre fui a mais esforçada e parece que as outras chegam mais rápido. O que tô errando?</div>
+          <div class="q-arrow">&gt;</div>
+        </div>
+        <div class="q-body">
+          <div class="q-why">
+            <strong>Por que essa pergunta funciona:</strong> raiva e frustração disfarçadas de pergunta racional. Essa é a voz da mulher que trabalha mais e reconhece menos. Uma leitura aqui pode tocar em crenças limitantes sobre mérito, reconhecimento e estratégia.
+          </div>
+          <span class="q-tag" style="border-color:rgba(0,245,212,0.4);color:var(--cyan);">// esforço</span>&nbsp;
+          <span class="q-tag" style="border-color:rgba(255,45,120,0.4);color:var(--magenta);">reconhecimento</span>
+        </div>
+      </div>
+
+      <div class="q-item" onclick="toggleQ(this)">
+        <div class="q-header">
+          <div class="q-num">// 06</div>
+          <div class="q-text">Nunca me sinto pronta. Sempre falta um curso, uma certificação. Isso tem cura?</div>
+          <div class="q-arrow">&gt;</div>
+        </div>
+        <div class="q-body">
+          <div class="q-why">
+            <strong>Por que essa pergunta funciona:</strong> síndrome da impostora no formato perfeccionismo. "Tem cura?" é humor que esconde dor real — e gera identificação imediata. Uma carta aqui pode mostrar onde está o nó (medo de ser visto? de errar? de ocupar espaço?) com precisão.
+          </div>
+          <span class="q-tag" style="border-color:rgba(201,168,76,0.4);color:var(--gold);">// impostora</span>&nbsp;
+          <span class="q-tag" style="border-color:rgba(0,245,212,0.4);color:var(--cyan);">autoconfiança</span>
+        </div>
+      </div>
+
+      <div class="q-item" onclick="toggleQ(this)">
+        <div class="q-header">
+          <div class="q-num">// 07</div>
+          <div class="q-text">Quero empreender mas meu lado racional tá freando. As cartas jogam a favor ou contra?</div>
+          <div class="q-arrow">&gt;</div>
+        </div>
+        <div class="q-body">
+          <div class="q-why">
+            <strong>Por que essa pergunta funciona:</strong> fala direto com o público de exatas que quer empreender mas não confia na intuição. "Jogam a favor ou contra" usa a linguagem racional de prós e contras. Ótima pra demonstrar como tarot traduz intuição em análise.
+          </div>
+          <span class="q-tag" style="border-color:rgba(255,45,120,0.4);color:var(--magenta);">// empreendedorismo</span>&nbsp;
+          <span class="q-tag" style="border-color:rgba(0,245,212,0.4);color:var(--cyan);">decisão</span>
+        </div>
+      </div>
+
+      <div class="q-item" onclick="toggleQ(this)">
+        <div class="q-header">
+          <div class="q-num">// 08</div>
+          <div class="q-text">Tenho sucesso no trabalho mas me sinto vazia. É ingratidão ou as cartas vêem algo mais?</div>
+          <div class="q-arrow">&gt;</div>
+        </div>
+        <div class="q-body">
+          <div class="q-why">
+            <strong>Por que essa pergunta funciona:</strong> vazio existencial que mulheres bem-sucedidas sentem vergonha de admitir. "É ingratidão?" mostra que a pessoa já se julgou antes de perguntar. Uma leitura aqui vai fundo em propósito, alinhamento de valores e o que foi sacrificado no caminho.
+          </div>
+          <span class="q-tag" style="border-color:rgba(201,168,76,0.4);color:var(--gold);">// propósito</span>&nbsp;
+          <span class="q-tag" style="border-color:rgba(0,245,212,0.4);color:var(--cyan);">sucesso vazio</span>
+        </div>
+      </div>
+
+      <div class="q-item" onclick="toggleQ(this)">
+        <div class="q-header">
+          <div class="q-num">// 09</div>
+          <div class="q-text">Tenho um projeto que tô segurando há meses. O cigano dá o empurrão ou o freio?</div>
+          <div class="q-arrow">&gt;</div>
+        </div>
+        <div class="q-body">
+          <div class="q-why">
+            <strong>Por que essa pergunta funciona:</strong> projetos engavetados por medo — de errar, de não ser boa o suficiente, de ser julgada. "Empurrão ou freio" é linguagem ativa, não passiva. Posiciona a consulente como agente, não como vítima. E a resposta das cartas pode ser os dois — com contexto real.
+          </div>
+          <span class="q-tag" style="border-color:rgba(255,45,120,0.4);color:var(--magenta);">// ação</span>&nbsp;
+          <span class="q-tag" style="border-color:rgba(201,168,76,0.4);color:var(--gold);">projetos</span>
+        </div>
+      </div>
+
+      <div class="q-item" onclick="toggleQ(this)">
+        <div class="q-header">
+          <div class="q-num">// 10</div>
+          <div class="q-text">Nunca me sinto no lugar certo. No trabalho me acham estranha, no esotérico me acham racional demais. O que isso diz de mim?</div>
+          <div class="q-arrow">&gt;</div>
+        </div>
+        <div class="q-body">
+          <div class="q-why">
+            <strong>Por que essa pergunta funciona:</strong> esta é a pergunta-síntese do público da marca. É literalmente a história da taróloga de exatas contada pela boca da consulente. Gera identificação imediata, emocional, profunda. E abre espaço pra mostrar que o lugar dela pode ser exatamente essa fronteira — não um defeito, mas uma posição única.
+          </div>
+          <span class="q-tag" style="border-color:rgba(0,245,212,0.4);color:var(--cyan);">// identidade</span>&nbsp;
+          <span class="q-tag" style="border-color:rgba(255,45,120,0.4);color:var(--magenta);">pertencimento</span>&nbsp;
+          <span class="q-tag" style="border-color:rgba(201,168,76,0.4);color:var(--gold);">a pergunta da marca</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="panel" style="margin-top:20px;">
+      <p style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--faint);margin-bottom:14px;">// Como usar nas stories</p>
+      <div style="display:flex;flex-direction:column;gap:0;">
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.63rem;color:var(--muted);line-height:1.75;">
+          <span style="color:var(--cyan);font-weight:700;flex-shrink:0;">&gt;</span><div>Poste a pergunta recebida no stories, em fonte legível, sem identificar a pessoa.</div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.63rem;color:var(--muted);line-height:1.75;">
+          <span style="color:var(--cyan);font-weight:700;flex-shrink:0;">&gt;</span><div>Mostre a(s) carta(s) do Cigano que saíram — pode ser foto ou vídeo virado.</div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.63rem;color:var(--muted);line-height:1.75;">
+          <span style="color:var(--cyan);font-weight:700;flex-shrink:0;">&gt;</span><div>Fale como você leria: contextualize a carta, conecte com a dor da pergunta, entregue um próximo passo. <strong style="color:var(--ink);font-weight:400;">Mostre o método, não só o resultado.</strong></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;font-size:0.63rem;color:var(--muted);line-height:1.75;">
+          <span style="color:var(--cyan);font-weight:700;flex-shrink:0;">&gt;</span><div>Termina com CTA: "Se essa leitura te tocou, DM pra agendar a sua." Direto. Sem enrolação.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08. PERSONA -->
+  <section class="section" id="persona">
+    <div class="slabel">
+      <div class="slabel-line"></div>
+      <span class="slabel-text">08 — Mapeamento de Persona</span>
+      <span class="slabel-num">// 08</span>
+    </div>
+    <h2 class="stitle">Quem é a pessoa<br><em>do outro lado.</em></h2>
+    <p class="slead">Não é demografia. É uma pessoa real que você consegue imaginar — o que ela sente, o que ela pensa, o que a trava. Quanto mais viva ela for na sua cabeça, mais o seu conteúdo bate direto nela.</p>
+
+    <!-- QUEM É -->
+    <div style="margin-bottom:2px;">
+      <div style="background:var(--surface);border:1px solid var(--border);padding:26px 28px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-1px;left:18px;right:18px;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);"></div>
+        <div style="font-size:0.56rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--cyan);margin-bottom:14px;">// Exercício 1 — Quem é ela</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);">
+          <div style="background:var(--card);padding:20px 18px;">
+            <div style="font-size:0.52rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--faint);margin-bottom:8px;">// Idade</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:300;color:var(--ink);margin-bottom:6px;">20 a 40 anos</div>
+            <div style="font-size:0.63rem;color:var(--muted);line-height:1.75;">Mulher trabalhadora — da que está entrando no mercado até a que já tem trajetória e sente que algo não está encaixando do jeito que deveria.</div>
+          </div>
+          <div style="background:var(--card);padding:20px 18px;">
+            <div style="font-size:0.52rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--faint);margin-bottom:8px;">// Fase que ela vive</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:300;color:var(--ink);margin-bottom:6px;">Conflito com a carreira — emocional e prático ao mesmo tempo</div>
+            <div style="font-size:0.63rem;color:var(--muted);line-height:1.75;">Não sabe se continua na mesma área ou empresa. Tem dilemas entre vida pessoal e profissional. Não sabe navegar a hierarquia, não recebe feedback, não sabe onde focar ou se especializar. O problema não é só sentimento — é também de estratégia e direção.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DORES -->
+    <div style="margin-bottom:2px;">
+      <div style="background:var(--surface);border:1px solid var(--border);padding:26px 28px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-1px;left:18px;right:18px;height:2px;background:linear-gradient(90deg,transparent,var(--magenta),transparent);opacity:0.7;"></div>
+        <div style="font-size:0.56rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--magenta);margin-bottom:18px;">// Exercício 2 — As dores dela (específicas)</div>
+        <div style="display:flex;flex-direction:column;gap:1px;background:var(--border);">
+
+          <div style="background:var(--card);padding:16px 20px;display:grid;grid-template-columns:28px 1fr;gap:14px;align-items:start;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,45,120,0.03)'" onmouseout="this.style.background=''">
+            <span style="font-size:0.54rem;font-weight:700;color:rgba(255,45,120,0.5);padding-top:2px;">01</span>
+            <div>
+              <div style="font-size:0.72rem;color:var(--ink);margin-bottom:4px;font-family:'Cormorant Garamond',serif;font-weight:300;">Não sabe quem é para além do trabalho.</div>
+              <div style="font-size:0.62rem;color:var(--muted);line-height:1.75;">A identidade dela ficou tão colada na carreira que, quando a carreira vacila — ou quando ela questiona a carreira —, ela vacila junto. Não é só crise profissional: é crise de quem ela é.</div>
+            </div>
+          </div>
+
+          <div style="background:var(--card);padding:16px 20px;display:grid;grid-template-columns:28px 1fr;gap:14px;align-items:start;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,45,120,0.03)'" onmouseout="this.style.background=''">
+            <span style="font-size:0.54rem;font-weight:700;color:rgba(255,45,120,0.5);padding-top:2px;">02</span>
+            <div>
+              <div style="font-size:0.72rem;color:var(--ink);margin-bottom:4px;font-family:'Cormorant Garamond',serif;font-weight:300;">Não é "fluente em corporativês" — e isso custa caro pra ela.</div>
+              <div style="font-size:0.62rem;color:var(--muted);line-height:1.75;">Não sabe navegar a hierarquia, não entende os jogos de poder não-escritos, não consegue se posicionar nos ambientes certos. É competente no que faz — mas o corporativo tem suas próprias regras e ela se sente de fora delas.</div>
+            </div>
+          </div>
+
+          <div style="background:var(--card);padding:16px 20px;display:grid;grid-template-columns:28px 1fr;gap:14px;align-items:start;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,45,120,0.03)'" onmouseout="this.style.background=''">
+            <span style="font-size:0.54rem;font-weight:700;color:rgba(255,45,120,0.5);padding-top:2px;">03</span>
+            <div>
+              <div style="font-size:0.72rem;color:var(--ink);margin-bottom:4px;font-family:'Cormorant Garamond',serif;font-weight:300;">Conflito com chefes que mexe com a autopercepção do próprio trabalho.</div>
+              <div style="font-size:0.62rem;color:var(--muted);line-height:1.75;">Quando tem rusgas com o chefe ou não recebe feedback, ela não apenas se frustra — ela começa a duvidar de si mesma. A insegurança que deveria ser externa vira interna. E aí é difícil separar o que é real do que é enredo da cabeça dela.</div>
+            </div>
+          </div>
+
+          <div style="background:var(--card);padding:16px 20px;display:grid;grid-template-columns:28px 1fr;gap:14px;align-items:start;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,45,120,0.03)'" onmouseout="this.style.background=''">
+            <span style="font-size:0.54rem;font-weight:700;color:rgba(255,45,120,0.5);padding-top:2px;">04</span>
+            <div>
+              <div style="font-size:0.72rem;color:var(--ink);margin-bottom:4px;font-family:'Cormorant Garamond',serif;font-weight:300;">Não consegue reconhecer o valor das próprias entregas.</div>
+              <div style="font-size:0.62rem;color:var(--muted);line-height:1.75;">Minimiza o operacional, não enxerga o estratégico, não sabe articular o que ela de fato entrega. Sente que faz muito — mas não consegue transformar isso em argumento pra crescer, negociar ou ser vista. É invisível pra si mesma antes de ser invisível pros outros.</div>
+            </div>
+          </div>
+
+          <div style="background:var(--card);padding:16px 20px;display:grid;grid-template-columns:28px 1fr;gap:14px;align-items:start;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,45,120,0.03)'" onmouseout="this.style.background=''">
+            <span style="font-size:0.54rem;font-weight:700;color:rgba(255,45,120,0.5);padding-top:2px;">05</span>
+            <div>
+              <div style="font-size:0.72rem;color:var(--ink);margin-bottom:4px;font-family:'Cormorant Garamond',serif;font-weight:300;">Deixa o trabalho contaminar a vida toda.</div>
+              <div style="font-size:0.62rem;color:var(--muted);line-height:1.75;">O que acontece no trabalho não fica no trabalho. Ela leva pra casa, pro relacionamento, pra saúde, pro sono. Quando o trabalho vai mal, tudo vai mal. Ela sabe que isso não é saudável — mas não sabe como separar sem se desligar completamente.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- OBJEÇÕES -->
+    <div style="margin-bottom:2px;">
+      <div style="background:var(--surface);border:1px solid var(--border);padding:26px 28px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-1px;left:18px;right:18px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);"></div>
+        <div style="font-size:0.56rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:18px;">// Exercício 3 — Objeções e como responder</div>
+        <div style="font-size:0.62rem;color:var(--muted);margin-bottom:16px;line-height:1.75;">Cada objeção é conteúdo. Quando você responde publicamente, quem tinha o mesmo pensamento compra sem precisar perguntar.</div>
+
+        <div style="display:flex;flex-direction:column;gap:1px;background:var(--border);">
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);">
+            <div style="background:var(--card);padding:16px 18px;">
+              <div style="font-size:0.52rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,45,120,0.6);margin-bottom:7px;">✗ objeção</div>
+              <div style="font-size:0.72rem;color:var(--ink);font-family:'Cormorant Garamond',serif;font-weight:300;line-height:1.4;">"Tenho medo de sair alguma coisa muito ruim!"</div>
+            </div>
+            <div style="background:rgba(0,245,212,0.02);padding:16px 18px;border-left:1px solid var(--border);">
+              <div style="font-size:0.52rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--cyan);margin-bottom:7px;">&gt; resposta</div>
+              <div style="font-size:0.63rem;color:var(--muted);line-height:1.75;">Quando sai algo ruim no tarot, não significa que você está destinada a passar por isso da pior forma possível. É um aviso. Pensa num GPS: "Daqui 1km tem uma lombada." Ele te alertou — e agora você decide o que fazer. Vai continuar na mesma velocidade e sair voando? Ou já vai pensando em desacelerar antes? A tiragem é isso: informação que te devolve o poder de escolher.</div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);">
+            <div style="background:var(--card);padding:16px 18px;">
+              <div style="font-size:0.52rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,45,120,0.6);margin-bottom:7px;">✗ objeção</div>
+              <div style="font-size:0.72rem;color:var(--ink);font-family:'Cormorant Garamond',serif;font-weight:300;line-height:1.4;">"A sua tiragem é muito cara!"</div>
+            </div>
+            <div style="background:rgba(0,245,212,0.02);padding:16px 18px;border-left:1px solid var(--border);">
+              <div style="font-size:0.52rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--cyan);margin-bottom:7px;">&gt; resposta</div>
+              <div style="font-size:0.63rem;color:var(--muted);line-height:1.75;">O preço reflete o que você está recebendo de verdade: anos de estudo em tarot, baralho cigano e magia natural; acompanhamento pós-tiragem com liberdade pra tirar dúvidas; uma nova tiragem sem custo adicional se as perguntas não forem respondidas com o jogo aberto; e — no caso de leitura profissional — um repertório real de mundo corporativo que a maioria das cartomantes simplesmente não tem. Você não está pagando por misticismo. Está pagando por consultoria com cartas.</div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);">
+            <div style="background:var(--card);padding:16px 18px;">
+              <div style="font-size:0.52rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,45,120,0.6);margin-bottom:7px;">✗ objeção</div>
+              <div style="font-size:0.72rem;color:var(--ink);font-family:'Cormorant Garamond',serif;font-weight:300;line-height:1.4;">"Não sei o que perguntar…"</div>
+            </div>
+            <div style="background:rgba(0,245,212,0.02);padding:16px 18px;border-left:1px solid var(--border);">
+              <div style="font-size:0.52rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--cyan);margin-bottom:7px;">&gt; resposta</div>
+              <div style="font-size:0.63rem;color:var(--muted);line-height:1.75;">Isso é mais comum do que você imagina — e não é problema nenhum. Quando você me conta o que está sentindo ou vivendo, a gente constrói a pergunta juntas antes de abrir as cartas. Às vezes a pergunta mais importante nem é a que você pensou em trazer. Você só precisa chegar. O resto a gente descobre junto.</div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);">
+            <div style="background:var(--card);padding:16px 18px;">
+              <div style="font-size:0.52rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,45,120,0.6);margin-bottom:7px;">✗ objeção</div>
+              <div style="font-size:0.72rem;color:var(--ink);font-family:'Cormorant Garamond',serif;font-weight:300;line-height:1.4;">"Não posso jogar tarot, sou macumbeira não!"</div>
+            </div>
+            <div style="background:rgba(0,245,212,0.02);padding:16px 18px;border-left:1px solid var(--border);">
+              <div style="font-size:0.52rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--cyan);margin-bottom:7px;">&gt; resposta</div>
+              <div style="font-size:0.63rem;color:var(--muted);line-height:1.75;">Tarot não é macumba — são práticas completamente diferentes, com origens e intenções distintas. O tarot é uma ferramenta de autoconhecimento com séculos de história, usada por pessoas de todas as crenças e religiões. Você não precisa acreditar em nada específico pra fazer uma tiragem. Precisa ter uma pergunta real e estar aberta a se ouvir. Só isso.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- PONTO A E B -->
+    <div style="margin-bottom:20px;">
+      <div style="background:var(--surface);border:1px solid var(--border);padding:26px 28px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-1px;left:18px;right:18px;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);"></div>
+        <div style="font-size:0.56rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--cyan);margin-bottom:18px;">// Exercício 4 — Ponto A → Ponto B</div>
+        <div style="font-size:0.62rem;color:var(--muted);line-height:1.75;margin-bottom:20px;">O ponto A é a dor de entrada. O ponto B é a transformação que ela sai tendo vivido. O caminho entre os dois é o seu atendimento — e esse caminho inteiro vira conteúdo.</div>
+
+        <div style="display:grid;grid-template-columns:1fr 48px 1fr;gap:0;align-items:stretch;">
+
+          <!-- PONTO A -->
+          <div style="background:rgba(255,45,120,0.05);border:1px solid rgba(255,45,120,0.2);padding:24px 22px;">
+            <div style="font-size:0.54rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--magenta);margin-bottom:14px;">Ponto A — Como ela chega</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;align-items:flex-start;gap:10px;font-size:0.63rem;color:var(--muted);line-height:1.7;">
+                <span style="color:var(--magenta);font-weight:700;flex-shrink:0;margin-top:1px;">✗</span>
+                <div>Em conflito com a carreira — não sabe se continua, se muda, pra onde vai</div>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:10px;font-size:0.63rem;color:var(--muted);line-height:1.7;">
+                <span style="color:var(--magenta);font-weight:700;flex-shrink:0;margin-top:1px;">✗</span>
+                <div>Com a autoconfiança corroída por conflitos com chefes, falta de feedback ou comparação</div>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:10px;font-size:0.63rem;color:var(--muted);line-height:1.7;">
+                <span style="color:var(--magenta);font-weight:700;flex-shrink:0;margin-top:1px;">✗</span>
+                <div>Perdida no corporativo — não sabe navegar, não se sente fluente nas regras não-escritas</div>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:10px;font-size:0.63rem;color:var(--muted);line-height:1.7;">
+                <span style="color:var(--magenta);font-weight:700;flex-shrink:0;margin-top:1px;">✗</span>
+                <div>Sem conseguir enxergar e articular o próprio valor — operacional ou estratégico</div>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:10px;font-size:0.63rem;color:var(--muted);line-height:1.7;">
+                <span style="color:var(--magenta);font-weight:700;flex-shrink:0;margin-top:1px;">✗</span>
+                <div>Com o trabalho transbordando pra vida inteira — sem saber separar sem se desligar</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SETA -->
+          <div style="display:flex;align-items:center;justify-content:center;background:var(--card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+              <div style="width:1px;flex:1;background:linear-gradient(to bottom,transparent,var(--cyan));min-height:40px;"></div>
+              <span style="font-size:0.8rem;color:var(--cyan);">→</span>
+              <div style="font-size:0.44rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--faint);writing-mode:vertical-rl;text-orientation:mixed;">leitura</div>
+              <div style="width:1px;flex:1;background:linear-gradient(to bottom,var(--cyan),transparent);min-height:40px;"></div>
+            </div>
+          </div>
+
+          <!-- PONTO B -->
+          <div style="background:rgba(0,245,212,0.04);border:1px solid rgba(0,245,212,0.2);padding:24px 22px;">
+            <div style="font-size:0.54rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--cyan);margin-bottom:14px;">Ponto B — Como ela sai</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;align-items:flex-start;gap:10px;font-size:0.63rem;color:var(--muted);line-height:1.7;">
+                <span style="color:var(--cyan);font-weight:700;flex-shrink:0;margin-top:1px;">&gt;</span>
+                <div>Com clareza sobre o obstáculo invisível que a travava — nomeado, concreto, sem mistério</div>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:10px;font-size:0.63rem;color:var(--muted);line-height:1.7;">
+                <span style="color:var(--cyan);font-weight:700;flex-shrink:0;margin-top:1px;">&gt;</span>
+                <div>Com autoconfiança restaurada pra tomar a decisão que já sabia que precisava tomar</div>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:10px;font-size:0.63rem;color:var(--muted);line-height:1.7;">
+                <span style="color:var(--cyan);font-weight:700;flex-shrink:0;margin-top:1px;">&gt;</span>
+                <div>Com coragem de falar o que pensa nas situações que a prejudicam ou desconfortam</div>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:10px;font-size:0.63rem;color:var(--muted);line-height:1.7;">
+                <span style="color:var(--cyan);font-weight:700;flex-shrink:0;margin-top:1px;">&gt;</span>
+                <div>Com pelo menos uma ação prática pra aplicar no dia a dia — respeitando seu contexto real</div>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:10px;font-size:0.63rem;color:var(--muted);line-height:1.7;">
+                <span style="color:var(--cyan);font-weight:700;flex-shrink:0;margin-top:1px;">&gt;</span>
+                <div>Sentindo que tem domínio da situação — não dependente de mais leituras, mas de si mesma</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- NOTA -->
+        <div style="margin-top:18px;padding:16px 18px;background:rgba(201,168,76,0.04);border:1px solid rgba(201,168,76,0.2);">
+          <div style="font-size:0.52rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">// Nota de posicionamento</div>
+          <div style="font-size:0.63rem;color:var(--muted);line-height:1.8;">O ponto B desta marca não é "vida transformada magicamente". É <strong style="color:var(--ink);font-weight:400;">autonomia incrementada</strong>. A consulente sai com mais ela mesma — não com mais dependência de cartas, de taróloga, de sistema. Isso é incomum no mercado. E é exatamente isso que faz ela voltar — e indicar.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESUMO DA PERSONA -->
+    <div class="panel gold-top">
+      <p style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:rgba(201,168,76,0.55);margin-bottom:18px;">// Resumo — A persona em uma imagem</p>
+      <div style="border-left:2px solid var(--gold);padding:20px 24px;background:rgba(0,0,0,0.15);margin-bottom:2px;">
+        <p style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(1rem,2.2vw,1.35rem);font-weight:300;line-height:1.55;color:var(--ink);margin-bottom:12px;">
+          "Ela é trabalhadora, competente, e perdida ao mesmo tempo. Não perdida de qualquer jeito — perdida no corporativo, na hierarquia, no conflito entre o que entrega e o que recebe de volta. Sente que o trabalho consome mais do que deveria. Que ela é mais do que o cargo. Que tem um próximo passo ali — mas algo invisível a trava. Ela precisa de alguém que nomeie esse obstáculo <em style="color:var(--cyan);">com clareza</em>, que entenda o mundo onde ela vive, e que ajude a traduzir o que as cartas mostram em ação real. Não precisa de conforto vago. Precisa de domínio da própria situação."
+        </p>
+        <cite style="font-size:0.54rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);font-style:normal;">// a persona da Revolution Tarot · em síntese</cite>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div>
+      <div class="footer-brand">Revolution <span>Tarot</span></div>
+      <div style="font-size:0.52rem;letter-spacing:0.06em;color:var(--muted);margin-top:2px;">// personalidade · posicionamento · documento vivo</div>
+    </div>
+    <div class="footer-copy">© 2025 Revolution Tarot // guia de personalidade</div>
+  </footer>
+
+</div>
+
+<script>
+  function toggleQ(el) {
+    const isOpen = el.classList.contains('open');
+    document.querySelectorAll('.q-item').forEach(q => q.classList.remove('open'));
+    if (!isOpen) el.classList.add('open');
+  }
+
+  // Active nav on scroll
+  const secObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      document.querySelectorAll('.nav-link').forEach(l => l.style.color = '');
+      const a = document.querySelector(`.nav-link[href="#${entry.target.id}"]`);
+      if (a) a.style.color = 'var(--cyan)';
+    });
+  }, { threshold: 0.35 });
+  document.querySelectorAll('section[id]').forEach(s => secObs.observe(s));
+</script>
+</body>
+</html>

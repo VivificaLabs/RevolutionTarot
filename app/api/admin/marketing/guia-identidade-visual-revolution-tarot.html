@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Identidade Visual — Revolution Tarot</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #240321;
+  --surface: #1a0218;
+  --card:    #1e0420;
+  --ink:     #f0e6d3;
+  --muted:   #a89090;
+  --cyan:    #00f5d4;
+  --magenta: #ff2d78;
+  --gold:    #c9a84c;
+  --border:  rgba(0, 245, 212, 0.15);
+  --border2: rgba(201, 168, 76, 0.2);
+  --faint:   rgba(0, 245, 212, 0.35);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Space Mono', monospace;
+  font-weight: 400;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+  cursor: crosshair;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent, transparent 2px,
+    rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 998;
+}
+
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 997;
+  opacity: 0.5;
+}
+
+.bg-grid {
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,245,212,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,245,212,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0.3; }
+}
+@keyframes glitch {
+  0%,90%,100% { transform: translate(0); opacity: 0; }
+  92% { transform: translate(-2px,1px); opacity: 0.5; }
+  94% { transform: translate(2px,-1px); opacity: 0.5; }
+  96% { transform: translate(0); opacity: 0; }
+}
+@keyframes spin {
+  from { transform: translate(-50%,-50%) rotate(0deg); }
+  to   { transform: translate(-50%,-50%) rotate(360deg); }
+}
+@keyframes scanline {
+  0%   { top: -5%; }
+  100% { top: 105%; }
+}
+
+.wrap {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 80px 28px 100px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── COVER ── */
+.cover {
+  min-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 96px;
+  border: 1px solid var(--border);
+  padding: 64px 52px;
+  overflow: hidden;
+}
+
+.cover-scanline {
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0.4;
+  animation: scanline 7s linear infinite;
+  pointer-events: none;
+}
+
+.cover-grid-bg {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,245,212,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,245,212,0.04) 1px, transparent 1px);
+  background-size: 42px 42px;
+  pointer-events: none;
+}
+
+.cover-glow-r {
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 480px; height: 480px;
+  background: radial-gradient(circle, rgba(255,45,120,0.08) 0%, transparent 65%);
+  pointer-events: none;
+}
+.cover-glow-l {
+  position: absolute;
+  bottom: -60px; left: -60px;
+  width: 380px; height: 380px;
+  background: radial-gradient(circle, rgba(0,245,212,0.06) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.corner {
+  position: absolute;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.5rem;
+  color: var(--faint);
+  line-height: 1.3;
+  white-space: pre;
+  letter-spacing: 0.04em;
+}
+.c-tl { top: 14px; left: 16px; }
+.c-tr { top: 14px; right: 16px; text-align: right; }
+.c-bl { bottom: 14px; left: 16px; }
+.c-br { bottom: 14px; right: 16px; text-align: right; }
+
+.cover-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 36px;
+  animation: fadeUp 0.6s ease both;
+}
+.ey-line { width: 32px; height: 1px; background: var(--cyan); }
+.ey-text {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+.ey-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--cyan);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.cover-brand {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(3.5rem, 8vw, 7rem);
+  font-weight: 300;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 8px;
+  animation: fadeUp 0.6s 0.08s ease both;
+  position: relative;
+  display: inline-block;
+}
+.cover-brand em { font-style: italic; color: var(--cyan); }
+.cover-brand-glitch {
+  position: absolute; inset: 0;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  font-style: italic;
+  color: var(--magenta);
+  animation: glitch 8s infinite;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.cover-sub {
+  font-size: 0.6rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 44px;
+  animation: fadeUp 0.6s 0.16s ease both;
+}
+
+.cover-doc {
+  border-left: 2px solid var(--gold);
+  padding-left: 18px;
+  margin-bottom: 48px;
+  animation: fadeUp 0.6s 0.24s ease both;
+}
+.cover-doc-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+  font-weight: 300;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.cover-doc-desc {
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  line-height: 1.8;
+}
+
+.cover-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  animation: fadeUp 0.6s 0.32s ease both;
+}
+.ctag {
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border: 1px solid var(--border2);
+  color: var(--muted);
+}
+
+/* ── NAV ── */
+.nav {
+  position: sticky;
+  top: 16px;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 64px;
+}
+.nav-inner {
+  background: rgba(36,3,33,0.92);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  padding: 8px 20px;
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.nav-link {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  transition: color 0.2s;
+  font-weight: 700;
+}
+.nav-link:hover { color: var(--cyan); }
+
+/* ── SECTION BASE ── */
+.section { margin-bottom: 80px; }
+
+.slabel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.slabel-line { width: 24px; height: 1px; background: var(--cyan); flex-shrink: 0; }
+.slabel-text { font-size: 0.56rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cyan); }
+.slabel-num  { margin-left: auto; font-size: 0.56rem; letter-spacing: 0.1em; color: var(--faint); }
+
+.stitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 300;
+  line-height: 1.1;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.stitle em { font-style: italic; color: var(--gold); }
+.stitle strong { font-weight: 600; color: var(--magenta); font-style: normal; }
+
+.slead {
+  font-size: 0.7rem;
+  color: var(--muted);
+  line-height: 1.9;
+  max-width: 560px;
+  margin-bottom: 32px;
+  letter-spacing: 0.02em;
+}
+
+/* ── PANEL ── */
+.panel {
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,0.2);
+  padding: 28px 32px;
+  position: relative;
+  overflow: hidden;
+}
+.panel::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 18px; right: 18px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+}
+.panel.gold-top::before { background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+
+/* ── CONCEPT ── */
+.cquote {
+  border-left: 2px solid var(--gold);
+  padding: 24px 28px;
+  background: rgba(0,0,0,0.2);
+  margin-bottom: 2px;
+}
+.cquote blockquote {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: clamp(1.2rem, 2.5vw, 1.7rem);
+  font-weight: 300;
+  line-height: 1.45;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+.cquote cite {
+  font-size: 0.56rem; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--muted); font-style: normal;
+}
+
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+.pillar {
+  background: var(--surface);
+  padding: 26px 22px;
+  transition: background 0.2s;
+}
+.pillar:hover { background: rgba(0,245,212,0.025); }
+.p-num { font-size: 0.54rem; font-weight: 700; letter-spacing: 0.14em; color: var(--faint); margin-bottom: 10px; }
+.p-name { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--cyan); margin-bottom: 7px; line-height: 1.2; }
+.p-desc { font-size: 0.65rem; color: var(--muted); line-height: 1.7; }
+
+/* ── PALETA ── */
+.pal-bg {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border: 1px solid var(--border);
+  margin-bottom: 2px;
+  overflow: hidden;
+}
+.sw-v {
+  aspect-ratio: 1 / 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 8px;
+  border-right: 1px solid rgba(255,255,255,0.04);
+  transition: flex 0.3s;
+  cursor: default;
+}
+.sw-v:last-child { border-right: none; }
+.sw-v:hover { flex: 1.6; }
+.sw-name { font-size: 0.56rem; font-weight: 700; color: rgba(255,255,255,0.7); text-shadow: 0 1px 4px rgba(0,0,0,.8); }
+.sw-hex  { font-size: 0.54rem; color: rgba(255,255,255,0.4); font-family: 'Space Mono'; text-shadow: 0 1px 4px rgba(0,0,0,.8); }
+
+.pal-accents {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.acc-sw {
+  background: var(--surface);
+  padding: 18px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: background 0.2s;
+}
+.acc-sw:hover { background: rgba(255,255,255,0.015); }
+.acc-dot { width: 30px; height: 30px; flex-shrink: 0; }
+.acc-name { font-size: 0.7rem; color: var(--ink); margin-bottom: 2px; letter-spacing: 0.04em; }
+.acc-role { font-size: 0.58rem; color: var(--muted); letter-spacing: 0.04em; margin-bottom: 2px; }
+.acc-hex  { font-size: 0.58rem; color: var(--faint); font-family: 'Space Mono'; }
+
+.u-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.63rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.u-row:last-child { border-bottom: none; }
+.u-bullet { color: var(--cyan); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+/* ── TIPOGRAFIA ── */
+.type-block {
+  border: 1px solid var(--border);
+  margin-bottom: 2px;
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.type-block:hover { border-color: rgba(0,245,212,0.3); }
+.type-meta {
+  background: var(--surface);
+  padding: 22px 18px;
+  border-right: 1px solid var(--border);
+}
+.t-role { font-size: 0.52rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cyan); margin-bottom: 5px; }
+.t-name { font-size: 0.7rem; color: var(--ink); margin-bottom: 5px; }
+.t-spec { font-size: 0.58rem; color: var(--muted); line-height: 1.65; }
+.type-sample { background: rgba(0,0,0,0.2); padding: 22px 26px; display: flex; align-items: center; }
+
+.scale-row {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  padding: 11px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.scale-row:last-child { border-bottom: none; }
+.scale-tag {
+  font-size: 0.52rem; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--muted);
+  min-width: 65px; flex-shrink: 0;
+}
+
+/* ── ELEMENTOS ── */
+.elems {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+.elem {
+  background: var(--surface);
+  padding: 24px 20px;
+  transition: background 0.2s;
+}
+.elem:hover { background: rgba(0,245,212,0.02); }
+.elem-preview {
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,0.3);
+}
+.elem-name { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cyan); margin-bottom: 6px; }
+.elem-desc { font-size: 0.62rem; color: var(--muted); line-height: 1.65; }
+
+.demo-clip {
+  background: var(--magenta);
+  color: #fff;
+  padding: 8px 16px;
+  font-size: 0.58rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px));
+}
+
+/* ── MOODBOARD ── */
+.mood-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+.mood-cell {
+  background: var(--surface);
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 28px 20px;
+  transition: background 0.2s;
+}
+.mood-cell:hover { background: rgba(255,255,255,0.01); }
+.mood-cell.span2 { grid-column: span 2; min-height: 160px; }
+.m-word { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 300; color: var(--ink); line-height: 1.3; margin-bottom: 8px; }
+.m-word em { color: var(--cyan); font-style: italic; }
+.m-sub { font-size: 0.55rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); line-height: 1.6; }
+
+.mc-a { background: linear-gradient(135deg, rgba(0,245,212,0.06) 0%, transparent 60%), var(--surface); }
+.mc-b { background: radial-gradient(ellipse at 40% 40%, rgba(255,45,120,0.08) 0%, transparent 65%), var(--surface); }
+.mc-c { background: linear-gradient(135deg, rgba(201,168,76,0.07) 0%, transparent 60%), var(--surface); }
+.mc-d { background: var(--surface); }
+.mc-e { background: radial-gradient(ellipse at 60% 60%, rgba(255,45,120,0.1) 0%, transparent 65%), var(--surface); }
+
+/* ── PERSONALIDADE ── */
+.spectrum-wrap { display: flex; flex-direction: column; gap: 18px; }
+.spectrum-row { display: grid; grid-template-columns: 145px 1fr 145px; align-items: center; gap: 16px; }
+.sp-l { font-size: 0.62rem; color: var(--muted); text-align: right; line-height: 1.4; }
+.sp-r { font-size: 0.62rem; color: var(--muted); text-align: left; line-height: 1.4; }
+.sp-track { height: 3px; background: rgba(0,245,212,0.08); border: 1px solid var(--border); position: relative; }
+.sp-fill { height: 100%; background: var(--cyan); position: relative; }
+.sp-dot {
+  width: 10px; height: 10px;
+  background: var(--cyan);
+  position: absolute;
+  right: -5px; top: 50%;
+  transform: translateY(-50%);
+  box-shadow: 0 0 8px rgba(0,245,212,0.6);
+}
+
+/* ── COMPONENTES ── */
+.comp-sec { border: 1px solid var(--border); margin-bottom: 2px; overflow: hidden; }
+.comp-hd {
+  background: var(--surface);
+  padding: 11px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.54rem; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--faint);
+  display: flex; align-items: center; gap: 8px;
+}
+.comp-hd::before { content: '//'; color: var(--cyan); }
+.comp-bd {
+  padding: 24px 24px;
+  background: rgba(0,0,0,0.15);
+  display: flex; flex-wrap: wrap;
+  gap: 14px; align-items: flex-start;
+}
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 22px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  text-decoration: none; border: none; cursor: pointer;
+  transition: all 0.2s; white-space: nowrap;
+}
+.btn-m { background: var(--magenta); color: #fff; clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px)); }
+.btn-m:hover { opacity: 0.85; }
+.btn-c { background: transparent; color: var(--cyan); border: 1px solid var(--cyan); }
+.btn-c:hover { background: var(--cyan); color: var(--bg); }
+.btn-g { background: transparent; color: var(--ink); border: 1px solid var(--border2); }
+.btn-g:hover { border-color: var(--gold); color: var(--gold); }
+.btn-gld { background: var(--gold); color: var(--bg); font-weight: 700; clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px)); }
+
+.tag-sq {
+  font-size: 0.52rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 5px 11px; border: 1px solid;
+}
+.tq-c { border-color: rgba(0,245,212,0.4); color: var(--cyan); }
+.tq-m { border-color: rgba(255,45,120,0.4); color: var(--magenta); }
+.tq-g { border-color: rgba(201,168,76,0.4); color: var(--gold); }
+.tq-mu { border-color: var(--border); color: var(--muted); }
+
+.card-demo {
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,0.2);
+  padding: 20px;
+  position: relative;
+  max-width: 240px;
+}
+.card-demo::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 16px; right: 16px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+}
+.cd-num { font-size: 0.54rem; font-weight: 700; letter-spacing: 0.12em; color: var(--faint); margin-bottom: 7px; }
+.cd-title { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 300; color: var(--ink); margin-bottom: 4px; }
+.cd-sub { font-size: 0.58rem; color: var(--muted); margin-bottom: 10px; }
+.cd-desc { font-size: 0.62rem; color: var(--muted); line-height: 1.7; margin-bottom: 14px; }
+.cd-price { font-family: 'Cormorant Garamond', serif; font-size: 1.35rem; font-weight: 600; color: var(--gold); }
+
+.input-demo {
+  width: 100%; max-width: 380px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  padding: 11px 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  caret-color: var(--cyan);
+}
+.input-demo:focus { border-color: var(--cyan); box-shadow: 0 0 0 2px rgba(0,245,212,0.1); }
+.input-demo::placeholder { color: rgba(168,144,144,0.45); }
+
+.social-demo {
+  width: 29px; height: 29px;
+  border: 1px solid rgba(0,245,212,0.2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted); font-size: 0.58rem;
+  transition: all 0.2s; cursor: pointer;
+}
+.social-demo:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* ── REGRAS ── */
+.rules-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+.rules-col { background: var(--surface); }
+.rules-hd {
+  padding: 12px 18px;
+  font-size: 0.54rem; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.rules-yes .rules-hd { color: var(--cyan); }
+.rules-no  .rules-hd { color: var(--magenta); }
+.rule-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-size: 0.62rem; color: var(--muted);
+  line-height: 1.55; transition: background 0.15s;
+}
+.rule-item:hover { background: rgba(255,255,255,0.01); }
+.rule-item:last-child { border-bottom: none; }
+.rule-item .mk { flex-shrink: 0; font-weight: 700; margin-top: 1px; }
+.rules-yes .mk { color: var(--cyan); }
+.rules-no  .mk { color: var(--magenta); }
+
+.motion-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+.motion-card { background: var(--surface); padding: 20px 18px; transition: background 0.2s; }
+.motion-card:hover { background: rgba(0,245,212,0.02); }
+.m-name { font-size: 0.58rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cyan); margin-bottom: 5px; }
+.m-val  { font-family: 'Space Mono'; font-size: 0.62rem; color: var(--gold); margin-bottom: 7px; }
+.m-desc { font-size: 0.62rem; color: var(--muted); line-height: 1.65; }
+
+/* ── FOOTER ── */
+.footer {
+  margin-top: 80px;
+  padding-top: 28px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.footer-brand { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.05rem; font-weight: 600; color: var(--ink); }
+.footer-brand span { color: var(--cyan); }
+.footer-copy { font-size: 0.52rem; letter-spacing: 0.08em; color: rgba(168,144,144,0.4); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 640px) {
+  body { cursor: auto; }
+  .cover { padding: 36px 22px; min-height: auto; }
+  .type-block { grid-template-columns: 1fr; }
+  .type-meta { border-right: none; border-bottom: 1px solid var(--border); }
+  .spectrum-row { grid-template-columns: 75px 1fr 75px; }
+  .mood-cell.span2 { grid-column: span 1; }
+  .mood-grid { grid-template-columns: 1fr 1fr; }
+  .rules-grid { grid-template-columns: 1fr; }
+  .panel { padding: 20px 16px; }
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="wrap">
+
+  <!-- COVER -->
+  <header class="cover">
+    <div class="cover-grid-bg"></div>
+    <div class="cover-glow-r"></div>
+    <div class="cover-glow-l"></div>
+    <div class="cover-scanline"></div>
+
+    <div class="corner c-tl">REV//TAR&#10;IDENT.DOC</div>
+    <div class="corner c-tr">V.2025&#10;DRAFT</div>
+    <div class="corner c-bl">∞ sys&#10;online</div>
+    <div class="corner c-br">38°&#10;∆∇</div>
+
+    <div class="cover-eyebrow">
+      <div class="ey-line"></div>
+      <span class="ey-text">Revolution Tarot · Identidade Visual · Status: ONLINE</span>
+      <div class="ey-dot"></div>
+    </div>
+
+    <div style="position:relative;display:inline-block;">
+      <div class="cover-brand">Revolution<br><em>Tarot</em></div>
+      <div class="cover-brand-glitch" aria-hidden="true">Revolution<br>Tarot</div>
+    </div>
+    <div class="cover-sub">// guia de identidade visual</div>
+
+    <div class="cover-doc">
+      <div class="cover-doc-title">Para designers, para você, para qualquer pessoa que tocar nesse projeto.</div>
+      <div class="cover-doc-desc">
+        Tudo que define como a marca aparece — cores, fontes, formas, componentes, tom visual.<br>
+        Um documento vivo. Revise conforme a marca cresce.
+      </div>
+    </div>
+
+    <div class="cover-tags">
+      <span class="ctag">Lógica + Intuição</span>
+      <span class="ctag">Dark Mode Always</span>
+      <span class="ctag">Cyberpunk Místico</span>
+      <span class="ctag">Sem Bullshit Gratiluz</span>
+      <span class="ctag">Sem Contradição</span>
+    </div>
+  </header>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="nav-link" href="#conceito">Conceito</a>
+      <a class="nav-link" href="#paleta">Paleta</a>
+      <a class="nav-link" href="#tipografia">Tipografia</a>
+      <a class="nav-link" href="#elementos">Elementos</a>
+      <a class="nav-link" href="#moodboard">Moodboard</a>
+      <a class="nav-link" href="#personalidade">Personalidade</a>
+      <a class="nav-link" href="#componentes">Componentes</a>
+      <a class="nav-link" href="#regras">Regras</a>
+    </div>
+  </nav>
+
+  <!-- 01. CONCEITO -->
+  <section class="section" id="conceito">
+    <div class="slabel">
+      <div class="slabel-line"></div>
+      <span class="slabel-text">01 — Conceito filosófico</span>
+      <span class="slabel-num">// 01</span>
+    </div>
+    <h2 class="stitle">De onde vem<br><em>essa estética?</em></h2>
+    <p class="slead">A identidade não é decoração — é uma decisão filosófica sobre quem essa marca é no mundo. E ela carrega uma contradição proposital no DNA.</p>
+
+    <div class="cquote" style="margin-bottom:2px;">
+      <blockquote>"Você não veio aqui para fazer a escolha. Você já a fez."</blockquote>
+      <cite>// Oráculo, Matrix Reloaded — citação de abertura do site</cite>
+    </div>
+
+    <div class="panel" style="margin-bottom:24px;">
+      <p style="font-size:0.68rem;color:var(--muted);line-height:1.85;letter-spacing:0.02em;">
+        O site cita Matrix. A taróloga é programadora. A fonte de corpo é monospace. Não é coincidência — é <strong style="color:var(--ink);font-weight:400;">postura</strong>. Essa marca existe na tensão entre o racional e o intuitivo, o código e o oráculo, o terminal e o cosmos. A estética reflete isso: dark, técnica, precisa — mas com calor humano nos detalhes. O cyan é a interface. O gold é o sagrado. O magenta é a urgência da ação.
+      </p>
+    </div>
+
+    <div class="pillars">
+      <div class="pillar">
+        <div class="p-num">// I</div>
+        <div class="p-name">Terminal Místico</div>
+        <div class="p-desc">Parece uma interface de sistema. Mas o sistema lê cartas. O contraste é intencional — tecnologia como portal, não como produto.</div>
+      </div>
+      <div class="pillar">
+        <div class="p-num">// II</div>
+        <div class="p-name">Luxo sem pedestal</div>
+        <div class="p-desc">Parece caro sem intimidar. O ouro é discreto, os cantos são retos, o tom é de conversa de igual pra igual.</div>
+      </div>
+      <div class="pillar">
+        <div class="p-num">// III</div>
+        <div class="p-name">Escuro por postura</div>
+        <div class="p-desc">Não é dark mode por tendência. É porque tarot acontece no silêncio, no fundo da madrugada, quando a gente para de correr.</div>
+      </div>
+      <div class="pillar">
+        <div class="p-num">// IV</div>
+        <div class="p-name">Glitch é honestidade</div>
+        <div class="p-desc">Scanlines, grain, glitch no logo — tudo diz: isso aqui não é polido além da conta. É real. É feito por uma pessoa.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02. PALETA -->
+  <section class="section" id="paleta">
+    <div class="slabel">
+      <div class="slabel-line"></div>
+      <span class="slabel-text">02 — Paleta de cores</span>
+      <span class="slabel-num">// 02</span>
+    </div>
+    <h2 class="stitle">As cores da marca.<br><em>Exatamente essas.</em></h2>
+    <p class="slead">Definidas no globals.css e usadas como variáveis CSS em todo o site. Não substituir por aproximações — os hexadecimais são precisos e têm intenção.</p>
+
+    <div class="panel" style="margin-bottom:2px;">
+      <p style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--faint);margin-bottom:14px;">// Backgrounds — família roxo-vinho</p>
+      <div class="pal-bg">
+        <div class="sw-v" style="background:#240321;"><div class="sw-name">--bg</div><div class="sw-hex">#240321</div></div>
+        <div class="sw-v" style="background:#1a0218;"><div class="sw-name">--surface</div><div class="sw-hex">#1a0218</div></div>
+        <div class="sw-v" style="background:#1e0420;"><div class="sw-name">card</div><div class="sw-hex">#1e0420</div></div>
+        <div class="sw-v" style="background:#120110;"><div class="sw-name">deep</div><div class="sw-hex">#120110</div></div>
+        <div class="sw-v" style="background:#0a000a;"><div class="sw-name">void</div><div class="sw-hex">#0a000a</div></div>
+      </div>
+      <p style="font-size:0.63rem;color:var(--muted);margin-top:12px;line-height:1.75;">
+        <span style="color:var(--cyan);font-weight:700;">&gt;</span>&nbsp; Todos os fundos têm temperatura <strong style="color:var(--ink);font-weight:400;">roxo-vinho</strong> — nunca preto neutro #000, nunca cinza. O calor do vinho confere identidade mesmo nas superfícies mais escuras.
+      </p>
+    </div>
+
+    <div class="pal-accents">
+      <div class="acc-sw">
+        <div class="acc-dot" style="background:#00f5d4;box-shadow:0 0 12px rgba(0,245,212,0.5);"></div>
+        <div><div class="acc-name">--cyan</div><div class="acc-role">Cor primária · links · UI</div><div class="acc-hex">#00f5d4</div></div>
+      </div>
+      <div class="acc-sw">
+        <div class="acc-dot" style="background:#ff2d78;box-shadow:0 0 10px rgba(255,45,120,0.4);"></div>
+        <div><div class="acc-name">--magenta</div><div class="acc-role">CTA · ação · urgência</div><div class="acc-hex">#ff2d78</div></div>
+      </div>
+      <div class="acc-sw">
+        <div class="acc-dot" style="background:#c9a84c;box-shadow:0 0 8px rgba(201,168,76,0.3);"></div>
+        <div><div class="acc-name">--gold</div><div class="acc-role">Citações · preços · especial</div><div class="acc-hex">#c9a84c</div></div>
+      </div>
+      <div class="acc-sw">
+        <div class="acc-dot" style="background:#f0e6d3;"></div>
+        <div><div class="acc-name">--ink</div><div class="acc-role">Texto principal · quente</div><div class="acc-hex">#f0e6d3</div></div>
+      </div>
+      <div class="acc-sw">
+        <div class="acc-dot" style="background:#a89090;"></div>
+        <div><div class="acc-name">--muted</div><div class="acc-role">Texto secundário · labels</div><div class="acc-hex">#a89090</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <p style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--faint);margin-bottom:14px;">// Quando usar cada cor de acento</p>
+      <div class="u-row"><span class="u-bullet">&gt;</span><div><strong style="color:var(--cyan);">Cyan</strong> — hover em links, bordas de componentes ativos, labels de seção, marcadores de lista, eyebrows, linhas decorativas, ícones de hover. É a cor do "sistema online".</div></div>
+      <div class="u-row"><span class="u-bullet">&gt;</span><div><strong style="color:var(--magenta);">Magenta</strong> — botão principal de CTA (sempre com clip-path angular), palavras em destaque dentro de headings (strong). Reservar para o momento de ação — não usar como decoração.</div></div>
+      <div class="u-row"><span class="u-bullet">&gt;</span><div><strong style="color:var(--gold);">Gold</strong> — citações literárias (border-left), preços, a palavra em itálico que quebra o heading, linha superior de cards especiais. É o "sagrado" na interface técnica.</div></div>
+      <div class="u-row"><span class="u-bullet">&gt;</span><div><strong style="color:var(--muted);">Muted</strong> — corpo de texto corrido, parágrafos de suporte, nav links em repouso. Passivo por natureza — não usar em nada interativo.</div></div>
+      <div class="u-row"><span class="u-bullet">&gt;</span><div><strong style="color:var(--ink);">Ink</strong> — títulos, nomes de produto, destaques inline com &lt;strong&gt; dentro de parágrafos muted. O contraste ink-sobre-muted no mesmo parágrafo é assinatura visual do site.</div></div>
+    </div>
+  </section>
+
+  <!-- 03. TIPOGRAFIA -->
+  <section class="section" id="tipografia">
+    <div class="slabel">
+      <div class="slabel-line"></div>
+      <span class="slabel-text">03 — Tipografia</span>
+      <span class="slabel-num">// 03</span>
+    </div>
+    <h2 class="stitle">Duas fontes.<br><em>Nenhuma mais.</em></h2>
+    <p class="slead">A tensão tipográfica é o coração da marca. Cormorant Garamond carrega o místico, o poético, o serif antigo. Space Mono carrega o técnico, o terminal, o preciso. Juntas, elas são a programadora taróloga.</p>
+
+    <div class="type-block">
+      <div class="type-meta">
+        <div class="t-role">Display / H1</div>
+        <div class="t-name">Cormorant Garamond</div>
+        <div class="t-spec">weight 300 / 600<br>line-height 0.9–1.1<br>letter-spacing -0.01–-0.02em<br><br>Títulos grandes, covers, nome da marca no hero</div>
+      </div>
+      <div class="type-sample">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,5vw,3.8rem);font-weight:300;line-height:0.95;letter-spacing:-0.01em;color:var(--ink);">Tarot pra quem<br><em style="color:var(--cyan);">já sabe.</em></div>
+      </div>
+    </div>
+
+    <div class="type-block">
+      <div class="type-meta">
+        <div class="t-role">H2 / Subtítulos</div>
+        <div class="t-name">Cormorant Garamond</div>
+        <div class="t-spec">weight 300<br>line-height 1.1<br><br>Títulos de seção, nome da taróloga, headings de produto</div>
+      </div>
+      <div class="type-sample">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:clamp(1.5rem,3vw,2.3rem);font-weight:300;line-height:1.1;color:var(--ink);">Taróloga de exatas.<br><em style="color:var(--gold);">Sem contradição.</em></div>
+      </div>
+    </div>
+
+    <div class="type-block">
+      <div class="type-meta">
+        <div class="t-role">Citações / Blockquote</div>
+        <div class="t-name">Cormorant Garamond Italic</div>
+        <div class="t-spec">weight 300, italic<br>font-size 1.2–1.8rem<br>Sempre com border-left: 2px solid --gold<br><br>Citações de Matrix e frases das cartas</div>
+      </div>
+      <div class="type-sample">
+        <div style="border-left:2px solid var(--gold);padding-left:16px;">
+          <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.2rem;font-weight:300;line-height:1.5;color:var(--ink);margin-bottom:8px;">"Eu só posso lhe mostrar a porta. Você é quem tem que atravessá-la."</div>
+          <div style="font-size:0.54rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);">// Morpheus, Matrix</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="type-block">
+      <div class="type-meta">
+        <div class="t-role">Corpo / UI</div>
+        <div class="t-name">Space Mono</div>
+        <div class="t-spec">weight 400<br>font-size 0.68–0.82rem<br>line-height 1.85–1.9<br><br>Parágrafos, descrições, todo texto de interface</div>
+      </div>
+      <div class="type-sample">
+        <div style="font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--muted);line-height:1.85;letter-spacing:0.02em;">Se você acha que tarot é só "sentir",<br><strong style="color:var(--ink);font-weight:400;">já começou errado.</strong><br>E se acha que dá pra viver<br>só na lógica, também.</div>
+      </div>
+    </div>
+
+    <div class="type-block">
+      <div class="type-meta">
+        <div class="t-role">Labels / Eyebrows</div>
+        <div class="t-name">Space Mono Bold Caps</div>
+        <div class="t-spec">weight 700, uppercase<br>font-size 0.52–0.62rem<br>letter-spacing 0.14–0.22em<br><br>Labels de seção, badges, status, tags</div>
+      </div>
+      <div class="type-sample" style="flex-direction:column;gap:14px;align-items:flex-start;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:24px;height:1px;background:var(--cyan);"></div>
+          <span style="font-family:'Space Mono',monospace;font-size:0.56rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--cyan);">Revolution Tarot · Status: ONLINE</span>
+        </div>
+        <span style="font-family:'Space Mono',monospace;font-size:0.52rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--faint);">// 001 · Zoom no Caos</span>
+      </div>
+    </div>
+
+    <div class="type-block" style="margin-bottom:20px;">
+      <div class="type-meta">
+        <div class="t-role">Código / Valores</div>
+        <div class="t-name">Space Mono Regular</div>
+        <div class="t-spec">weight 400<br>font-size 0.65–0.75rem<br>color: --gold<br><br>Hexadecimais, specs, tokens de design</div>
+      </div>
+      <div class="type-sample">
+        <div style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--gold);">--cyan: #00f5d4<br>font-size: 0.72rem<br>clip-path: polygon(...)</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <p style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--faint);margin-bottom:14px;">// Escala tipográfica de referência</p>
+      <div class="scale-row"><div class="scale-tag">Display</div><div style="font-family:'Cormorant Garamond',serif;font-size:clamp(2.2rem,5vw,4rem);font-weight:300;line-height:0.95;color:var(--ink);">Revolution Tarot</div></div>
+      <div class="scale-row"><div class="scale-tag">H1</div><div style="font-family:'Cormorant Garamond',serif;font-size:clamp(1.7rem,4vw,2.8rem);font-weight:300;color:var(--ink);">Tiragem do Amor</div></div>
+      <div class="scale-row"><div class="scale-tag">H2</div><div style="font-family:'Cormorant Garamond',serif;font-size:clamp(1.3rem,3vw,2rem);font-weight:300;color:var(--ink);">Como funciona uma consulta</div></div>
+      <div class="scale-row"><div class="scale-tag">Body</div><div style="font-family:'Space Mono',monospace;font-size:0.76rem;color:var(--muted);line-height:1.85;letter-spacing:0.02em;">Texto corrido, parágrafos, descrições de produto.</div></div>
+      <div class="scale-row"><div class="scale-tag">Small</div><div style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--muted);">Texto auxiliar, legendas, metadados</div></div>
+      <div class="scale-row"><div class="scale-tag">Label</div><div style="font-family:'Space Mono',monospace;font-size:0.56rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--cyan);">// seção · categoria · status: online</div></div>
+    </div>
+  </section>
+
+  <!-- 04. ELEMENTOS -->
+  <section class="section" id="elementos">
+    <div class="slabel">
+      <div class="slabel-line"></div>
+      <span class="slabel-text">04 — Elementos visuais</span>
+      <span class="slabel-num">// 04</span>
+    </div>
+    <h2 class="stitle">O vocabulário<br><em>visual da marca.</em></h2>
+    <p class="slead">Formas, texturas e motivos recorrentes que criam reconhecimento. Esses elementos juntos compõem a linguagem visual — use-os com consistência.</p>
+
+    <div class="elems">
+      <div class="elem">
+        <div class="elem-preview"><div class="demo-clip">[ agendar ]</div></div>
+        <div class="elem-name">Clip-Path Angular</div>
+        <div class="elem-desc">Botões CTA com canto cortado em 8px. Assinatura visual mais forte — representa a quebra entre o místico e o técnico. Inegociável em CTAs primários.</div>
+      </div>
+      <div class="elem">
+        <div class="elem-preview" style="flex-direction:column;gap:5px;padding:10px;width:100%;">
+          <div style="width:100%;height:1px;background:repeating-linear-gradient(90deg,rgba(0,245,212,0.15) 0,rgba(0,245,212,0.15) 2px,transparent 2px,transparent 8px);"></div>
+          <div style="width:100%;height:1px;background:rgba(0,245,212,0.08);"></div>
+          <div style="width:100%;height:1px;background:repeating-linear-gradient(90deg,rgba(0,245,212,0.1) 0,rgba(0,245,212,0.1) 1px,transparent 1px,transparent 6px);"></div>
+          <div style="width:100%;height:1px;background:rgba(0,245,212,0.06);"></div>
+        </div>
+        <div class="elem-name">Scanlines</div>
+        <div class="elem-desc">Linhas horizontais de 2px, 0.08 opacidade sobre toda a página. Textura de monitor CRT/terminal — essencial para a pegada cyberpunk.</div>
+      </div>
+      <div class="elem">
+        <div class="elem-preview" style="background-image:linear-gradient(rgba(0,245,212,0.07) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,212,0.07) 1px,transparent 1px);background-size:16px 16px;width:100%;height:68px;"></div>
+        <div class="elem-name">Grid de Fundo</div>
+        <div class="elem-desc">Grade de 48px × 48px em cyan com 3–5% de opacidade. Sempre presente — referência ao grid de sistemas e terminais de programação.</div>
+      </div>
+      <div class="elem">
+        <div class="elem-preview">
+          <div style="border:1px solid var(--border);padding:12px;position:relative;background:rgba(0,0,0,0.3);width:80%;">
+            <div style="position:absolute;top:-1px;left:12px;right:12px;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);"></div>
+            <div style="font-size:0.5rem;color:var(--faint);">// 001</div>
+          </div>
+        </div>
+        <div class="elem-name">Linha Superior de Card</div>
+        <div class="elem-desc">Todo card tem gradiente transparent → cyan → transparent no topo. É o "brilho" que diz: componente ativo. Em gold para cards especiais.</div>
+      </div>
+      <div class="elem">
+        <div class="elem-preview">
+          <div style="position:relative;width:60px;height:60px;">
+            <div style="position:absolute;width:58px;height:58px;border-radius:50%;border:1px solid rgba(0,245,212,0.2);top:50%;left:50%;animation:spin 14s linear infinite;"></div>
+            <div style="position:absolute;width:40px;height:40px;border-radius:50%;border:1px solid rgba(201,168,76,0.25);top:50%;left:50%;animation:spin 9s linear infinite reverse;"></div>
+            <div style="position:absolute;width:22px;height:22px;border-radius:50%;border:1px solid rgba(255,45,120,0.3);top:50%;left:50%;animation:spin 5s linear infinite;"></div>
+          </div>
+        </div>
+        <div class="elem-name">Anéis Rotativos</div>
+        <div class="elem-desc">Três círculos concêntricos em velocidades e direções diferentes — cyan, gold, magenta. Representam o cosmos em movimento no sigil do hero.</div>
+      </div>
+      <div class="elem">
+        <div class="elem-preview" style="flex-direction:column;gap:8px;align-items:flex-start;padding:12px;">
+          <div style="display:flex;align-items:center;gap:8px;"><span style="color:var(--cyan);font-weight:700;font-size:0.65rem;">&gt;</span><span style="font-size:0.58rem;color:var(--muted);">entrega por áudios e fotos</span></div>
+          <div style="display:flex;align-items:center;gap:8px;"><span style="color:var(--cyan);font-weight:700;font-size:0.65rem;">&gt;</span><span style="font-size:0.58rem;color:var(--muted);">zero julgamentos</span></div>
+        </div>
+        <div class="elem-name">Marcador &gt;</div>
+        <div class="elem-desc">Listas usam ">" em cyan. Referência ao prompt de terminal — o sistema está rodando, escutando, processando. Nunca usar bullet points.</div>
+      </div>
+      <div class="elem">
+        <div class="elem-preview">
+          <div style="font-family:'Space Mono',monospace;font-size:0.48rem;color:var(--faint);letter-spacing:0.04em;line-height:1.4;text-align:left;">REV//TAR<br>STATUS: OK<br>∞ sys · online<br>V.2025 · ∆∇</div>
+        </div>
+        <div class="elem-name">Cantos Decorativos</div>
+        <div class="elem-desc">Texto técnico em Space Mono nas quatro extremidades de containers grandes. Coordenadas, versões, status. Referência a HUD de jogos sci-fi.</div>
+      </div>
+      <div class="elem">
+        <div class="elem-preview" style="flex-wrap:wrap;gap:6px;padding:12px;">
+          <span style="font-size:0.5rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:4px 10px;border:1px solid var(--border2);color:var(--muted);">Sem frescura</span>
+          <span style="font-size:0.5rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:4px 10px;border:1px solid var(--border2);color:var(--muted);">Direto</span>
+        </div>
+        <div class="elem-name">Tags Quadradas</div>
+        <div class="elem-desc">Tags sem border-radius. Bordas retas com gold-border em baixa opacidade. Para características, filtros e metadados. Nenhuma tag tem arredondamento.</div>
+      </div>
+      <div class="elem">
+        <div class="elem-preview">
+          <div style="position:relative;width:1px;height:52px;background:linear-gradient(to bottom,transparent,var(--cyan),transparent);">
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:6px;height:6px;background:var(--cyan);box-shadow:0 0 8px rgba(0,245,212,0.8);animation:pulse 2s infinite;"></div>
+          </div>
+        </div>
+        <div class="elem-name">Linha de Scan</div>
+        <div class="elem-desc">Linha horizontal animada que percorre containers do topo para baixo. Simula scanner/radar. Aparece no cover e em containers de destaque.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05. MOODBOARD -->
+  <section class="section" id="moodboard">
+    <div class="slabel">
+      <div class="slabel-line"></div>
+      <span class="slabel-text">05 — Moodboard</span>
+      <span class="slabel-num">// 05</span>
+    </div>
+    <h2 class="stitle">O que inspira<br><em>essa identidade.</em></h2>
+    <p class="slead">Referências de sentimento — não de cópia. Onde essa marca mora culturalmente e o que ela quer evocar.</p>
+
+    <div class="mood-grid" style="margin-bottom:2px;">
+      <div class="mood-cell mc-a span2">
+        <div class="m-word"><em>Interface</em> como ritual.</div>
+        <div class="m-sub">// o terminal é o altar · o prompt é a pergunta · a resposta é a carta</div>
+      </div>
+      <div class="mood-cell mc-b">
+        <div class="m-word">Cosmos<br>no código.</div>
+      </div>
+      <div class="mood-cell mc-c">
+        <div class="m-word">Ouro<br>discreto.</div>
+        <div class="m-sub">precioso, não gritante</div>
+      </div>
+      <div class="mood-cell mc-d">
+        <div class="m-word">Madrugada<br>de terminal.</div>
+        <div class="m-sub">// 2h da manhã · tela brilhando</div>
+      </div>
+      <div class="mood-cell mc-e">
+        <div class="m-word">Ação.<br><em>Agora.</em></div>
+        <div class="m-sub">magenta = urgência com calor</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);">
+      <div style="background:var(--surface);padding:20px 18px;">
+        <div style="font-family:'Cormorant Garamond',serif;color:var(--cyan);font-size:1rem;margin-bottom:7px;">Matrix Trilogy</div>
+        <div style="font-size:0.62rem;color:var(--muted);line-height:1.7;">Fonte principal de citações. O oráculo como metáfora para o tarot. Lógica e destino convivendo. O verde-terminal do primeiro filme é ancestral do nosso cyan.</div>
+      </div>
+      <div style="background:var(--surface);padding:20px 18px;">
+        <div style="font-family:'Cormorant Garamond',serif;color:var(--gold);font-size:1rem;margin-bottom:7px;">Cyberpunk 2077</div>
+        <div style="font-size:0.62rem;color:var(--muted);line-height:1.7;">Estética dark com neons saturados. Magenta e cyan como cores de uma cidade que nunca apaga. Scanlines e grain como textura de tela velha em mundo hiper-tech.</div>
+      </div>
+      <div style="background:var(--surface);padding:20px 18px;">
+        <div style="font-family:'Cormorant Garamond',serif;color:var(--magenta);font-size:1rem;margin-bottom:7px;">Terminal de Programadora</div>
+        <div style="font-size:0.62rem;color:var(--muted);line-height:1.7;">Space Mono como fonte de corpo. Comentários com "//". Prefixos com "// 001". O prompt ">". A identidade literalmente codada por quem a usa.</div>
+      </div>
+      <div style="background:var(--surface);padding:20px 18px;">
+        <div style="font-family:'Cormorant Garamond',serif;color:var(--ink);font-size:1rem;margin-bottom:7px;">Joalheria Renegada</div>
+        <div style="font-size:0.62rem;color:var(--muted);line-height:1.7;">Cormorant Garamond carrega séculos de tipografia elegante. O ouro é discreto, não gritante. Luxo que não intimida — você pode tocar.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06. PERSONALIDADE -->
+  <section class="section" id="personalidade">
+    <div class="slabel">
+      <div class="slabel-line"></div>
+      <span class="slabel-text">06 — Personalidade visual</span>
+      <span class="slabel-num">// 06</span>
+    </div>
+    <h2 class="stitle">Onde a marca<br><em>mora no espectro.</em></h2>
+    <p class="slead">Cada decisão visual deve ser calibrada contra esses eixos. Se algo parece "fora do tom", provavelmente está no extremo errado de um desses sliders.</p>
+
+    <div class="panel">
+      <div class="spectrum-wrap">
+        <div class="spectrum-row"><div class="sp-l">Claro / Arejado</div><div class="sp-track"><div class="sp-fill" style="width:90%;"><div class="sp-dot"></div></div></div><div class="sp-r">Escuro / Atmosférico</div></div>
+        <div class="spectrum-row"><div class="sp-l">Orgânico / Curvo</div><div class="sp-track"><div class="sp-fill" style="width:12%;"><div class="sp-dot"></div></div></div><div class="sp-r">Geométrico / Angular</div></div>
+        <div class="spectrum-row"><div class="sp-l">Minimalista</div><div class="sp-track"><div class="sp-fill" style="width:45%;"><div class="sp-dot"></div></div></div><div class="sp-r">Denso / Texturizado</div></div>
+        <div class="spectrum-row"><div class="sp-l">Frio / Corporativo</div><div class="sp-track"><div class="sp-fill" style="width:22%;"><div class="sp-dot"></div></div></div><div class="sp-r">Quente / Humano</div></div>
+        <div class="spectrum-row"><div class="sp-l">Clássico / Atemporal</div><div class="sp-track"><div class="sp-fill" style="width:58%;"><div class="sp-dot"></div></div></div><div class="sp-r">Futurista / Tech</div></div>
+        <div class="spectrum-row"><div class="sp-l">Sério / Contido</div><div class="sp-track"><div class="sp-fill" style="width:38%;"><div class="sp-dot"></div></div></div><div class="sp-r">Poético / Expressivo</div></div>
+        <div class="spectrum-row"><div class="sp-l">Suave / Pastel</div><div class="sp-track"><div class="sp-fill" style="width:82%;"><div class="sp-dot"></div></div></div><div class="sp-r">Saturado / Neon</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07. COMPONENTES -->
+  <section class="section" id="componentes">
+    <div class="slabel">
+      <div class="slabel-line"></div>
+      <span class="slabel-text">07 — Componentes</span>
+      <span class="slabel-num">// 07</span>
+    </div>
+    <h2 class="stitle">Como os elementos<br><em>se comportam.</em></h2>
+    <p class="slead">Exemplos reais — exatamente como aparecem no site. Referência direta para implementação e criação de novos assets.</p>
+
+    <div class="comp-sec">
+      <div class="comp-hd">Botões</div>
+      <div class="comp-bd">
+        <div><div style="font-size:0.5rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Primário — CTA clip-path</div><button class="btn btn-m">[ quero minha tiragem ]</button></div>
+        <div><div style="font-size:0.5rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Outline Cyan — Nav</div><button class="btn btn-c">[ agendar ]</button></div>
+        <div><div style="font-size:0.5rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Ghost — Terciário</div><button class="btn btn-g">Ver consultas →</button></div>
+        <div><div style="font-size:0.5rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Gold — Oferta especial</div><button class="btn btn-gld">[ pacote completo ]</button></div>
+      </div>
+    </div>
+
+    <div class="comp-sec">
+      <div class="comp-hd">Tags e Badges</div>
+      <div class="comp-bd">
+        <span class="tag-sq tq-c">// amor</span>
+        <span class="tag-sq tq-m">urgente</span>
+        <span class="tag-sq tq-g">★ premium</span>
+        <span class="tag-sq tq-mu">Sem julgamentos</span>
+        <span class="tag-sq tq-mu">Gratiluz aqui não tem vez</span>
+        <span class="tag-sq tq-c">Status: ONLINE</span>
+      </div>
+    </div>
+
+    <div class="comp-sec">
+      <div class="comp-hd">Card de Produto — modelo do Catálogo</div>
+      <div class="comp-bd">
+        <div class="card-demo">
+          <div class="cd-num">// 001</div>
+          <div class="cd-title">Zoom no Caos</div>
+          <div class="cd-sub">Tiragem por área</div>
+          <div class="cd-desc">Escolhe uma parte da sua vida que tá precisando de atenção e deixa as cartas entregarem o exposed.</div>
+          <div class="cd-price">R$ 150</div>
+        </div>
+        <div style="font-size:0.62rem;color:var(--muted);line-height:1.85;max-width:260px;">
+          <div style="color:var(--cyan);font-weight:700;margin-bottom:8px;">&gt; Anatomia do card:</div>
+          <div style="margin-bottom:4px;"><span style="color:var(--faint);">num</span> — Space Mono, --faint, prefixo "//"</div>
+          <div style="margin-bottom:4px;"><span style="color:var(--faint);">título</span> — Cormorant weight 300, --ink</div>
+          <div style="margin-bottom:4px;"><span style="color:var(--faint);">subtítulo</span> — Space Mono, 0.6rem, --muted</div>
+          <div style="margin-bottom:4px;"><span style="color:var(--faint);">desc</span> — Space Mono, 0.62rem, --muted</div>
+          <div><span style="color:var(--faint);">preço</span> — Cormorant weight 600, --gold</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="comp-sec">
+      <div class="comp-hd">Inputs — sem border-radius</div>
+      <div class="comp-bd" style="flex-direction:column;align-items:flex-start;gap:14px;">
+        <input class="input-demo" type="text" placeholder="Qual é a sua pergunta pras cartas?">
+        <div style="font-size:0.62rem;color:var(--muted);line-height:1.75;">
+          <span style="color:var(--cyan);">&gt;</span> border-radius: 0 ·
+          <span style="color:var(--cyan);">&gt;</span> focus: border-color → --cyan + box-shadow glow ·
+          <span style="color:var(--cyan);">&gt;</span> caret: --cyan
+        </div>
+      </div>
+    </div>
+
+    <div class="comp-sec">
+      <div class="comp-hd">Ícones Sociais — modelo do Navbar</div>
+      <div class="comp-bd" style="align-items:center;gap:10px;">
+        <div class="social-demo">WA</div>
+        <div class="social-demo">IG</div>
+        <div class="social-demo">TK</div>
+        <div style="font-size:0.62rem;color:var(--muted);">28–30px · borda quadrada · rgba(0,245,212,0.2)<br>Hover: border-color → --cyan · color → --cyan</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:20px;">
+      <p style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--faint);margin-bottom:14px;">// Border-radius — a marca é angular</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:14px;">
+        <div style="background:var(--surface);padding:18px;text-align:center;">
+          <div style="width:40px;height:40px;border:1px solid var(--border);background:var(--card);margin:0 auto 8px;border-radius:0;"></div>
+          <div style="font-size:0.58rem;color:var(--muted);">Padrão</div>
+          <div style="font-size:0.6rem;color:var(--gold);font-family:'Space Mono';">0px</div>
+        </div>
+        <div style="background:var(--surface);padding:18px;text-align:center;">
+          <div style="width:40px;height:40px;border:1px solid var(--border);background:var(--card);margin:0 auto 8px;border-radius:2px;"></div>
+          <div style="font-size:0.58rem;color:var(--muted);">Mínimo</div>
+          <div style="font-size:0.6rem;color:var(--gold);font-family:'Space Mono';">2px</div>
+        </div>
+        <div style="background:var(--surface);padding:18px;text-align:center;">
+          <div style="width:40px;height:20px;border:1px solid rgba(0,245,212,0.3);margin:10px auto 8px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-size:0.46rem;color:var(--cyan);">pill</div>
+          <div style="font-size:0.58rem;color:var(--muted);">Pill (só nav)</div>
+          <div style="font-size:0.6rem;color:var(--gold);font-family:'Space Mono';">99px</div>
+        </div>
+        <div style="background:var(--surface);padding:18px;text-align:center;">
+          <div style="width:40px;height:40px;background:rgba(255,45,120,0.8);margin:0 auto 8px;clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));"></div>
+          <div style="font-size:0.58rem;color:var(--muted);">Clip-path</div>
+          <div style="font-size:0.6rem;color:var(--gold);font-family:'Space Mono';">CTAs</div>
+        </div>
+      </div>
+      <p style="font-size:0.62rem;color:var(--muted);line-height:1.75;"><span style="color:var(--cyan);">&gt;</span>&nbsp; A marca é <strong style="color:var(--ink);font-weight:400;">angular por princípio</strong>. Cantos arredondados passam mensagem errada — suavidade excessiva contradiz a postura técnica. A única exceção é o pill em elementos de navegação.</p>
+    </div>
+  </section>
+
+  <!-- 08. REGRAS -->
+  <section class="section" id="regras">
+    <div class="slabel">
+      <div class="slabel-line"></div>
+      <span class="slabel-text">08 — Regras visuais</span>
+      <span class="slabel-num">// 08</span>
+    </div>
+    <h2 class="stitle">O que a marca faz.<br><strong>E o que jamais faz.</strong></h2>
+    <p class="slead">Diretrizes que qualquer pessoa tocando no projeto precisa saber — designers externos, posts nas redes, qualquer asset visual.</p>
+
+    <div class="rules-grid" style="margin-bottom:2px;">
+      <div class="rules-col rules-yes">
+        <div class="rules-hd">✓ &nbsp;A marca faz isso</div>
+        <div class="rule-item"><span class="mk">&gt;</span><div>Fundo roxo-vinho escuro — nunca branco, cinza ou preto neutro</div></div>
+        <div class="rule-item"><span class="mk">&gt;</span><div>Duas fontes somente: Cormorant Garamond + Space Mono</div></div>
+        <div class="rule-item"><span class="mk">&gt;</span><div>CTAs com clip-path angular de 8px — inegociável</div></div>
+        <div class="rule-item"><span class="mk">&gt;</span><div>Prefixo "//" antes de números de seção e labels técnicas</div></div>
+        <div class="rule-item"><span class="mk">&gt;</span><div>Scanlines + grain em todos os fundos — sempre</div></div>
+        <div class="rule-item"><span class="mk">&gt;</span><div>Listas com marcador ">" em cyan — nunca bullet points</div></div>
+        <div class="rule-item"><span class="mk">&gt;</span><div>Citações com border-left: 2px solid --gold</div></div>
+        <div class="rule-item"><span class="mk">&gt;</span><div>Linha gradiente cyan no topo de cards ativos</div></div>
+        <div class="rule-item"><span class="mk">&gt;</span><div>Texto técnico nos cantos de containers grandes</div></div>
+        <div class="rule-item"><span class="mk">&gt;</span><div>Grid de fundo 48px × 48px em cyan com baixa opacidade</div></div>
+        <div class="rule-item"><span class="mk">&gt;</span><div>Cursor crosshair no desktop</div></div>
+      </div>
+      <div class="rules-col rules-no">
+        <div class="rules-hd">✗ &nbsp;A marca jamais faz</div>
+        <div class="rule-item"><span class="mk">✗</span><div>Fundo branco ou modo claro — não existe versão light</div></div>
+        <div class="rule-item"><span class="mk">✗</span><div>Inter, Roboto, Montserrat, Poppins ou qualquer font genérica</div></div>
+        <div class="rule-item"><span class="mk">✗</span><div>Border-radius generoso (8px+) — quebra o DNA angular</div></div>
+        <div class="rule-item"><span class="mk">✗</span><div>Roxo/violeta como cor primária — cyan é o primário</div></div>
+        <div class="rule-item"><span class="mk">✗</span><div>Emojis de estrela ⭐ lua 🌙 no UI — só em conteúdo</div></div>
+        <div class="rule-item"><span class="mk">✗</span><div>Gradientes de arco-íris além do cyan e magenta</div></div>
+        <div class="rule-item"><span class="mk">✗</span><div>Box-shadow duro e sólido sem blur</div></div>
+        <div class="rule-item"><span class="mk">✗</span><div>Três cores de acento num único componente — max 2</div></div>
+        <div class="rule-item"><span class="mk">✗</span><div>Texto uppercase em parágrafos corridos</div></div>
+        <div class="rule-item"><span class="mk">✗</span><div>Fotos de banco de imagem com look wellness genérico</div></div>
+        <div class="rule-item"><span class="mk">✗</span><div>Animações &gt;600ms ou com bounce excessivo</div></div>
+      </div>
+    </div>
+
+    <div class="panel gold-top" style="margin-bottom:20px;">
+      <p style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:rgba(201,168,76,0.55);margin-bottom:16px;">// Movimento e animação</p>
+      <div class="motion-grid">
+        <div class="motion-card">
+          <div class="m-name">Entrada</div>
+          <div class="m-val">fadeUp · 0.6–0.8s ease</div>
+          <div class="m-desc">Elementos revelam subindo 20px. Nunca caem, nunca saltam. É uma revelação — como virar uma carta.</div>
+        </div>
+        <div class="motion-card">
+          <div class="m-name">Duração base</div>
+          <div class="m-val">200ms–400ms · ease</div>
+          <div class="m-desc">Nada mais lento que 400ms (parece travado), nada mais rápido que 150ms (parece quebrado).</div>
+        </div>
+        <div class="motion-card">
+          <div class="m-name">Stagger</div>
+          <div class="m-val">animation-delay +0.1s</div>
+          <div class="m-desc">Grupos de elementos entram em cascata. Como cartas sendo viradas uma a uma.</div>
+        </div>
+        <div class="motion-card">
+          <div class="m-name">Glitch</div>
+          <div class="m-val">keyframes · loop 8s</div>
+          <div class="m-desc">Usado com parcimônia — só no logo do hero. Não replicar em múltiplos lugares.</div>
+        </div>
+        <div class="motion-card">
+          <div class="m-name">Spin (anéis)</div>
+          <div class="m-val">linear infinite · 8–20s</div>
+          <div class="m-desc">Lento o suficiente para ser hipnótico, não rápido para ser perturbador.</div>
+        </div>
+        <div class="motion-card">
+          <div class="m-name">Scan line</div>
+          <div class="m-val">top: -5% → 105% · 7s</div>
+          <div class="m-desc">A linha que percorre o cover. Opacidade 0.4 — sutil. Reforça que o sistema está ativo.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <p style="font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--faint);margin-bottom:14px;">// Espaçamento — múltiplos de 4</p>
+      <div style="display:flex;flex-direction:column;gap:0;">
+        <div style="display:flex;align-items:center;gap:14px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <div style="width:4px;height:4px;background:var(--cyan);flex-shrink:0;"></div>
+          <div style="font-size:0.62rem;color:var(--muted);flex:1;">Micro — gap entre elementos inline</div>
+          <div style="font-size:0.6rem;color:var(--gold);font-family:'Space Mono';">4–6px</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <div style="width:8px;height:4px;background:var(--cyan);flex-shrink:0;"></div>
+          <div style="font-size:0.62rem;color:var(--muted);flex:1;">XS — gap entre chips e tags</div>
+          <div style="font-size:0.6rem;color:var(--gold);font-family:'Space Mono';">8px</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <div style="width:14px;height:4px;background:var(--cyan);flex-shrink:0;"></div>
+          <div style="font-size:0.62rem;color:var(--muted);flex:1;">S — gap interno de card</div>
+          <div style="font-size:0.6rem;color:var(--gold);font-family:'Space Mono';">12px</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <div style="width:24px;height:4px;background:var(--cyan);flex-shrink:0;"></div>
+          <div style="font-size:0.62rem;color:var(--muted);flex:1;">M — padding de card / gap entre componentes</div>
+          <div style="font-size:0.6rem;color:var(--gold);font-family:'Space Mono';">20–28px</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <div style="width:40px;height:4px;background:var(--cyan);flex-shrink:0;"></div>
+          <div style="font-size:0.62rem;color:var(--muted);flex:1;">L — padding de seção</div>
+          <div style="font-size:0.6rem;color:var(--gold);font-family:'Space Mono';">36–48px</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:9px 0;">
+          <div style="width:64px;height:4px;background:var(--cyan);flex-shrink:0;"></div>
+          <div style="font-size:0.62rem;color:var(--muted);flex:1;">XL — gap entre seções</div>
+          <div style="font-size:0.6rem;color:var(--gold);font-family:'Space Mono';">64–96px</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div>
+      <div class="footer-brand">Revolution <span>Tarot</span></div>
+      <div style="font-size:0.52rem;letter-spacing:0.06em;color:var(--muted);margin-top:2px;">// lógica + intuição · documento vivo</div>
+    </div>
+    <div class="footer-copy">© 2025 Revolution Tarot // identidade visual</div>
+  </footer>
+
+</div>
+
+<script>
+  // Animate sliders on scroll
+  const sliderObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      entry.target.querySelectorAll('.sp-fill').forEach(f => {
+        const w = f.style.width;
+        f.style.transition = 'none';
+        f.style.width = '0%';
+        setTimeout(() => {
+          f.style.transition = 'width 1s cubic-bezier(0.34,1.56,0.64,1)';
+          f.style.width = w;
+        }, 150);
+      });
+      sliderObs.unobserve(entry.target);
+    });
+  }, { threshold: 0.4 });
+  document.querySelectorAll('.spectrum-wrap').forEach(el => sliderObs.observe(el));
+
+  // Active nav
+  const secObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      document.querySelectorAll('.nav-link').forEach(l => l.style.color = '');
+      const a = document.querySelector(`.nav-link[href="#${entry.target.id}"]`);
+      if (a) a.style.color = 'var(--cyan)';
+    });
+  }, { threshold: 0.35 });
+  document.querySelectorAll('section[id]').forEach(s => secObs.observe(s));
+
+  // Stagger cover swatches
+  window.addEventListener('load', () => {
+    document.querySelectorAll('.sw-v').forEach((s, i) => {
+      s.style.opacity = '0';
+      s.style.transition = 'opacity 0.4s ease';
+      setTimeout(() => s.style.opacity = '1', 80 + i * 70);
+    });
+  });
+</script>
+</body>
+</html>

@@ -98,6 +98,15 @@ export function headersSeguranca(): Record<string, string> {
   }
 }
 
+// Igual ao anterior mas sem X-Frame-Options — para rotas servidas dentro de iframes same-origin
+export function headersSegurancaEmbeddable(): Record<string, string> {
+  return {
+    'Cache-Control':  'no-store, no-cache, must-revalidate',
+    'Pragma':         'no-cache',
+    'X-Content-Type-Options': 'nosniff',
+  }
+}
+
 // ── Validações de formato das ENVs ────────────────────────────────────────────
 
 interface ValidacaoEnv {

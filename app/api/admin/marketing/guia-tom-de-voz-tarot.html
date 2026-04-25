@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia de Tom de Voz — Seu Negócio de Tarot</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0b12;
+    --surface: #16121f;
+    --surface2: #1e1829;
+    --accent: #c084f5;
+    --accent2: #f0a5c8;
+    --gold: #e8c97a;
+    --text: #f0eaf8;
+    --muted: #9585b0;
+    --border: rgba(192,132,245,0.15);
+    --yes: #7dd4a8;
+    --no: #f08080;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* Stars background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 15% 20%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 72% 8%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 55%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 88% 40%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 75%, rgba(255,255,255,0.35) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 90%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 5% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 95% 70%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 50% 30%, rgba(224,192,245,0.6) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 80% 15%, rgba(224,192,245,0.5) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 60px 24px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    text-align: center;
+    margin-bottom: 64px;
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    font-weight: 700;
+    line-height: 1.15;
+    background: linear-gradient(135deg, var(--text) 30%, var(--accent2) 70%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 1rem;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .divider {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    margin: 28px auto 0;
+  }
+
+  /* SECTIONS */
+  section {
+    margin-bottom: 48px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  section:nth-child(1) { animation-delay: 0.1s; }
+  section:nth-child(2) { animation-delay: 0.2s; }
+  section:nth-child(3) { animation-delay: 0.3s; }
+  section:nth-child(4) { animation-delay: 0.4s; }
+  section:nth-child(5) { animation-delay: 0.5s; }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.55rem;
+    font-weight: 400;
+    margin-bottom: 20px;
+    color: var(--text);
+  }
+
+  /* CARD BASE */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s ease;
+  }
+
+  .card:hover {
+    border-color: rgba(192,132,245,0.35);
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.6;
+  }
+
+  /* ESSENCE */
+  .essence-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+  }
+
+  .essence-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 18px;
+    text-align: center;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .essence-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(192,132,245,0.12);
+  }
+
+  .essence-icon {
+    font-size: 1.8rem;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .essence-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    color: var(--accent2);
+    margin-bottom: 6px;
+  }
+
+  .essence-desc {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* SLIDERS */
+  .sliders-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .slider-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 110px;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .slider-label-left {
+    text-align: right;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  .slider-label-right {
+    text-align: left;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  .slider-track {
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 99px;
+    position: relative;
+    border: 1px solid var(--border);
+  }
+
+  .slider-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    position: relative;
+    transition: width 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  .slider-dot {
+    width: 16px; height: 16px;
+    background: var(--text);
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    position: absolute;
+    right: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    box-shadow: 0 0 12px rgba(192,132,245,0.5);
+  }
+
+  /* SIM/NÃO COMPARATIVO */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .compare-col {
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .compare-yes {
+    background: rgba(125,212,168,0.07);
+    border: 1px solid rgba(125,212,168,0.25);
+  }
+
+  .compare-no {
+    background: rgba(240,128,128,0.07);
+    border: 1px solid rgba(240,128,128,0.25);
+  }
+
+  .compare-header {
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .compare-yes .compare-header { color: var(--yes); }
+  .compare-no .compare-header  { color: var(--no); }
+
+  .compare-item {
+    font-size: 0.88rem;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  .compare-item:last-child { border-bottom: none; }
+
+  /* EXEMPLOS */
+  .example-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 7px 16px;
+    border-radius: 99px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s ease;
+  }
+
+  .tab-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .tab-btn.active {
+    background: rgba(192,132,245,0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .example-box {
+    display: none;
+    gap: 16px;
+    flex-direction: column;
+  }
+
+  .example-box.active { display: flex; }
+
+  .example-card {
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+
+  .ex-bad {
+    background: rgba(240,128,128,0.06);
+    border: 1px solid rgba(240,128,128,0.2);
+  }
+
+  .ex-good {
+    background: rgba(125,212,168,0.06);
+    border: 1px solid rgba(125,212,168,0.2);
+  }
+
+  .ex-tag {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .ex-bad .ex-tag  { color: var(--no); }
+  .ex-good .ex-tag { color: var(--yes); }
+
+  .ex-text {
+    font-size: 0.92rem;
+    color: var(--text);
+    font-style: italic;
+    line-height: 1.6;
+  }
+
+  /* CHECKLIST */
+  .checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--surface2);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+  }
+
+  .check-item:hover { border-color: rgba(192,132,245,0.3); }
+
+  .check-item.checked {
+    border-color: rgba(125,212,168,0.35);
+    background: rgba(125,212,168,0.05);
+  }
+
+  .check-box {
+    width: 20px; height: 20px;
+    border: 1.5px solid var(--muted);
+    border-radius: 5px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    margin-top: 1px;
+  }
+
+  .check-item.checked .check-box {
+    background: var(--yes);
+    border-color: var(--yes);
+  }
+
+  .check-icon {
+    font-size: 0.75rem;
+    color: var(--bg);
+    display: none;
+  }
+
+  .check-item.checked .check-icon { display: block; }
+
+  .check-text {
+    font-size: 0.88rem;
+    color: var(--text);
+    line-height: 1.55;
+  }
+
+  .check-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 5px;
+    background: var(--surface2);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--yes));
+    border-radius: 99px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  .progress-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* FOOTER NOTE */
+  .footer-note {
+    text-align: center;
+    margin-top: 56px;
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+
+  .footer-note span {
+    color: var(--accent2);
+  }
+
+  @media (max-width: 560px) {
+    .compare-grid { grid-template-columns: 1fr; }
+    .slider-row { grid-template-columns: 80px 1fr 80px; }
+    .card { padding: 22px 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <span class="eyebrow">✦ Documento vivo ✦</span>
+    <h1>Guia de Tom de Voz</h1>
+    <p class="subtitle">Como sua marca de tarot fala, sente e se conecta com as pessoas certas.</p>
+    <div class="divider"></div>
+  </header>
+
+  <!-- 1. ESSÊNCIA -->
+  <section>
+    <div class="section-label">01 — Essência da voz</div>
+    <h2>Quem é essa marca quando fala?</h2>
+    <div class="essence-grid">
+      <div class="essence-item">
+        <span class="essence-icon">🫂</span>
+        <div class="essence-title">Amiga de verdade</div>
+        <div class="essence-desc">Fala com intimidade, sem distância. Como se estivesse num papo de sofá.</div>
+      </div>
+      <div class="essence-item">
+        <span class="essence-icon">🔮</span>
+        <div class="essence-title">Intuitiva & direta</div>
+        <div class="essence-desc">Não enrola. Diz o que vê com clareza, sem floreios vazios.</div>
+      </div>
+      <div class="essence-item">
+        <span class="essence-icon">🌙</span>
+        <div class="essence-title">Acolhedora & sem julgamentos</div>
+        <div class="essence-desc">O espaço da marca é seguro. Ninguém é bobo por ter dúvidas ou medos.</div>
+      </div>
+      <div class="essence-item">
+        <span class="essence-icon">⚡</span>
+        <div class="essence-title">Autêntica (com palavrão e tudo)</div>
+        <div class="essence-desc">Palavrão quando cabe — não pra chocar, mas porque é natural e real.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. ESPECTRO DE TOM -->
+  <section>
+    <div class="section-label">02 — Espectro do tom</div>
+    <h2>Onde você mora nessa escala?</h2>
+    <div class="card">
+      <div class="sliders-grid">
+
+        <div class="slider-row">
+          <div class="slider-label-left">Formal</div>
+          <div class="slider-track">
+            <div class="slider-fill" style="width: 92%">
+              <div class="slider-dot"></div>
+            </div>
+          </div>
+          <div class="slider-label-right">Informal</div>
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-label-left">Sério</div>
+          <div class="slider-track">
+            <div class="slider-fill" style="width: 55%">
+              <div class="slider-dot"></div>
+            </div>
+          </div>
+          <div class="slider-label-right">Bem-humorado</div>
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-label-left">Distante</div>
+          <div class="slider-track">
+            <div class="slider-fill" style="width: 90%">
+              <div class="slider-dot"></div>
+            </div>
+          </div>
+          <div class="slider-label-right">Íntimo</div>
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-label-left">Vago</div>
+          <div class="slider-track">
+            <div class="slider-fill" style="width: 80%">
+              <div class="slider-dot"></div>
+            </div>
+          </div>
+          <div class="slider-label-right">Prático</div>
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-label-left">Contido</div>
+          <div class="slider-track">
+            <div class="slider-fill" style="width: 70%">
+              <div class="slider-dot"></div>
+            </div>
+          </div>
+          <div class="slider-label-right">Expressivo</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. PODE / NÃO PODE -->
+  <section>
+    <div class="section-label">03 — Pode & não pode</div>
+    <h2>O que essa voz faz (e o que ela jamais faz)</h2>
+    <div class="compare-grid">
+      <div class="compare-col compare-yes">
+        <div class="compare-header">✓ &nbsp;Faz</div>
+        <div class="compare-item">Tratar o cliente pelo primeiro nome ou "você"</div>
+        <div class="compare-item">Usar gírias e expressões naturais do dia a dia</div>
+        <div class="compare-item">Palavrão quando cai bem no contexto e no canal</div>
+        <div class="compare-item">Ser direta: "Esse arcano diz que..." em vez de "pode ser que talvez..."</div>
+        <div class="compare-item">Mostrar empolgação de verdade: "Caramba, que tiragem!"</div>
+        <div class="compare-item">Fazer perguntas que abrem conversa</div>
+        <div class="compare-item">Dar contexto prático junto com a leitura</div>
+      </div>
+      <div class="compare-col compare-no">
+        <div class="compare-header">✗ &nbsp;Não faz</div>
+        <div class="compare-item">Linguagem técnica esotérica sem explicar</div>
+        <div class="compare-item">Tom condescendente ou "eu sei mais que você"</div>
+        <div class="compare-item">Promessas mágicas: "as cartas garantem que..."</div>
+        <div class="compare-item">Frases genéricas de coach motivacional</div>
+        <div class="compare-item">Criar medo ou dependência emocional</div>
+        <div class="compare-item">Palavrão em contextos sérios ou de dor</div>
+        <div class="compare-item">Longos parágrafos de texto sem respiro</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. EXEMPLOS PRÁTICOS -->
+  <section>
+    <div class="section-label">04 — Exemplos na prática</div>
+    <h2>Como soa em cada situação?</h2>
+    <div class="example-tabs">
+      <button class="tab-btn active" onclick="showTab('vendas')">Venda de tiragem</button>
+      <button class="tab-btn" onclick="showTab('resposta')">Respondendo dúvida</button>
+      <button class="tab-btn" onclick="showTab('resultado')">Entregando leitura</button>
+      <button class="tab-btn" onclick="showTab('stories')">Stories / Redes</button>
+    </div>
+
+    <div class="example-box active" id="tab-vendas">
+      <div class="example-card ex-bad">
+        <div class="ex-tag">✗ Evitar</div>
+        <p class="ex-text">"Adquira agora nossa tiragem oracular com 3 cartas para obter insights sobre sua jornada espiritual e alinhamento energético."</p>
+      </div>
+      <div class="example-card ex-good">
+        <div class="ex-tag">✓ Preferir</div>
+        <p class="ex-text">"Tá sentindo que algo tá travado mas não consegue colocar o dedo? Pede uma tiragem — a gente olha junto o que as cartas têm pra dizer. Sem enrolação, direto ao ponto. 🔮"</p>
+      </div>
+    </div>
+
+    <div class="example-box" id="tab-resposta">
+      <div class="example-card ex-bad">
+        <div class="ex-tag">✗ Evitar</div>
+        <p class="ex-text">"Olá! Para obter informações sobre nossos serviços, por favor preencha o formulário de contato e aguarde retorno em até 3 dias úteis."</p>
+      </div>
+      <div class="example-card ex-good">
+        <div class="ex-tag">✓ Preferir</div>
+        <p class="ex-text">"Oi! Claro, fica à vontade pra me perguntar o que quiser. Tiragem simples você recebe no mesmo dia, tá? Me conta o que tá rolando aí."</p>
+      </div>
+    </div>
+
+    <div class="example-box" id="tab-resultado">
+      <div class="example-card ex-bad">
+        <div class="ex-tag">✗ Evitar</div>
+        <p class="ex-text">"A carta O Ermitão em posição revertida sugere uma possível resistência ao processo introspectivo que pode estar impedindo seu crescimento espiritual."</p>
+      </div>
+      <div class="example-card ex-good">
+        <div class="ex-tag">✓ Preferir</div>
+        <p class="ex-text">"Olha, o Ermitão virado me diz que você tá fugindo de olhar pra dentro — e eu entendo, às vezes a gente já sabe a resposta e ela é pesada. O que tá com medo de encontrar?"</p>
+      </div>
+    </div>
+
+    <div class="example-box" id="tab-stories">
+      <div class="example-card ex-bad">
+        <div class="ex-tag">✗ Evitar</div>
+        <p class="ex-text">"Boa semana a todos! Que as energias do universo guiem seus caminhos com luz e amor. ✨🙏"</p>
+      </div>
+      <div class="example-card ex-good">
+        <div class="ex-tag">✓ Preferir</div>
+        <p class="ex-text">"Segunda-feira chegou com A Torre. Ótimo. 😂 Brincadeira — mas de verdade, semana de mudança tá no ar. Me conta: o que você tá precisando deixar pra trás?"</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. CHECKLIST -->
+  <section>
+    <div class="section-label">05 — Checklist antes de publicar</div>
+    <h2>Antes de mandar qualquer texto, confere aqui</h2>
+    <div class="card">
+      <div class="checklist" id="checklist">
+        <div class="check-item" onclick="toggleCheck(this)">
+          <div class="check-box"><span class="check-icon">✓</span></div>
+          <div class="check-text">Eu leria isso pra uma amiga próxima sem soar estranha?</div>
+        </div>
+        <div class="check-item" onclick="toggleCheck(this)">
+          <div class="check-box"><span class="check-icon">✓</span></div>
+          <div class="check-text">O texto é direto — sem rodeios desnecessários ou palavras de enchimento?</div>
+        </div>
+        <div class="check-item" onclick="toggleCheck(this)">
+          <div class="check-box"><span class="check-icon">✓</span></div>
+          <div class="check-text">Se tem palavrão, ele está num contexto leve/humorado, não num momento de vulnerabilidade da pessoa?</div>
+        </div>
+        <div class="check-item" onclick="toggleCheck(this)">
+          <div class="check-box"><span class="check-icon">✓</span></div>
+          <div class="check-text">Não tem nenhuma promessa impossível ou afirmação do tipo "as cartas garantem..."?</div>
+        </div>
+        <div class="check-item" onclick="toggleCheck(this)">
+          <div class="check-box"><span class="check-icon">✓</span></div>
+          <div class="check-text">O texto acolhe sem criar dependência emocional ou inseguranças?</div>
+        </div>
+        <div class="check-item" onclick="toggleCheck(this)">
+          <div class="check-box"><span class="check-icon">✓</span></div>
+          <div class="check-text">Tem algo prático — uma ação, uma pergunta, uma próxima etapa?</div>
+        </div>
+        <div class="check-item" onclick="toggleCheck(this)">
+          <div class="check-box"><span class="check-icon">✓</span></div>
+          <div class="check-text">O tom está consistente com os outros textos da marca?</div>
+        </div>
+      </div>
+      <div class="check-progress">
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-label" id="progressLabel">0 / 7 itens</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer-note">
+    Feito com <span>✦</span> para uma marca que fala de coração.
+    <br>Este guia é um documento vivo — revise conforme sua marca cresce.
+  </div>
+
+</div>
+
+<script>
+  function showTab(id) {
+    document.querySelectorAll('.example-box').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  function toggleCheck(el) {
+    el.classList.toggle('checked');
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const items = document.querySelectorAll('.check-item');
+    const checked = document.querySelectorAll('.check-item.checked').length;
+    const total = items.length;
+    document.getElementById('progressFill').style.width = (checked / total * 100) + '%';
+    document.getElementById('progressLabel').textContent = checked + ' / ' + total + ' itens';
+  }
+
+  // Animate sliders on load
+  window.addEventListener('load', () => {
+    const fills = document.querySelectorAll('.slider-fill');
+    fills.forEach(fill => {
+      const target = fill.style.width;
+      fill.style.width = '0%';
+      setTimeout(() => { fill.style.width = target; }, 300);
+    });
+  });
+</script>
+</body>
+</html>

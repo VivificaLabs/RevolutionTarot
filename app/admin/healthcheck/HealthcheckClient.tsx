@@ -3,6 +3,21 @@
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
+type Aba = 'checks' | 'tom-de-voz' | 'personalidade' | 'identidade-visual'
+
+const ABAS: { id: Aba; label: string }[] = [
+  { id: 'checks',           label: 'Checks' },
+  { id: 'tom-de-voz',       label: 'Tom de Voz' },
+  { id: 'personalidade',    label: 'Personalidade' },
+  { id: 'identidade-visual', label: 'Identidade Visual' },
+]
+
+const MARKETING_URLS: Record<Exclude<Aba, 'checks'>, string> = {
+  'tom-de-voz':       '/api/admin/marketing/tom-de-voz',
+  'personalidade':    '/api/admin/marketing/personalidade',
+  'identidade-visual': '/api/admin/marketing/identidade-visual',
+}
+
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
 type Status = 'ok' | 'erro' | 'aviso'
@@ -62,6 +77,7 @@ function statusGrupo(checks: CheckResult[]): Status {
 
 export default function HealthcheckClient() {
   const router = useRouter()
+  const [aba, setAba]         = useState<Aba>('checks')
   const [dados, setDados]     = useState<HealthResponse | null>(null)
   const [rodando, setRodando] = useState(false)
   const [erro, setErro]       = useState('')
@@ -121,10 +137,10 @@ export default function HealthcheckClient() {
       padding: '56px 48px',
       fontFamily: "'Space Mono', monospace",
     }}>
-      <div style={{ maxWidth: 780, margin: '0 auto' }}>
+      <div style={{ maxWidth: aba === 'checks' ? 780 : '100%', margin: '0 auto' }}>
 
         {/* ── Header ── */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 36 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
               <div style={{ width: 24, height: 1, background: 'var(--cyan)' }} />
@@ -163,6 +179,44 @@ export default function HealthcheckClient() {
             [ sair ]
           </button>
         </div>
+
+        {/* ── Abas ── */}
+        <div style={{ display: 'flex', gap: 4, marginBottom: 32, borderBottom: '1px solid var(--border)' }}>
+          {ABAS.map(a => (
+            <button
+              key={a.id}
+              onClick={() => setAba(a.id)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                borderBottom: aba === a.id ? '2px solid var(--cyan)' : '2px solid transparent',
+                color: aba === a.id ? 'var(--cyan)' : 'var(--muted)',
+                fontFamily: "'Space Mono', monospace",
+                fontSize: '0.65rem',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                padding: '8px 16px',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+                marginBottom: -1,
+              }}
+            >
+              {a.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Abas de marketing ── */}
+        {aba !== 'checks' && (
+          <iframe
+            src={MARKETING_URLS[aba]}
+            style={{ width: '100%', height: 'calc(100vh - 180px)', border: 'none' }}
+            title={aba}
+          />
+        )}
+
+        {/* ── Conteúdo de checks ── */}
+        {aba === 'checks' && <>
 
         {/* ── Botão verificar ── */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 32 }}>
@@ -311,6 +365,9 @@ export default function HealthcheckClient() {
         <div style={{ marginTop: 48, fontSize: '0.55rem', color: 'rgba(168,144,144,0.3)', textAlign: 'center' }}>
           Revolution Tarot · Admin · Sessão expira em 2h
         </div>
+
+        </>}
+
       </div>
     </div>
   )
