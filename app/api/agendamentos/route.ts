@@ -31,6 +31,8 @@ export async function POST(req: NextRequest) {
       metodoPagamento: body.metodoPagamento,
     })
 
+    //CR 2026-04-22
+    //TODO: Acho que se faz tanta decomposição, melhor deixar na variavel body mesmo
     const {
       // Step 1
       tiragemId, tiragemNome, idioma, urgencia, moeda,
