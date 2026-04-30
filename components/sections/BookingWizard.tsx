@@ -432,6 +432,7 @@ function Step2({
   const [slots, setSlots] = useState<string[]>([])
   const [slotsCarregando, setSlotsCarregando] = useState(false)
   const [slotsErro, setSlotsErro] = useState('')
+  const [mesCalendario, setMesCalendario] = useState<{ ano: number; mes: number } | null>(null)
 
   useEffect(() => {
     if (!ehRegular || !dados.data) { setSlots([]); return }
@@ -481,22 +482,28 @@ function Step2({
     return [2, 3, 4, 0, 6].includes(dow) // ter, qua, qui, sáb, dom
   }
 
-  // Calendário simples (3 semanas)
-  const semanas: Date[][] = []
-  const cursor = new Date(dataMinima)
-  cursor.setDate(cursor.getDate() - cursor.getDay()) // começa no domingo
-  for (let s = 0; s < 4; s++) {
-    const sem: Date[] = []
-    for (let d = 0; d < 7; d++) {
-      sem.push(new Date(cursor))
-      cursor.setDate(cursor.getDate() + 1)
-    }
-    semanas.push(sem)
-  }
+  const MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
+  const mesMinimo = { ano: dataMinima.getFullYear(), mes: dataMinima.getMonth() }
+  const mesExibido = mesCalendario ?? mesMinimo
+  const podePrevMes = mesExibido.ano > mesMinimo.ano || (mesExibido.ano === mesMinimo.ano && mesExibido.mes > mesMinimo.mes)
+
+  const primeiroDiaMes = new Date(mesExibido.ano, mesExibido.mes, 1)
+  const diasNoMes = new Date(mesExibido.ano, mesExibido.mes + 1, 0).getDate()
+  const offsetInicio = primeiroDiaMes.getDay() // 0=dom
+
+  const diasGrade: (Date | null)[] = [
+    ...Array(offsetInicio).fill(null),
+    ...Array.from({ length: diasNoMes }, (_, i) => new Date(mesExibido.ano, mesExibido.mes, i + 1, 12)),
+  ]
+  while (diasGrade.length % 7 !== 0) diasGrade.push(null)
+  const semanasDoMes: (Date | null)[][] = []
+  for (let i = 0; i < diasGrade.length; i += 7) semanasDoMes.push(diasGrade.slice(i, i + 7))
 
   function isoData(d: Date) {
-    return d.toISOString().split('T')[0]
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
   }
+  const isoHoje = isoData(hoje)
+  const isoDataMinima = isoData(dataMinima)
 
   const dataSel = dados.data ?? null
   const tudo = !!dataSel && (
@@ -534,22 +541,69 @@ function Step2({
       {/* Fuso */}
       <div style={S.fieldGroup}>
         <label style={S.label}>Seu fuso horário</label>
-        <select
-          style={S.select}
-          value={dados.fusoTz ?? 'Europe/Lisbon'}
-          onChange={e => onChange({ ...dados, fusoTz: e.target.value, hora: null, periodo: null, slotISO: null })}
-        >
-          {FUSOS.map(f => (
-            <option key={f.tz} value={f.tz} style={S.option}>{f.label}</option>
-          ))}
-        </select>
+        <div style={{ position: 'relative' }}>
+          <select
+            style={S.select}
+            value={dados.fusoTz ?? 'Europe/Lisbon'}
+            onChange={e => onChange({ ...dados, fusoTz: e.target.value, hora: null, periodo: null, slotISO: null })}
+          >
+            {FUSOS.map(f => (
+              <option key={f.tz} value={f.tz} style={S.option}>{f.label}</option>
+            ))}
+          </select>
+          <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--cyan)', fontSize: '0.8rem', pointerEvents: 'none' }}>▾</span>
+        </div>
       </div>
 
       {/* Calendário */}
       <div style={S.fieldGroup}>
         <label style={S.label}>Data</label>
         <div style={{ border: '1px solid var(--border)', overflow: 'hidden' }}>
-          {/* Cabeçalho */}
+
+          {/* Navegação de mês */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            background: 'rgba(0,0,0,0.4)',
+            borderBottom: '1px solid var(--border)',
+            padding: '10px 14px',
+          }}>
+            <button
+              onClick={() => {
+                if (!podePrevMes) return
+                setMesCalendario(prev => {
+                  const m = prev ?? mesMinimo
+                  return m.mes === 0 ? { ano: m.ano - 1, mes: 11 } : { ano: m.ano, mes: m.mes - 1 }
+                })
+              }}
+              disabled={!podePrevMes}
+              style={{
+                background: 'transparent', border: 'none',
+                cursor: podePrevMes ? 'pointer' : 'not-allowed',
+                color: podePrevMes ? 'var(--cyan)' : 'rgba(0,245,212,0.2)',
+                fontSize: '1.1rem', padding: '0 8px', lineHeight: 1,
+              }}
+            >‹</button>
+            <span style={{
+              fontFamily: "'Space Mono', monospace",
+              fontSize: '0.68rem', fontWeight: 700,
+              letterSpacing: '0.14em', textTransform: 'uppercase',
+              color: 'var(--ink)',
+            }}>
+              {MESES_PT[mesExibido.mes]} {mesExibido.ano}
+            </span>
+            <button
+              onClick={() => setMesCalendario(prev => {
+                const m = prev ?? mesMinimo
+                return m.mes === 11 ? { ano: m.ano + 1, mes: 0 } : { ano: m.ano, mes: m.mes + 1 }
+              })}
+              style={{
+                background: 'transparent', border: 'none', cursor: 'pointer',
+                color: 'var(--cyan)', fontSize: '1.1rem', padding: '0 8px', lineHeight: 1,
+              }}
+            >›</button>
+          </div>
+
+          {/* Cabeçalho dias da semana */}
           <div style={{
             display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)',
             background: 'rgba(0,0,0,0.3)',
@@ -565,17 +619,25 @@ function Step2({
           </div>
 
           {/* Dias */}
-          {semanas.map((sem, si) => (
+          {semanasDoMes.map((sem, si) => (
             <div key={si} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
               {sem.map((dia, di) => {
+                if (!dia) return (
+                  <div key={di} style={{
+                    borderBottom: '1px solid var(--border)',
+                    borderRight: di < 6 ? '1px solid var(--border)' : 'none',
+                  }} />
+                )
                 const iso = isoData(dia)
-                const disponivel = dia >= dataMinima && diasPermitidos(dia)
+                const disponivel = iso >= isoDataMinima && diasPermitidos(dia)
                 const selecionado = iso === dataSel
+                const ehHoje = iso === isoHoje
                 return (
                   <div
                     key={di}
                     onClick={() => disponivel && onChange({ ...dados, data: iso, hora: null, periodo: null, slotISO: null })}
                     style={{
+                      position: 'relative',
                       textAlign: 'center',
                       padding: '10px 4px',
                       fontSize: '0.75rem',
@@ -584,11 +646,19 @@ function Step2({
                       background: selecionado ? 'var(--cyan)' : disponivel ? 'rgba(0,245,212,0.04)' : 'transparent',
                       borderBottom: '1px solid var(--border)',
                       borderRight: di < 6 ? '1px solid var(--border)' : 'none',
+                      outline: ehHoje && !selecionado ? '2px solid rgba(201,168,76,0.55)' : 'none',
+                      outlineOffset: '-2px',
                       transition: 'all 0.15s',
-                      fontWeight: selecionado ? 700 : 400,
+                      fontWeight: selecionado || ehHoje ? 700 : 400,
                     }}
                   >
                     {dia.getDate()}
+                    {ehHoje && !selecionado && (
+                      <span style={{
+                        position: 'absolute', bottom: 3, left: '50%', transform: 'translateX(-50%)',
+                        width: 3, height: 3, borderRadius: '50%', background: 'var(--gold)', display: 'block',
+                      }} />
+                    )}
                   </div>
                 )
               })}
@@ -655,7 +725,7 @@ function Step2({
                   return (
                     <button
                       key={label}
-                      onClick={() => onChange({ ...dados, slotISO: primeiroSlot })}
+                      onClick={() => onChange({ ...dados, slotISO: primeiroSlot, periodo: label })}
                       style={{
                         background: sel ? 'var(--cyan)' : 'transparent',
                         color: sel ? 'var(--bg)' : 'var(--muted)',
@@ -734,6 +804,27 @@ function Step2({
   )
 }
 
+// ── Helper: formata data/horário para os resumos ──────────────────────────────
+
+function formatarHorarioResumo(step1: Partial<DadosStep1>, step2: Partial<DadosStep2>): string {
+  if (!step2.data) return ''
+  const tiragem = TIRAGENS.find(t => t.id === step1.tiragemId)
+
+  if (tiragem?.aoVivo && step2.hora != null) {
+    const horaLisboa = `${String(step2.hora).padStart(2, '0')}h Lisboa`
+    const fuso = FUSOS.find(f => f.tz === (step2.fusoTz ?? 'Europe/Lisbon'))
+    if (fuso && fuso.offsetLisboa !== 0) {
+      const horaLocal = ((step2.hora + fuso.offsetLisboa) % 24 + 24) % 24
+      return `· ${horaLisboa} · ${String(horaLocal).padStart(2, '0')}h ${fuso.cidade}`
+    }
+    return `· ${horaLisboa}`
+  }
+
+  if (step2.periodo) return `· ${step2.periodo}`
+
+  return ''
+}
+
 // ── Step 3 — Informações pessoais ─────────────────────────────────────────────
 
 function Step3({
@@ -771,7 +862,7 @@ function Step3({
         </span>
         <br />
         <span style={{ color: 'var(--muted)', fontSize: '0.7rem' }}>
-          {step2.data} {step2.periodo ? `· ${step2.periodo}` : step2.hora != null ? `· ${String(step2.hora).padStart(2,'0')}h Lisboa` : ''}
+          {step2.data} {formatarHorarioResumo(step1, step2)}
         </span>
       </div>
 
@@ -822,19 +913,22 @@ function Step3({
 
         {canal === 'whatsapp' ? (
           <div style={{ display: 'flex', gap: 8 }}>
-            <select
-              style={{ ...S.select, width: 'auto', minWidth: 100 }}
-              value={dados.contatoWhatsappPais ?? '+55'}
-              onChange={e => onChange({ ...dados, contatoWhatsappPais: e.target.value })}
-            >
-              <option value="+55" style={S.option}>🇧🇷 +55</option>
-              <option value="+351" style={S.option}>🇵🇹 +351</option>
-              <option value="+1" style={S.option}>🇺🇸 +1</option>
-              <option value="+44" style={S.option}>🇬🇧 +44</option>
-              <option value="+34" style={S.option}>🇪🇸 +34</option>
-              <option value="+54" style={S.option}>🇦🇷 +54</option>
-              <option value="+52" style={S.option}>🇲🇽 +52</option>
-            </select>
+            <div style={{ position: 'relative' }}>
+              <select
+                style={{ ...S.select, width: 'auto', minWidth: 100, paddingRight: 28 }}
+                value={dados.contatoWhatsappPais ?? '+55'}
+                onChange={e => onChange({ ...dados, contatoWhatsappPais: e.target.value })}
+              >
+                <option value="+55" style={S.option}>🇧🇷 +55</option>
+                <option value="+351" style={S.option}>🇵🇹 +351</option>
+                <option value="+1" style={S.option}>🇺🇸 +1</option>
+                <option value="+44" style={S.option}>🇬🇧 +44</option>
+                <option value="+34" style={S.option}>🇪🇸 +34</option>
+                <option value="+54" style={S.option}>🇦🇷 +54</option>
+                <option value="+52" style={S.option}>🇲🇽 +52</option>
+              </select>
+              <span style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--cyan)', fontSize: '0.8rem', pointerEvents: 'none' }}>▾</span>
+            </div>
             <input
               style={{ ...S.input, flex: 1 }}
               type="tel"
@@ -1263,8 +1357,7 @@ function Step5({
         <div style={{ marginBottom: 6 }}>
           <span style={{ color: 'var(--muted)' }}>Data: </span>
           <span style={{ color: 'var(--ink)' }}>
-            {step2.data}
-            {step2.periodo ? ` · ${step2.periodo}` : step2.hora != null ? ` · ${String(step2.hora).padStart(2,'0')}h Lisboa` : ''}
+            {step2.data} {formatarHorarioResumo(step1, step2)}
           </span>
         </div>
         <div>
@@ -1522,7 +1615,13 @@ export default function BookingWizard() {
           <Step1
             dados={step1}
             onChange={setStep1}
-            onNext={() => setStep(1)}
+            onNext={() => {
+              // Ao avançar do Step1, limpa seleções de data/hora do Step2 para
+              // evitar que dados de uma tiragem anterior (ex.: Ao Vivo) contaminem
+              // o Step2 ao trocar de tipo de leitura. Preserva apenas o fuso.
+              setStep2(prev => ({ fusoTz: prev.fusoTz }))
+              setStep(1)
+            }}
             onCancel={cancelar}
           />
         )}
