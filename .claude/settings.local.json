@@ -1,13 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx tsc:*)",
-      "Bash(npm test:*)",
-      "Bash(npx jest:*)",
-      "Bash(ls c:/Projetos/RevolutionTarot/node_modules/.bin/jest*)",
-      "Bash(npm install:*)",
-      "Bash(node_modules/.bin/jest --testPathPattern=\"lib/__tests__\" --no-coverage)",
-      "Bash(node_modules/.bin/jest --no-coverage)"
+      "Bash(npx tsc:*)"
     ]
   }
 }

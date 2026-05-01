@@ -61,9 +61,9 @@ const S = {
 
   select: {
     width: '100%',
-    background: '#1a0218',
+    background: 'rgba(0,0,0,0.3)',
     border: '1px solid var(--border)',
-    color: '#f0e6d3',
+    color: 'var(--ink)',
     fontFamily: "'Space Mono', monospace",
     fontSize: '0.78rem',
     padding: '11px 14px',
@@ -71,11 +71,6 @@ const S = {
     cursor: 'pointer',
     appearance: 'none' as const,
   },
-
-  option: {
-    background: '#1a0218',
-    color: '#f0e6d3',
-  } as React.CSSProperties,
 
   btnPrimary: {
     background: 'var(--magenta)',
@@ -540,7 +535,7 @@ function Step2({
           onChange={e => onChange({ ...dados, fusoTz: e.target.value, hora: null, periodo: null, slotISO: null })}
         >
           {FUSOS.map(f => (
-            <option key={f.tz} value={f.tz} style={S.option}>{f.label}</option>
+            <option key={f.tz} value={f.tz}>{f.label}</option>
           ))}
         </select>
       </div>
@@ -827,13 +822,13 @@ function Step3({
               value={dados.contatoWhatsappPais ?? '+55'}
               onChange={e => onChange({ ...dados, contatoWhatsappPais: e.target.value })}
             >
-              <option value="+55" style={S.option}>🇧🇷 +55</option>
-              <option value="+351" style={S.option}>🇵🇹 +351</option>
-              <option value="+1" style={S.option}>🇺🇸 +1</option>
-              <option value="+44" style={S.option}>🇬🇧 +44</option>
-              <option value="+34" style={S.option}>🇪🇸 +34</option>
-              <option value="+54" style={S.option}>🇦🇷 +54</option>
-              <option value="+52" style={S.option}>🇲🇽 +52</option>
+              <option value="+55">🇧🇷 +55</option>
+              <option value="+351">🇵🇹 +351</option>
+              <option value="+1">🇺🇸 +1</option>
+              <option value="+44">🇬🇧 +44</option>
+              <option value="+34">🇪🇸 +34</option>
+              <option value="+54">🇦🇷 +54</option>
+              <option value="+52">🇲🇽 +52</option>
             </select>
             <input
               style={{ ...S.input, flex: 1 }}
