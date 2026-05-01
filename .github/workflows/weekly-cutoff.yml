@@ -9,12 +9,14 @@ jobs:
   create-cutoff-pr:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Check if there are differences
         id: diff
@@ -25,29 +27,24 @@ jobs:
 
       - name: Create Pull Request
         if: steps.diff.outputs.count > 0
-        uses: peter-evans/create-pull-request@v6
-        id: pr
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          base: main
-          head: deploy
-          title: '🚀 Cutoff semanal — deploy → main (${{ github.run_id }})'
-          body: |
-            ## Release semanal automático
-
-            Este PR foi criado automaticamente pelo workflow de cutoff.
-
-            - **Branch origem:** `deploy`
-            - **Branch destino:** `main`
-            - **Criado em:** ${{ github.event.repository.full_name }}
-
-            ⚠️ O merge só ocorrerá após todos os checks passarem.
-          labels: cutoff, automated
-
-      - name: Notify via email (GitHub notification)
-        if: steps.pr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "PR #${{ steps.pr.outputs.pull-request-number }} criado: ${{ steps.pr.outputs.pull-request-url }}"
+          gh pr create \
+            --base main \
+            --head deploy \
+            --title "🚀 Cutoff semanal — deploy → main" \
+            --body "## Release semanal automático
+
+          Este PR foi criado automaticamente pelo workflow de cutoff.
+
+          - **Branch origem:** \`deploy\`
+          - **Branch destino:** \`main\`
+          - **Commits novos:** ${{ steps.diff.outputs.count }}
+
+          ⚠️ Revise e faça o merge manualmente quando estiver pronto." \
+            --label "cutoff,automated" \
+            --repo ${{ github.repository }}
 
       - name: No changes to deploy
         if: steps.diff.outputs.count == '0'
