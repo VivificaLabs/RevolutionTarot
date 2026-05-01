@@ -1,0 +1,50 @@
+name: Weekly Cutoff PR
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'  # Todo domingo às 03:00 UTC
+  workflow_dispatch:       # Permite rodar manualmente também
+
+jobs:
+  create-cutoff-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if there are differences
+        id: diff
+        run: |
+          git fetch origin
+          COUNT=$(git rev-list --count origin/main..origin/deploy)
+          echo "count=$COUNT" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        if: steps.diff.outputs.count > 0
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base main \
+            --head deploy \
+            --title "🚀 Cutoff semanal — deploy → main" \
+            --body "## Release semanal automático
+
+          Este PR foi criado automaticamente pelo workflow de cutoff.
+
+          - **Branch origem:** \`deploy\`
+          - **Branch destino:** \`main\`
+          - **Commits novos:** ${{ steps.diff.outputs.count }}
+
+          ⚠️ Revise e faça o merge manualmente quando estiver pronto." \
+            --repo ${{ github.repository }}
+
+      - name: No changes to deploy
+        if: steps.diff.outputs.count == '0'
+        run: echo "Nenhuma diferença entre deploy e main. PR não criado."

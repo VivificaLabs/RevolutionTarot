@@ -7,6 +7,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
+//CR 2026-04-22
+//TODO: Acho que é uma boa centralizar esses logs em um canto, e aí vc no build pra produçao vc tira os logs
 function logInfo(step: string, data: unknown) {
   console.log(`[UPDATE_CAL] ${new Date().toISOString()} | ${step}`,
     typeof data === 'string' ? data : JSON.stringify(data, null, 2))
