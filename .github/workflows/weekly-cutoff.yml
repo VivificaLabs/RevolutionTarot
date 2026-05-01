@@ -43,7 +43,6 @@ jobs:
           - **Commits novos:** ${{ steps.diff.outputs.count }}
 
           ⚠️ Revise e faça o merge manualmente quando estiver pronto." \
-            --label "cutoff,automated" \
             --repo ${{ github.repository }}
 
       - name: No changes to deploy
