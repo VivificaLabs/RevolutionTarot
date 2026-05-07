@@ -8,7 +8,9 @@ import {
   type Moeda, type Idioma, type Canal, type MetodoPagamento,
   type DadosStep1, type DadosStep2, type DadosStep3,
 } from '@/lib/booking'
-import { formatarWhatsApp, formatarNumeroCartao, formatarValidadeCartao, formatarCVV } from '@/lib/input-formatters'
+import { formatarWhatsApp } from '@/lib/input-formatters'
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from '@stripe/react-stripe-js'
 
 // ── Configuração ──────────────────────────────────────────────────────────────
 //
@@ -20,6 +22,21 @@ import { formatarWhatsApp, formatarNumeroCartao, formatarValidadeCartao, formata
 //   NEXT_PUBLIC_ENABLE_STRIPE=true
 
 const STRIPE_ENABLED = process.env.NEXT_PUBLIC_ENABLE_STRIPE === 'true'
+const stripePromise = STRIPE_ENABLED
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+  : null
+
+const STRIPE_ELEMENT_STYLE = {
+  style: {
+    base: {
+      color: '#e2e8f0',
+      fontFamily: "'Space Mono', monospace",
+      fontSize: '13px',
+      '::placeholder': { color: '#4a5568' },
+    },
+    invalid: { color: '#f56565' },
+  },
+}
 
 // ── Cal.eu Event Types ────────────────────────────────────────────────────────
 //
@@ -1092,40 +1109,36 @@ function Step4({
   const descontoValorBRL = precoBRL * (desconto / 100)
   const totalBRL = precoBRL - descontoValorBRL
 
-  const [cartao, setCartao] = useState({ numero: '', validade: '', cvv: '' })
+  const stripe = useStripe()
+  const elements = useElements()
+  const [cardComplete, setCardComplete] = useState({ number: false, expiry: false, cvc: false })
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState('')
 
   // Métodos disponíveis para a moeda selecionada, respeitando flags de feature
   const metodosDisponivelsPorMoeda = metodosPorMoeda(moeda)
-  const metodosDisponiveis = STRIPE_ENABLED 
-    ? metodosDisponivelsPorMoeda 
+  const metodosDisponiveis = STRIPE_ENABLED
+    ? metodosDisponivelsPorMoeda
     : metodosDisponivelsPorMoeda.filter(m => m !== 'cartao')
-  
+
   // Se o método selecionado deixou de estar disponível, reseta a seleção
   if (metodo && !metodosDisponiveis.includes(metodo)) {
     onMetodo(null)
   }
 
   async function confirmarFluxo() {
-    // 1. CRIAR EVENTO NO CAL.EU FIRST (obrigatório)
-    console.log('[STEP4_FLUXO] Etapa 1/3: Criando evento no Cal.eu...')
-    let calIds = { calBookingId: undefined, calBookingUid: undefined }
-    try {
-      calIds = await criarEventoCaleu(step1, step2, step3)
-      console.log('[STEP4_FLUXO] ✅ Cal.eu sucesso:', calIds)
-    } catch (erroCaleu) {
-      console.error('[STEP4_FLUXO] ❌ Cal.eu falhou (bloqueando):', erroCaleu)
-      const msg = erroCaleu instanceof Error ? erroCaleu.message : 'erro desconhecido'
-      setErro(`Erro ao criar evento no calendário: ${msg}`)
-      throw erroCaleu
-    }
-
-    // 2. PROCESSAR PAGAMENTO (se Cartão E Stripe habilitado)
+    // 1. PROCESSAR PAGAMENTO (cartão) — feito ANTES do Cal.eu para não criar
+    //    agendamento sem pagamento confirmado
     let stripePaymentId: string | undefined = undefined
     if (STRIPE_ENABLED && metodo === 'cartao') {
-      console.log('[STEP4_FLUXO] Etapa 2/3: Processando pagamento Stripe...')
+      console.log('[STEP4_FLUXO] Etapa 1/3: Processando pagamento Stripe...')
+      if (!stripe || !elements) throw new Error('Stripe ainda não carregou')
+
+      const cardElement = elements.getElement(CardNumberElement)
+      if (!cardElement) throw new Error('Elemento de cartão não encontrado')
+
       try {
+        // 1a. Criar PaymentIntent no servidor
         const res = await fetch('/api/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1138,20 +1151,39 @@ function Step4({
           }),
         })
         const data = await res.json()
-        if (data.error) {
-          console.error('[STEP4_FLUXO] ❌ Stripe falhou:', data.error)
-          throw new Error(data.error)
-        }
-        stripePaymentId = data.paymentId
+        if (data.error) throw new Error(data.error)
+
+        // 1b. Confirmar pagamento com os dados do cartão via Stripe.js
+        const { error, paymentIntent } = await stripe.confirmCardPayment(data.clientSecret, {
+          payment_method: {
+            card: cardElement,
+            billing_details: { name: step3.nome ?? '', email: step3.email ?? '' },
+          },
+        })
+        if (error) throw new Error(error.message ?? 'Pagamento recusado')
+        stripePaymentId = paymentIntent?.id
         console.log('[STEP4_FLUXO] ✅ Stripe sucesso:', { stripePaymentId })
       } catch (erroStripe) {
-        console.error('[STEP4_FLUXO] ❌ Pagamento falhou (bloqueando):', erroStripe)
+        console.error('[STEP4_FLUXO] ❌ Pagamento falhou:', erroStripe)
         const msg = erroStripe instanceof Error ? erroStripe.message : 'erro desconhecido'
         setErro(`Erro ao processar pagamento: ${msg}`)
         throw erroStripe
       }
     } else {
-      console.log('[STEP4_FLUXO] Etapa 2/3: Pulando (método Pix/Revolut)')
+      console.log('[STEP4_FLUXO] Etapa 1/3: Pulando pagamento (método Pix/Revolut)')
+    }
+
+    // 2. CRIAR EVENTO NO CAL.EU
+    console.log('[STEP4_FLUXO] Etapa 2/3: Criando evento no Cal.eu...')
+    let calIds = { calBookingId: undefined, calBookingUid: undefined }
+    try {
+      calIds = await criarEventoCaleu(step1, step2, step3)
+      console.log('[STEP4_FLUXO] ✅ Cal.eu sucesso:', calIds)
+    } catch (erroCaleu) {
+      console.error('[STEP4_FLUXO] ❌ Cal.eu falhou (bloqueando):', erroCaleu)
+      const msg = erroCaleu instanceof Error ? erroCaleu.message : 'erro desconhecido'
+      setErro(`Erro ao criar evento no calendário: ${msg}`)
+      throw erroCaleu
     }
 
     // 3. SALVAR AGENDAMENTO EM SUPABASE
@@ -1189,7 +1221,9 @@ function Step4({
     }
   }
 
-  const podeProsseguir = !!metodo && (metodo !== 'cartao' || (!!cartao.numero && !!cartao.validade && !!cartao.cvv))
+  const podeProsseguir = !!metodo && (
+    metodo !== 'cartao' || (cardComplete.number && cardComplete.expiry && cardComplete.cvc)
+  )
 
   return (
     <div>
@@ -1288,31 +1322,28 @@ function Step4({
           </div>
           {metodo === 'cartao' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }} onClick={e => e.stopPropagation()}>
-              <input
-                style={S.input}
-                type="text"
-                placeholder="Número do cartão"
-                maxLength={19}
-                value={cartao.numero}
-                onChange={e => setCartao(c => ({ ...c, numero: formatarNumeroCartao(e.target.value) }))}
-              />
+              <div style={{ ...S.input, display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}>
+                <CardNumberElement
+                  options={{ ...STRIPE_ELEMENT_STYLE, showIcon: true, style: { ...STRIPE_ELEMENT_STYLE.style, base: { ...STRIPE_ELEMENT_STYLE.style.base, iconColor: '#e2e8f0' } } }}
+                  onChange={e => setCardComplete(c => ({ ...c, number: e.complete }))}
+                  className="stripe-element"
+                />
+              </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <input
-                  style={S.input}
-                  type="text"
-                  placeholder="MM/AA"
-                  maxLength={5}
-                  value={cartao.validade}
-                  onChange={e => setCartao(c => ({ ...c, validade: formatarValidadeCartao(e.target.value) }))}
-                />
-                <input
-                  style={S.input}
-                  type="text"
-                  placeholder="CVV"
-                  maxLength={4}
-                  value={cartao.cvv}
-                  onChange={e => setCartao(c => ({ ...c, cvv: formatarCVV(e.target.value) }))}
-                />
+                <div style={{ ...S.input, display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}>
+                  <CardExpiryElement
+                    options={STRIPE_ELEMENT_STYLE}
+                    onChange={e => setCardComplete(c => ({ ...c, expiry: e.complete }))}
+                    className="stripe-element"
+                  />
+                </div>
+                <div style={{ ...S.input, display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}>
+                  <CardCvcElement
+                    options={STRIPE_ELEMENT_STYLE}
+                    onChange={e => setCardComplete(c => ({ ...c, cvc: e.complete }))}
+                    className="stripe-element"
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -1684,20 +1715,22 @@ export default function BookingWizard() {
           />
         )}
         {step === 3 && (
-          <Step4
-            step1={step1}
-            step2={step2}
-            step3={step3}
-            desconto={desconto}
-            metodo={metodo}
-            onMetodo={setMetodo}
-            onNext={() => setStep(4)}
-            onBack={() => {
-              setStep3({ canal: 'whatsapp', contatoWhatsappPais: '+55' })
-              setDesconto(0)
-              setStep(2)
-            }}
-          />
+          <Elements stripe={stripePromise}>
+            <Step4
+              step1={step1}
+              step2={step2}
+              step3={step3}
+              desconto={desconto}
+              metodo={metodo}
+              onMetodo={setMetodo}
+              onNext={() => setStep(4)}
+              onBack={() => {
+                setStep3({ canal: 'whatsapp', contatoWhatsappPais: '+55' })
+                setDesconto(0)
+                setStep(2)
+              }}
+            />
+          </Elements>
         )}
         {step === 4 && (
           <Step5
