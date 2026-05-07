@@ -8,6 +8,7 @@ import {
   type Moeda, type Idioma, type Canal, type MetodoPagamento,
   type DadosStep1, type DadosStep2, type DadosStep3,
 } from '@/lib/booking'
+import { formatarWhatsApp, formatarNumeroCartao, formatarValidadeCartao, formatarCVV } from '@/lib/input-formatters'
 
 // ── Configuração ──────────────────────────────────────────────────────────────
 //
@@ -963,7 +964,7 @@ function Step3({
               type="tel"
               placeholder="Número do WhatsApp"
               value={dados.contatoWhatsapp ?? ''}
-              onChange={e => onChange({ ...dados, contatoWhatsapp: e.target.value.replace(/\D/g, '') })}
+              onChange={e => onChange({ ...dados, contatoWhatsapp: formatarWhatsApp(e.target.value) })}
             />
           </div>
         ) : (
@@ -1293,11 +1294,7 @@ function Step4({
                 placeholder="Número do cartão"
                 maxLength={19}
                 value={cartao.numero}
-                onChange={e => {
-                  const digits = e.target.value.replace(/\D/g, '').slice(0, 16)
-                  const formatted = digits.replace(/(.{4})/g, '$1 ').trim()
-                  setCartao(c => ({ ...c, numero: formatted }))
-                }}
+                onChange={e => setCartao(c => ({ ...c, numero: formatarNumeroCartao(e.target.value) }))}
               />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <input
@@ -1306,11 +1303,7 @@ function Step4({
                   placeholder="MM/AA"
                   maxLength={5}
                   value={cartao.validade}
-                  onChange={e => {
-                    const digits = e.target.value.replace(/\D/g, '').slice(0, 4)
-                    const formatted = digits.length > 2 ? digits.slice(0, 2) + '/' + digits.slice(2) : digits
-                    setCartao(c => ({ ...c, validade: formatted }))
-                  }}
+                  onChange={e => setCartao(c => ({ ...c, validade: formatarValidadeCartao(e.target.value) }))}
                 />
                 <input
                   style={S.input}
@@ -1318,7 +1311,7 @@ function Step4({
                   placeholder="CVV"
                   maxLength={4}
                   value={cartao.cvv}
-                  onChange={e => setCartao(c => ({ ...c, cvv: e.target.value.replace(/\D/g, '') }))}
+                  onChange={e => setCartao(c => ({ ...c, cvv: formatarCVV(e.target.value) }))}
                 />
               </div>
             </div>
