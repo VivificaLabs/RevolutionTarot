@@ -27,7 +27,16 @@ export interface Tiragem {
   aoVivo: boolean        // se true → use event type "ao-vivasso"
 }
 
+const TIRAGEM_TESTE: Tiragem = {
+  id: 'teste-stripe',
+  nome: '[TESTE] Stripe',
+  subtitulo: 'apenas para testes — não aparece em produção',
+  precoBRL: 3,  // ~€1 cobrado; mínimo Stripe live é €0,50
+  aoVivo: false,
+}
+
 export const TIRAGENS: Tiragem[] = [
+  ...(process.env.NEXT_PUBLIC_ENABLE_TEST_BOOKING === 'true' ? [TIRAGEM_TESTE] : []),
   {
     id: 'tarot-express',
     nome: 'Tarot Express',
