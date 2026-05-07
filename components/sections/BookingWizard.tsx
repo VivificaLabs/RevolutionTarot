@@ -1660,7 +1660,10 @@ export default function BookingWizard() {
             dados={step2}
             onChange={setStep2}
             onNext={() => setStep(2)}
-            onBack={() => setStep(0)}
+            onBack={() => {
+              setStep1({ idioma: 'pt', moeda: 'BRL' })
+              setStep(0)
+            }}
           />
         )}
         {step === 2 && (
@@ -1673,7 +1676,10 @@ export default function BookingWizard() {
               if (d.cupom !== step3.cupom) validarCupom(d.cupom ?? '')
             }}
             onNext={() => setStep(3)}
-            onBack={() => setStep(1)}
+            onBack={() => {
+              setStep2({ fusoTz: 'Europe/Lisbon' })
+              setStep(1)
+            }}
           />
         )}
         {step === 3 && (
@@ -1685,7 +1691,11 @@ export default function BookingWizard() {
             metodo={metodo}
             onMetodo={setMetodo}
             onNext={() => setStep(4)}
-            onBack={() => setStep(2)}
+            onBack={() => {
+              setStep3({ canal: 'whatsapp', contatoWhatsappPais: '+55' })
+              setDesconto(0)
+              setStep(2)
+            }}
           />
         )}
         {step === 4 && (
