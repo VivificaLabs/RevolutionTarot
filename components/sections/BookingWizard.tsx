@@ -963,7 +963,7 @@ function Step3({
               type="tel"
               placeholder="Número do WhatsApp"
               value={dados.contatoWhatsapp ?? ''}
-              onChange={e => onChange({ ...dados, contatoWhatsapp: e.target.value })}
+              onChange={e => onChange({ ...dados, contatoWhatsapp: e.target.value.replace(/\D/g, '') })}
             />
           </div>
         ) : (
@@ -1293,7 +1293,11 @@ function Step4({
                 placeholder="Número do cartão"
                 maxLength={19}
                 value={cartao.numero}
-                onChange={e => setCartao(c => ({ ...c, numero: e.target.value }))}
+                onChange={e => {
+                  const digits = e.target.value.replace(/\D/g, '').slice(0, 16)
+                  const formatted = digits.replace(/(.{4})/g, '$1 ').trim()
+                  setCartao(c => ({ ...c, numero: formatted }))
+                }}
               />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <input
@@ -1302,7 +1306,11 @@ function Step4({
                   placeholder="MM/AA"
                   maxLength={5}
                   value={cartao.validade}
-                  onChange={e => setCartao(c => ({ ...c, validade: e.target.value }))}
+                  onChange={e => {
+                    const digits = e.target.value.replace(/\D/g, '').slice(0, 4)
+                    const formatted = digits.length > 2 ? digits.slice(0, 2) + '/' + digits.slice(2) : digits
+                    setCartao(c => ({ ...c, validade: formatted }))
+                  }}
                 />
                 <input
                   style={S.input}
@@ -1310,7 +1318,7 @@ function Step4({
                   placeholder="CVV"
                   maxLength={4}
                   value={cartao.cvv}
-                  onChange={e => setCartao(c => ({ ...c, cvv: e.target.value }))}
+                  onChange={e => setCartao(c => ({ ...c, cvv: e.target.value.replace(/\D/g, '') }))}
                 />
               </div>
             </div>
