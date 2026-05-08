@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import {
   TIRAGENS, IDIOMAS, FUSOS, HORARIOS_AO_VIVO_LISBOA, PERIODOS_URGENCIA,
   SIMBOLOS, metodosPorMoeda,
-  precoComUrgencia, converterPreco, formatarPreco,
+  precoComUrgencia, converterPreco, formatarPreco, formatarHorarioResumo,
   type Moeda, type Idioma, type Canal, type MetodoPagamento,
   type DadosStep1, type DadosStep2, type DadosStep3,
 } from '@/lib/booking'
@@ -839,27 +839,6 @@ function Step2({
       </div>
     </div>
   )
-}
-
-// ── Helper: formata data/horário para os resumos ──────────────────────────────
-
-function formatarHorarioResumo(step1: Partial<DadosStep1>, step2: Partial<DadosStep2>): string {
-  if (!step2.data) return ''
-  const tiragem = TIRAGENS.find(t => t.id === step1.tiragemId)
-
-  if (tiragem?.aoVivo && step2.hora != null) {
-    const horaLisboa = `${String(step2.hora).padStart(2, '0')}h Lisboa`
-    const fuso = FUSOS.find(f => f.tz === (step2.fusoTz ?? 'Europe/Lisbon'))
-    if (fuso && fuso.offsetLisboa !== 0) {
-      const horaLocal = ((step2.hora + fuso.offsetLisboa) % 24 + 24) % 24
-      return `· ${horaLisboa} · ${String(horaLocal).padStart(2, '0')}h ${fuso.cidade}`
-    }
-    return `· ${horaLisboa}`
-  }
-
-  if (step2.periodo) return `· ${step2.periodo}`
-
-  return ''
 }
 
 function ResumoAgendamento({

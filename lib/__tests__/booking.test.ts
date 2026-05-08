@@ -10,6 +10,7 @@ import {
   converterPreco,
   formatarPreco,
   metodosPorMoeda,
+  formatarHorarioResumo,
   TIRAGENS,
   FUSOS,
   COTACOES,
@@ -145,8 +146,9 @@ describe('metodosPorMoeda', () => {
 // ── TIRAGENS ──────────────────────────────────────────────────────────────────
 
 describe('TIRAGENS', () => {
-  it('tem exatamente 5 tiragens', () => {
-    expect(TIRAGENS).toHaveLength(5)
+  it('tem pelo menos 5 tiragens reais (a de teste aparece só com env ligada)', () => {
+    const reais = TIRAGENS.filter(t => t.id !== 'teste-stripe')
+    expect(reais).toHaveLength(5)
   })
 
   it('cada tiragem tem id, nome, subtitulo, precoBRL e aoVivo', () => {
@@ -276,5 +278,131 @@ describe('IDIOMAS', () => {
       expect(i.value).toBeTruthy()
       expect(i.label).toBeTruthy()
     })
+  })
+})
+
+// ── formatarHorarioResumo ─────────────────────────────────────────────────────
+
+const AO_VIVO_ID = 'ao-vivasoo'
+const PADRAO_ID  = 'tarot-express'
+
+describe('formatarHorarioResumo', () => {
+  // ── sem data ────────────────────────────────────────────────────────────────
+
+  it('retorna string vazia quando step2.data está ausente', () => {
+    expect(formatarHorarioResumo({ tiragemId: PADRAO_ID }, {})).toBe('')
+    expect(formatarHorarioResumo({ tiragemId: AO_VIVO_ID }, { hora: 14 })).toBe('')
+  })
+
+  // ── tiragem regular (não ao vivo) ───────────────────────────────────────────
+
+  it('retorna string vazia para tiragem regular sem período definido', () => {
+    expect(formatarHorarioResumo(
+      { tiragemId: PADRAO_ID },
+      { data: '2026-06-15' },
+    )).toBe('')
+  })
+
+  it.each([
+    ['Manhã'],
+    ['Tarde'],
+    ['Noite'],
+  ])('retorna "· %s" quando período é "%s"', periodo => {
+    expect(formatarHorarioResumo(
+      { tiragemId: PADRAO_ID },
+      { data: '2026-06-15', periodo },
+    )).toBe(`· ${periodo}`)
+  })
+
+  it('ignora step2.hora para tiragem regular (usa apenas período)', () => {
+    // Mesmo com hora definida, tiragem não ao vivo usa período
+    expect(formatarHorarioResumo(
+      { tiragemId: PADRAO_ID },
+      { data: '2026-06-15', hora: 14, periodo: 'Tarde' },
+    )).toBe('· Tarde')
+  })
+
+  // ── ao vivo — fuso Lisboa ───────────────────────────────────────────────────
+
+  it('ao vivo em Lisboa mostra apenas hora Lisboa', () => {
+    expect(formatarHorarioResumo(
+      { tiragemId: AO_VIVO_ID },
+      { data: '2026-06-15', hora: 14, fusoTz: 'Europe/Lisbon' },
+    )).toBe('· 14h Lisboa')
+  })
+
+  it('ao vivo em Lisboa usa fallback quando fusoTz não está definido', () => {
+    expect(formatarHorarioResumo(
+      { tiragemId: AO_VIVO_ID },
+      { data: '2026-06-15', hora: 10 },
+    )).toBe('· 10h Lisboa')
+  })
+
+  it('ao vivo formata hora com zero à esquerda', () => {
+    expect(formatarHorarioResumo(
+      { tiragemId: AO_VIVO_ID },
+      { data: '2026-06-15', hora: 9, fusoTz: 'Europe/Lisbon' },
+    )).toBe('· 09h Lisboa')
+  })
+
+  it('retorna string vazia para ao vivo sem hora definida ainda', () => {
+    // Usuário ainda não escolheu o horário
+    expect(formatarHorarioResumo(
+      { tiragemId: AO_VIVO_ID },
+      { data: '2026-06-15' },
+    )).toBe('')
+  })
+
+  // ── ao vivo — fusos com offset ──────────────────────────────────────────────
+
+  it('ao vivo em São Paulo (offset -3): 14h Lisboa → 11h São Paulo', () => {
+    expect(formatarHorarioResumo(
+      { tiragemId: AO_VIVO_ID },
+      { data: '2026-06-15', hora: 14, fusoTz: 'America/Sao_Paulo' },
+    )).toBe('· 14h Lisboa · 11h São Paulo')
+  })
+
+  it('ao vivo em Los Angeles (offset -8): 14h Lisboa → 06h Los Angeles', () => {
+    expect(formatarHorarioResumo(
+      { tiragemId: AO_VIVO_ID },
+      { data: '2026-06-15', hora: 14, fusoTz: 'America/Los_Angeles' },
+    )).toBe('· 14h Lisboa · 06h Los Angeles')
+  })
+
+  it('ao vivo em Paris (offset +1): 14h Lisboa → 15h Paris', () => {
+    expect(formatarHorarioResumo(
+      { tiragemId: AO_VIVO_ID },
+      { data: '2026-06-15', hora: 14, fusoTz: 'Europe/Paris' },
+    )).toBe('· 14h Lisboa · 15h Paris')
+  })
+
+  it('ao vivo trata wrap de meia-noite: 01h Lisboa com offset -3 → 22h São Paulo', () => {
+    expect(formatarHorarioResumo(
+      { tiragemId: AO_VIVO_ID },
+      { data: '2026-06-15', hora: 1, fusoTz: 'America/Sao_Paulo' },
+    )).toBe('· 01h Lisboa · 22h São Paulo')
+  })
+
+  it('ao vivo trata wrap para frente: 23h Lisboa com offset +1 → 00h Paris', () => {
+    expect(formatarHorarioResumo(
+      { tiragemId: AO_VIVO_ID },
+      { data: '2026-06-15', hora: 23, fusoTz: 'Europe/Paris' },
+    )).toBe('· 23h Lisboa · 00h Paris')
+  })
+
+  // ── tiragem desconhecida ─────────────────────────────────────────────────────
+
+  it('retorna string vazia para tiragemId desconhecido (com período também vazio)', () => {
+    expect(formatarHorarioResumo(
+      { tiragemId: 'inexistente' },
+      { data: '2026-06-15' },
+    )).toBe('')
+  })
+
+  it('usa período quando tiragemId é desconhecido mas período está definido', () => {
+    expect(formatarHorarioResumo(
+      { tiragemId: 'inexistente' },
+      { data: '2026-06-15', periodo: 'Manhã' },
+    )).toBe('· Manhã')
   })
 })
