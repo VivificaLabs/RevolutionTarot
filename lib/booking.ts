@@ -115,6 +115,30 @@ export const PERIODOS_URGENCIA = [
   { label: 'Noite',  horaLisboa: 20 },
 ]
 
+// ── Helper de exibição de horário nos resumos ─────────────────────────────────
+
+export function formatarHorarioResumo(
+  step1: Partial<DadosStep1>,
+  step2: Partial<DadosStep2>,
+): string {
+  if (!step2.data) return ''
+  const tiragem = TIRAGENS.find(t => t.id === step1.tiragemId)
+
+  if (tiragem?.aoVivo && step2.hora != null) {
+    const horaLisboa = `${String(step2.hora).padStart(2, '0')}h Lisboa`
+    const fuso = FUSOS.find(f => f.tz === (step2.fusoTz ?? 'Europe/Lisbon'))
+    if (fuso && fuso.offsetLisboa !== 0) {
+      const horaLocal = ((step2.hora + fuso.offsetLisboa) % 24 + 24) % 24
+      return `· ${horaLisboa} · ${String(horaLocal).padStart(2, '0')}h ${fuso.cidade}`
+    }
+    return `· ${horaLisboa}`
+  }
+
+  if (step2.periodo) return `· ${step2.periodo}`
+
+  return ''
+}
+
 // ── Helpers de preço ──────────────────────────────────────────────────────────
 
 export function precoComUrgencia(precoBRL: number): number {

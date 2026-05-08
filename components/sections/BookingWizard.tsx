@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import {
   TIRAGENS, IDIOMAS, FUSOS, HORARIOS_AO_VIVO_LISBOA, PERIODOS_URGENCIA,
   SIMBOLOS, metodosPorMoeda,
-  precoComUrgencia, converterPreco, formatarPreco,
+  precoComUrgencia, converterPreco, formatarPreco, formatarHorarioResumo,
   type Moeda, type Idioma, type Canal, type MetodoPagamento,
   type DadosStep1, type DadosStep2, type DadosStep3,
 } from '@/lib/booking'
@@ -532,17 +532,7 @@ function Step2({
 
   return (
     <div>
-      {/* Resumo */}
-      <div style={S.resumoBox}>
-        <span style={{ color: 'var(--gold)', fontWeight: 700 }}>
-          {tiragem?.nome} · {IDIOMAS.find(i => i.value === step1.idioma)?.label ?? 'Português'}
-          {urgencia ? ' · urgência' : ''}
-        </span>
-        <br />
-        <span style={{ color: 'var(--muted)' }}>
-          {formatarPreco(converterPreco(precoBRL, moeda), moeda)}
-        </span>
-      </div>
+      <ResumoAgendamento step1={step1} precoBRL={precoBRL} moeda={moeda} />
 
       <div style={S.infoBox}>
         {tiragem?.aoVivo
@@ -851,25 +841,48 @@ function Step2({
   )
 }
 
-// ── Helper: formata data/horário para os resumos ──────────────────────────────
+function ResumoAgendamento({
+  step1,
+  step2,
+  precoBRL,
+  moeda,
+  precoInline = false,
+}: {
+  step1: Partial<DadosStep1>
+  step2?: Partial<DadosStep2>
+  precoBRL?: number
+  moeda?: Moeda
+  precoInline?: boolean
+}) {
+  const tiragem   = TIRAGENS.find(t => t.id === step1.tiragemId)
+  const urgencia  = step1.urgencia ?? false
+  const idioma    = IDIOMAS.find(i => i.value === step1.idioma)?.label ?? 'Português'
+  const preco     = precoBRL != null && moeda
+    ? formatarPreco(converterPreco(precoBRL, moeda), moeda)
+    : null
 
-function formatarHorarioResumo(step1: Partial<DadosStep1>, step2: Partial<DadosStep2>): string {
-  if (!step2.data) return ''
-  const tiragem = TIRAGENS.find(t => t.id === step1.tiragemId)
-
-  if (tiragem?.aoVivo && step2.hora != null) {
-    const horaLisboa = `${String(step2.hora).padStart(2, '0')}h Lisboa`
-    const fuso = FUSOS.find(f => f.tz === (step2.fusoTz ?? 'Europe/Lisbon'))
-    if (fuso && fuso.offsetLisboa !== 0) {
-      const horaLocal = ((step2.hora + fuso.offsetLisboa) % 24 + 24) % 24
-      return `· ${horaLisboa} · ${String(horaLocal).padStart(2, '0')}h ${fuso.cidade}`
-    }
-    return `· ${horaLisboa}`
-  }
-
-  if (step2.periodo) return `· ${step2.periodo}`
-
-  return ''
+  return (
+    <div style={S.resumoBox}>
+      <span style={{ color: 'var(--gold)', fontWeight: 700 }}>
+        {tiragem?.nome} · {idioma}{urgencia ? ' · urgência' : ''}
+        {precoInline && preco ? ` · ${preco}` : ''}
+      </span>
+      {!precoInline && preco && (
+        <>
+          <br />
+          <span style={{ color: 'var(--muted)' }}>{preco}</span>
+        </>
+      )}
+      {step2?.data && (
+        <>
+          <br />
+          <span style={{ color: 'var(--muted)', fontSize: '0.7rem' }}>
+            {step2.data} {formatarHorarioResumo(step1, step2)}
+          </span>
+        </>
+      )}
+    </div>
+  )
 }
 
 // ── Step 3 — Informações pessoais ─────────────────────────────────────────────
@@ -902,16 +915,7 @@ function Step3({
 
   return (
     <div>
-      <div style={S.resumoBox}>
-        <span style={{ color: 'var(--gold)', fontWeight: 700 }}>
-          {tiragem?.nome} · {IDIOMAS.find(i => i.value === step1.idioma)?.label}
-          {urgencia ? ' · urgência' : ''} · {formatarPreco(converterPreco(precoBRL, moeda), moeda)}
-        </span>
-        <br />
-        <span style={{ color: 'var(--muted)', fontSize: '0.7rem' }}>
-          {step2.data} {formatarHorarioResumo(step1, step2)}
-        </span>
-      </div>
+      <ResumoAgendamento step1={step1} step2={step2} precoBRL={precoBRL} moeda={moeda} precoInline />
 
       <div style={S.infoBox}>
         <span style={{ color: 'var(--cyan)', fontWeight: 700 }}>Passo 03</span>
@@ -1227,6 +1231,8 @@ function Step4({
 
   return (
     <div>
+      <ResumoAgendamento step1={step1} step2={step2} />
+
       {/* Resumo financeiro */}
       <div style={S.resumoBox}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
