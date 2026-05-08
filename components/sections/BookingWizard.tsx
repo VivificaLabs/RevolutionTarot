@@ -1227,6 +1227,18 @@ function Step4({
 
   return (
     <div>
+      {/* Resumo do agendamento */}
+      <div style={S.resumoBox}>
+        <span style={{ color: 'var(--gold)', fontWeight: 700 }}>
+          {tiragem?.nome} · {IDIOMAS.find(i => i.value === step1.idioma)?.label}
+          {urgencia ? ' · urgência' : ''}
+        </span>
+        <br />
+        <span style={{ color: 'var(--muted)', fontSize: '0.7rem' }}>
+          {step2.data} {formatarHorarioResumo(step1, step2)}
+        </span>
+      </div>
+
       {/* Resumo financeiro */}
       <div style={S.resumoBox}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
