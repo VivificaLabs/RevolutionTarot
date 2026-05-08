@@ -532,17 +532,7 @@ function Step2({
 
   return (
     <div>
-      {/* Resumo */}
-      <div style={S.resumoBox}>
-        <span style={{ color: 'var(--gold)', fontWeight: 700 }}>
-          {tiragem?.nome} · {IDIOMAS.find(i => i.value === step1.idioma)?.label ?? 'Português'}
-          {urgencia ? ' · urgência' : ''}
-        </span>
-        <br />
-        <span style={{ color: 'var(--muted)' }}>
-          {formatarPreco(converterPreco(precoBRL, moeda), moeda)}
-        </span>
-      </div>
+      <ResumoAgendamento step1={step1} precoBRL={precoBRL} moeda={moeda} />
 
       <div style={S.infoBox}>
         {tiragem?.aoVivo
@@ -872,6 +862,50 @@ function formatarHorarioResumo(step1: Partial<DadosStep1>, step2: Partial<DadosS
   return ''
 }
 
+function ResumoAgendamento({
+  step1,
+  step2,
+  precoBRL,
+  moeda,
+  precoInline = false,
+}: {
+  step1: Partial<DadosStep1>
+  step2?: Partial<DadosStep2>
+  precoBRL?: number
+  moeda?: Moeda
+  precoInline?: boolean
+}) {
+  const tiragem   = TIRAGENS.find(t => t.id === step1.tiragemId)
+  const urgencia  = step1.urgencia ?? false
+  const idioma    = IDIOMAS.find(i => i.value === step1.idioma)?.label ?? 'Português'
+  const preco     = precoBRL != null && moeda
+    ? formatarPreco(converterPreco(precoBRL, moeda), moeda)
+    : null
+
+  return (
+    <div style={S.resumoBox}>
+      <span style={{ color: 'var(--gold)', fontWeight: 700 }}>
+        {tiragem?.nome} · {idioma}{urgencia ? ' · urgência' : ''}
+        {precoInline && preco ? ` · ${preco}` : ''}
+      </span>
+      {!precoInline && preco && (
+        <>
+          <br />
+          <span style={{ color: 'var(--muted)' }}>{preco}</span>
+        </>
+      )}
+      {step2?.data && (
+        <>
+          <br />
+          <span style={{ color: 'var(--muted)', fontSize: '0.7rem' }}>
+            {step2.data} {formatarHorarioResumo(step1, step2)}
+          </span>
+        </>
+      )}
+    </div>
+  )
+}
+
 // ── Step 3 — Informações pessoais ─────────────────────────────────────────────
 
 function Step3({
@@ -902,16 +936,7 @@ function Step3({
 
   return (
     <div>
-      <div style={S.resumoBox}>
-        <span style={{ color: 'var(--gold)', fontWeight: 700 }}>
-          {tiragem?.nome} · {IDIOMAS.find(i => i.value === step1.idioma)?.label}
-          {urgencia ? ' · urgência' : ''} · {formatarPreco(converterPreco(precoBRL, moeda), moeda)}
-        </span>
-        <br />
-        <span style={{ color: 'var(--muted)', fontSize: '0.7rem' }}>
-          {step2.data} {formatarHorarioResumo(step1, step2)}
-        </span>
-      </div>
+      <ResumoAgendamento step1={step1} step2={step2} precoBRL={precoBRL} moeda={moeda} precoInline />
 
       <div style={S.infoBox}>
         <span style={{ color: 'var(--cyan)', fontWeight: 700 }}>Passo 03</span>
@@ -1227,17 +1252,7 @@ function Step4({
 
   return (
     <div>
-      {/* Resumo do agendamento */}
-      <div style={S.resumoBox}>
-        <span style={{ color: 'var(--gold)', fontWeight: 700 }}>
-          {tiragem?.nome} · {IDIOMAS.find(i => i.value === step1.idioma)?.label}
-          {urgencia ? ' · urgência' : ''}
-        </span>
-        <br />
-        <span style={{ color: 'var(--muted)', fontSize: '0.7rem' }}>
-          {step2.data} {formatarHorarioResumo(step1, step2)}
-        </span>
-      </div>
+      <ResumoAgendamento step1={step1} step2={step2} />
 
       {/* Resumo financeiro */}
       <div style={S.resumoBox}>
