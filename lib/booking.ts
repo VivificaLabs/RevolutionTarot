@@ -156,6 +156,34 @@ export function formatarPreco(valor: number, moeda: Moeda): string {
   })}`
 }
 
+// ── Agrupamento de slots por período ─────────────────────────────────────────
+
+export interface SlotPorPeriodo {
+  label: string
+  primeiroSlot: string
+}
+
+export function agruparSlotsPorPeriodo(rawSlots: string[]): SlotPorPeriodo[] {
+  const PERIODOS = [
+    { label: 'Manhã', de: 6,  ate: 12 },
+    { label: 'Tarde', de: 12, ate: 18 },
+    { label: 'Noite', de: 18, ate: 24 },
+  ]
+  const result: SlotPorPeriodo[] = []
+  for (const p of PERIODOS) {
+    const disponiveis = rawSlots.filter(s => {
+      const h = parseInt(new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Europe/Lisbon', hour: 'numeric', hour12: false,
+      }).format(new Date(s)))
+      return h >= p.de && h < p.ate
+    })
+    if (disponiveis.length > 0) {
+      result.push({ label: p.label, primeiroSlot: disponiveis[0] })
+    }
+  }
+  return result
+}
+
 // ── Tipos do formulário ───────────────────────────────────────────────────────
 
 export type Canal = 'whatsapp' | 'telegram'

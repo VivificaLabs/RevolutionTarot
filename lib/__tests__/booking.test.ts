@@ -11,6 +11,7 @@ import {
   formatarPreco,
   metodosPorMoeda,
   formatarHorarioResumo,
+  agruparSlotsPorPeriodo,
   TIRAGENS,
   FUSOS,
   COTACOES,
@@ -404,5 +405,107 @@ describe('formatarHorarioResumo', () => {
       { tiragemId: 'inexistente' },
       { data: '2026-06-15', periodo: 'Manhã' },
     )).toBe('· Manhã')
+  })
+})
+
+// ── agruparSlotsPorPeriodo ────────────────────────────────────────────────────
+//
+// Slots usam datas de janeiro (Lisboa = UTC, sem horário de verão) para
+// que a hora UTC coincida com a hora Lisboa e os cálculos sejam simples.
+//   09:00 UTC = 09:00 Lisboa → Manhã   (de: 6, ate: 12)
+//   14:00 UTC = 14:00 Lisboa → Tarde   (de: 12, ate: 18)
+//   19:00 UTC = 19:00 Lisboa → Noite   (de: 18, ate: 24)
+//
+// Para verificar que o ajuste de fuso funciona em verão (UTC+1) são usados
+// slots de junho onde a hora Lisboa = hora UTC + 1.
+
+const MANHa  = '2026-01-15T09:00:00.000Z'  // 09h Lisboa (inverno)
+const TARDE  = '2026-01-15T14:00:00.000Z'  // 14h Lisboa
+const NOITE  = '2026-01-15T19:00:00.000Z'  // 19h Lisboa
+const MANHa2 = '2026-01-15T10:00:00.000Z'  // 10h Lisboa — segundo slot manhã
+
+describe('agruparSlotsPorPeriodo', () => {
+  it('array vazio retorna array vazio', () => {
+    expect(agruparSlotsPorPeriodo([])).toEqual([])
+  })
+
+  it('slot único de manhã retorna só Manhã', () => {
+    const result = agruparSlotsPorPeriodo([MANHa])
+    expect(result).toHaveLength(1)
+    expect(result[0].label).toBe('Manhã')
+    expect(result[0].primeiroSlot).toBe(MANHa)
+  })
+
+  it('slot único de tarde retorna só Tarde', () => {
+    const result = agruparSlotsPorPeriodo([TARDE])
+    expect(result).toHaveLength(1)
+    expect(result[0].label).toBe('Tarde')
+    expect(result[0].primeiroSlot).toBe(TARDE)
+  })
+
+  it('slot único de noite retorna só Noite', () => {
+    const result = agruparSlotsPorPeriodo([NOITE])
+    expect(result).toHaveLength(1)
+    expect(result[0].label).toBe('Noite')
+    expect(result[0].primeiroSlot).toBe(NOITE)
+  })
+
+  it('slots em vários períodos retorna todos os períodos correspondentes', () => {
+    const result = agruparSlotsPorPeriodo([MANHa, TARDE, NOITE])
+    const labels = result.map(r => r.label)
+    expect(labels).toContain('Manhã')
+    expect(labels).toContain('Tarde')
+    expect(labels).toContain('Noite')
+    expect(result).toHaveLength(3)
+  })
+
+  it('preserva ordem Manhã → Tarde → Noite independente da ordem dos slots', () => {
+    const result = agruparSlotsPorPeriodo([NOITE, MANHa, TARDE])
+    expect(result.map(r => r.label)).toEqual(['Manhã', 'Tarde', 'Noite'])
+  })
+
+  it('quando há vários slots no mesmo período retorna o primeiro', () => {
+    const result = agruparSlotsPorPeriodo([MANHa, MANHa2])
+    expect(result).toHaveLength(1)
+    expect(result[0].label).toBe('Manhã')
+    expect(result[0].primeiroSlot).toBe(MANHa)
+  })
+
+  it('apenas Tarde disponível: manhã e noite ausentes do resultado', () => {
+    const result = agruparSlotsPorPeriodo([TARDE])
+    expect(result.map(r => r.label)).toEqual(['Tarde'])
+  })
+
+  it('slots de verão (UTC+1 em Lisboa): 08:00 UTC = 09:00 Lisboa → Manhã', () => {
+    const slotVerao = '2026-06-15T08:00:00.000Z'  // 09h Lisboa (WEST = UTC+1)
+    const result = agruparSlotsPorPeriodo([slotVerao])
+    expect(result).toHaveLength(1)
+    expect(result[0].label).toBe('Manhã')
+  })
+
+  it('slots de verão: 13:00 UTC = 14:00 Lisboa → Tarde', () => {
+    const slotVerao = '2026-06-15T13:00:00.000Z'  // 14h Lisboa
+    const result = agruparSlotsPorPeriodo([slotVerao])
+    expect(result[0].label).toBe('Tarde')
+  })
+
+  it('slots de verão: 18:00 UTC = 19:00 Lisboa → Noite', () => {
+    const slotVerao = '2026-06-15T18:00:00.000Z'  // 19h Lisboa
+    const result = agruparSlotsPorPeriodo([slotVerao])
+    expect(result[0].label).toBe('Noite')
+  })
+
+  it('cada resultado tem label e primeiroSlot não vazios', () => {
+    const result = agruparSlotsPorPeriodo([MANHa, TARDE, NOITE])
+    result.forEach(r => {
+      expect(r.label).toBeTruthy()
+      expect(r.primeiroSlot).toBeTruthy()
+    })
+  })
+
+  it('um período completamente bookado não aparece no resultado', () => {
+    // Só manhã e noite disponíveis — tarde deve estar ausente
+    const result = agruparSlotsPorPeriodo([MANHa, NOITE])
+    expect(result.map(r => r.label)).toEqual(['Manhã', 'Noite'])
   })
 })
