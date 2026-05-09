@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import {
   TIRAGENS, IDIOMAS, FUSOS, HORARIOS_AO_VIVO_LISBOA, PERIODOS_URGENCIA,
-  SIMBOLOS, metodosPorMoeda,
+  SIMBOLOS, metodosPorMoeda, agruparSlotsPorPeriodo,
   precoComUrgencia, converterPreco, formatarPreco, formatarHorarioResumo,
   type Moeda, type Idioma, type Canal, type MetodoPagamento,
   type DadosStep1, type DadosStep2, type DadosStep3,
@@ -450,6 +450,8 @@ function Step2({
   const [slots, setSlots] = useState<string[]>([])
   const [slotsCarregando, setSlotsCarregando] = useState(false)
   const [slotsErro, setSlotsErro] = useState('')
+  const [slotsUrgencia, setSlotsUrgencia] = useState<string[]>([])
+  const [slotsUrgenciaCarregando, setSlotsUrgenciaCarregando] = useState(false)
   const [mesCalendario, setMesCalendario] = useState<{ ano: number; mes: number } | null>(null)
 
   useEffect(() => {
@@ -469,20 +471,21 @@ function Step2({
       .finally(() => setSlotsCarregando(false))
   }, [dados.data, ehRegular]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (!urgencia || tiragem?.aoVivo || !dados.data) { setSlotsUrgencia([]); return }
+    const id = CAL_EVENT_TYPES['tiragem-urgente']
+    setSlotsUrgenciaCarregando(true)
+    setSlotsUrgencia([])
+    fetch(`/api/cal/slots?eventTypeId=${id}&data=${dados.data}`)
+      .then(r => r.json())
+      .then(d => { setSlotsUrgencia(d.slots ?? []) })
+      .catch(() => setSlotsUrgencia([]))
+      .finally(() => setSlotsUrgenciaCarregando(false))
+  }, [dados.data, urgencia, tiragem?.aoVivo]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Agrupa slots disponíveis em Manhã / Tarde / Noite (hora Lisboa)
-  const slotsPorPeriodo = [
-    { label: 'Manhã', de: 6,  ate: 12 },
-    { label: 'Tarde', de: 12, ate: 18 },
-    { label: 'Noite', de: 18, ate: 24 },
-  ].map(p => {
-    const disponiveis = slots.filter(s => {
-      const h = parseInt(new Intl.DateTimeFormat('en-US', {
-        timeZone: 'Europe/Lisbon', hour: 'numeric', hour12: false,
-      }).format(new Date(s)))
-      return h >= p.de && h < p.ate
-    })
-    return { label: p.label, primeiroSlot: disponiveis[0] ?? null }
-  }).filter(p => p.primeiroSlot !== null)
+  const slotsPorPeriodo = agruparSlotsPorPeriodo(slots)
+  const slotsPorPeriodoUrgencia = agruparSlotsPorPeriodo(slotsUrgencia)
 
   // Dias permitidos
   const hoje = new Date()
@@ -722,36 +725,9 @@ function Step2({
           {slotsErro && (
             <div style={{ fontSize: '0.72rem', color: 'var(--magenta)' }}>⚠️ {slotsErro}</div>
           )}
-          {!slotsCarregando && slotsPorPeriodo.length === 0 && (
-            <div style={{ display: 'flex', gap: 8 }}>
-              {PERIODOS_URGENCIA.map(({ label, horaLisboa }) => {
-                const hLocal = horaLisboa + fuso.offsetLisboa
-                const sel = dados.periodo === label
-                return (
-                  <button
-                    key={label}
-                    onClick={() => onChange({ ...dados, periodo: label, hora: horaLisboa, slotISO: null })}
-                    style={{
-                      background: sel ? 'var(--cyan)' : 'transparent',
-                      color: sel ? 'var(--bg)' : 'var(--muted)',
-                      border: `1px solid ${sel ? 'var(--cyan)' : 'var(--border)'}`,
-                      padding: '10px 20px',
-                      fontFamily: "'Space Mono', monospace",
-                      fontSize: '0.72rem',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    {label}
-                    {fuso.offsetLisboa !== 0 && (
-                      <span style={{ fontSize: '0.6rem', display: 'block', marginTop: 2 }}>
-                        {String(((hLocal % 24) + 24) % 24).padStart(2,'0')}h local
-                      </span>
-                    )}
-                  </button>
-                )
-              })}
+          {!slotsCarregando && !slotsErro && slotsPorPeriodo.length === 0 && (
+            <div style={{ fontSize: '0.72rem', color: 'var(--muted)', paddingTop: 4 }}>
+              Sem disponibilidade nessa data. Escolha outra data.
             </div>
           )}
           {!slotsCarregando && slotsPorPeriodo.length > 0 && (
@@ -794,36 +770,48 @@ function Step2({
       {dataSel && !tiragem?.aoVivo && urgencia && (
         <div style={S.fieldGroup}>
           <label style={S.label}>Período preferido (Lisboa)</label>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {PERIODOS_URGENCIA.map(({ label, horaLisboa }) => {
-              const hLocal = horaLisboa + fuso.offsetLisboa
-              const sel = dados.periodo === label
-              return (
-                <button
-                  key={label}
-                  onClick={() => onChange({ ...dados, periodo: label, hora: horaLisboa })}
-                  style={{
-                    background: sel ? 'var(--cyan)' : 'transparent',
-                    color: sel ? 'var(--bg)' : 'var(--muted)',
-                    border: `1px solid ${sel ? 'var(--cyan)' : 'var(--border)'}`,
-                    padding: '10px 20px',
-                    fontFamily: "'Space Mono', monospace",
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  {label}
-                  {fuso.offsetLisboa !== 0 && (
-                    <span style={{ fontSize: '0.6rem', display: 'block', marginTop: 2 }}>
-                      {String(((hLocal % 24) + 24) % 24).padStart(2,'0')}h local
-                    </span>
-                  )}
-                </button>
-              )
-            })}
-          </div>
+          {slotsUrgenciaCarregando && (
+            <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>Buscando horários...</div>
+          )}
+          {!slotsUrgenciaCarregando && slotsPorPeriodoUrgencia.length === 0 && (
+            <div style={{ fontSize: '0.72rem', color: 'var(--muted)', paddingTop: 4 }}>
+              Sem disponibilidade nessa data. Escolha outra data.
+            </div>
+          )}
+          {!slotsUrgenciaCarregando && slotsPorPeriodoUrgencia.length > 0 && (
+            <div style={{ display: 'flex', gap: 8 }}>
+              {slotsPorPeriodoUrgencia.map(({ label, primeiroSlot }) => {
+                const periodo = PERIODOS_URGENCIA.find(p => p.label === label)
+                const horaLisboa = periodo?.horaLisboa ?? 0
+                const hLocal = horaLisboa + fuso.offsetLisboa
+                const sel = dados.periodo === label
+                return (
+                  <button
+                    key={label}
+                    onClick={() => onChange({ ...dados, periodo: label, hora: horaLisboa, slotISO: primeiroSlot })}
+                    style={{
+                      background: sel ? 'var(--cyan)' : 'transparent',
+                      color: sel ? 'var(--bg)' : 'var(--muted)',
+                      border: `1px solid ${sel ? 'var(--cyan)' : 'var(--border)'}`,
+                      padding: '10px 20px',
+                      fontFamily: "'Space Mono', monospace",
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {label}
+                    {fuso.offsetLisboa !== 0 && (
+                      <span style={{ fontSize: '0.6rem', display: 'block', marginTop: 2 }}>
+                        {String(((hLocal % 24) + 24) % 24).padStart(2,'0')}h local
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
 
