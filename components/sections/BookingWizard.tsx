@@ -452,6 +452,9 @@ function Step2({
   const [slotsErro, setSlotsErro] = useState('')
   const [slotsUrgencia, setSlotsUrgencia] = useState<string[]>([])
   const [slotsUrgenciaCarregando, setSlotsUrgenciaCarregando] = useState(false)
+  const [slotsAoVivo, setSlotsAoVivo] = useState<string[]>([])
+  const [slotsAoVivoCarregando, setSlotsAoVivoCarregando] = useState(false)
+  const [slotsAoVivoFetchOk, setSlotsAoVivoFetchOk] = useState(false)
   const [mesCalendario, setMesCalendario] = useState<{ ano: number; mes: number } | null>(null)
 
   useEffect(() => {
@@ -483,9 +486,27 @@ function Step2({
       .finally(() => setSlotsUrgenciaCarregando(false))
   }, [dados.data, urgencia, tiragem?.aoVivo]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (!tiragem?.aoVivo || !dados.data) { setSlotsAoVivo([]); setSlotsAoVivoFetchOk(false); return }
+    const id = CAL_EVENT_TYPES['ao-vivasso']
+    setSlotsAoVivoCarregando(true)
+    setSlotsAoVivo([])
+    setSlotsAoVivoFetchOk(false)
+    fetch(`/api/cal/slots?eventTypeId=${id}&data=${dados.data}`)
+      .then(r => r.json())
+      .then(d => { setSlotsAoVivo(d.slots ?? []); setSlotsAoVivoFetchOk(true) })
+      .catch(() => {})
+      .finally(() => setSlotsAoVivoCarregando(false))
+  }, [dados.data, tiragem?.aoVivo]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Agrupa slots disponíveis em Manhã / Tarde / Noite (hora Lisboa)
   const slotsPorPeriodo = agruparSlotsPorPeriodo(slots)
   const slotsPorPeriodoUrgencia = agruparSlotsPorPeriodo(slotsUrgencia)
+
+  // Períodos disponíveis para ao vivo: null = fetch não concluído (mostra tudo como fallback)
+  const periodosAoVivoDisponiveis = slotsAoVivoFetchOk
+    ? new Set(agruparSlotsPorPeriodo(slotsAoVivo).map(p => p.label))
+    : null
 
   // Dias permitidos
   const hoje = new Date()
@@ -682,36 +703,53 @@ function Step2({
       {dataSel && tiragem?.aoVivo && (
         <div style={S.fieldGroup}>
           <label style={S.label}>Horário (Lisboa)</label>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {HORARIOS_AO_VIVO_LISBOA.map(h => {
-              const hLocal = h + fuso.offsetLisboa
-              const sel = dados.hora === h
-              return (
-                <button
-                  key={h}
-                  onClick={() => onChange({ ...dados, hora: h, periodo: h < 12 ? 'Manhã' : h < 18 ? 'Tarde' : 'Noite' })}
-                  style={{
-                    background: sel ? 'var(--cyan)' : 'transparent',
-                    color: sel ? 'var(--bg)' : 'var(--muted)',
-                    border: `1px solid ${sel ? 'var(--cyan)' : 'var(--border)'}`,
-                    padding: '10px 20px',
-                    fontFamily: "'Space Mono', monospace",
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  {String(h).padStart(2,'0')}h Lisboa
-                  {fuso.offsetLisboa !== 0 && (
-                    <span style={{ fontSize: '0.6rem', display: 'block', marginTop: 2 }}>
-                      {String(((hLocal % 24) + 24) % 24).padStart(2,'0')}h local
-                    </span>
-                  )}
-                </button>
-              )
-            })}
-          </div>
+          {slotsAoVivoCarregando && (
+            <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>Buscando horários...</div>
+          )}
+          {!slotsAoVivoCarregando && (() => {
+            const horasDisponiveis = HORARIOS_AO_VIVO_LISBOA.filter(h => {
+              if (!periodosAoVivoDisponiveis) return true // fallback: mostra tudo
+              const periodo = h < 12 ? 'Manhã' : h < 18 ? 'Tarde' : 'Noite'
+              return periodosAoVivoDisponiveis.has(periodo)
+            })
+            if (horasDisponiveis.length === 0) return (
+              <div style={{ fontSize: '0.72rem', color: 'var(--muted)', paddingTop: 4 }}>
+                Sem disponibilidade nessa data. Escolha outra data.
+              </div>
+            )
+            return (
+              <div style={{ display: 'flex', gap: 8 }}>
+                {horasDisponiveis.map(h => {
+                  const hLocal = h + fuso.offsetLisboa
+                  const sel = dados.hora === h
+                  return (
+                    <button
+                      key={h}
+                      onClick={() => onChange({ ...dados, hora: h, periodo: h < 12 ? 'Manhã' : h < 18 ? 'Tarde' : 'Noite' })}
+                      style={{
+                        background: sel ? 'var(--cyan)' : 'transparent',
+                        color: sel ? 'var(--bg)' : 'var(--muted)',
+                        border: `1px solid ${sel ? 'var(--cyan)' : 'var(--border)'}`,
+                        padding: '10px 20px',
+                        fontFamily: "'Space Mono', monospace",
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      {String(h).padStart(2,'0')}h Lisboa
+                      {fuso.offsetLisboa !== 0 && (
+                        <span style={{ fontSize: '0.6rem', display: 'block', marginTop: 2 }}>
+                          {String(((hLocal % 24) + 24) % 24).padStart(2,'0')}h local
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            )
+          })()}
         </div>
       )}
 

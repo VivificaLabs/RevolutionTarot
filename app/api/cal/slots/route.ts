@@ -82,10 +82,10 @@ export async function GET(req: NextRequest) {
 
     logInfo('SLOTS_EXTRACTED', { count: slots.length, slots: slots.slice(0, 5) })
 
-    // Busca bookings existentes para filtrar períodos já ocupados.
-    // Regra de negócio: um booking em qualquer slot do período bloqueia o período inteiro.
+    // Busca TODOS os bookings do dia (sem filtrar por eventTypeId) para bloquear
+    // períodos ocupados por qualquer tipo de tiragem. Regra de negócio: um booking
+    // em qualquer período bloqueia esse período para todos os event types.
     const bookingsUrl = new URL(`${CAL_BASE}/v2/bookings`)
-    bookingsUrl.searchParams.set('eventTypeId', eventTypeId)
     bookingsUrl.searchParams.set('afterStart', startTime)
     bookingsUrl.searchParams.set('beforeEnd', endTime)
     bookingsUrl.searchParams.set('status', 'upcoming')

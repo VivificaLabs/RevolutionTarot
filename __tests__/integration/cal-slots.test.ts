@@ -171,11 +171,11 @@ describe('GET /api/cal/slots', () => {
     expect(mockFetch).toHaveBeenCalledTimes(2)
   })
 
-  it('busca bookings com o mesmo eventTypeId', async () => {
+  it('busca bookings sem filtrar por eventTypeId (todos os tipos de evento)', async () => {
     await GET(makeRequest({ eventTypeId: '42', data: '2026-01-15' }))
 
     const bookingsUrl = mockFetch.mock.calls[1][0] as string
-    expect(bookingsUrl).toContain('eventTypeId=42')
+    expect(bookingsUrl).not.toContain('eventTypeId')
   })
 
   it('busca apenas bookings com status upcoming', async () => {
@@ -265,6 +265,28 @@ describe('GET /api/cal/slots', () => {
     expect(data.slots).toEqual([])
   })
 
+  it('bloqueia período mesmo quando o booking é de um event type diferente', async () => {
+    // Cliente 1 reservou tiragem-padrão (eventTypeId=249816) de manhã.
+    // Cliente 2 tenta reservar ao-vivo (eventTypeId=249793) no mesmo dia de manhã.
+    // A consulta de slots é para eventTypeId=249793, mas o booking é de 249816.
+    // O período da manhã deve ser bloqueado para ambos.
+    mockFetch.mockReset()
+      .mockResolvedValueOnce(slotsResponse('2026-01-15', [
+        '2026-01-15T09:00:00.000Z',  // manhã (ao vivo disponível segundo Cal.eu)
+        '2026-01-15T14:00:00.000Z',  // tarde
+      ]))
+      .mockResolvedValueOnce(bookingsResponse([
+        { start: '2026-01-15T08:00:00.000Z' },  // booking de tiragem-padrão — event type diferente
+      ]))
+
+    const res = await GET(makeRequest({ eventTypeId: '249793', data: '2026-01-15' }))
+    const data = await res.json()
+
+    // Manhã deve ser bloqueada mesmo o booking sendo de outro event type
+    expect(data.slots).not.toContain('2026-01-15T09:00:00.000Z')
+    expect(data.slots).toContain('2026-01-15T14:00:00.000Z')
+  })
+
   it('reproduz o bug real: 08:00 bookado, 08:30 deve ser filtrado', async () => {
     // Caso real reportado: booking às 07:00 UTC (08:00 Lisboa WEST)
     // Cal.eu ainda mostra 08:30 como disponível — deve ser filtrado
@@ -301,6 +323,32 @@ describe('GET /api/cal/slots', () => {
     const data = await res.json()
 
     expect(data.slots).toHaveLength(3)
+  })
+
+  it('bloqueia hora de ao vivo (18h) quando há booking de noite de outra tiragem', async () => {
+    // Cal.eu retorna slots de ao vivo para 10h, 14h e 18h Lisboa
+    // Booking de tiragem-padrão existe às 18h (noite)
+    // Consulta é para eventTypeId de ao-vivo → noite deve ser filtrada
+    mockFetch.mockReset()
+      .mockResolvedValueOnce(slotsResponse('2026-05-23', [
+        '2026-05-23T09:00:00.000Z',  // 10h Lisboa (manhã) — WEST: UTC+1
+        '2026-05-23T13:00:00.000Z',  // 14h Lisboa (tarde)
+        '2026-05-23T17:00:00.000Z',  // 18h Lisboa (noite)
+        '2026-05-23T17:30:00.000Z',  // 18:30h Lisboa (noite)
+      ]))
+      .mockResolvedValueOnce(bookingsResponse([
+        { start: '2026-05-23T18:00:00.000Z' },  // booking de tiragem-padrão às 19h Lisboa (noite)
+      ]))
+
+    const res = await GET(makeRequest({ eventTypeId: '249793', data: '2026-05-23' }))
+    const data = await res.json()
+
+    // Manhã e Tarde disponíveis
+    expect(data.slots).toContain('2026-05-23T09:00:00.000Z')
+    expect(data.slots).toContain('2026-05-23T13:00:00.000Z')
+    // Noite bloqueada — ao vivo das 18h não deve aparecer
+    expect(data.slots).not.toContain('2026-05-23T17:00:00.000Z')
+    expect(data.slots).not.toContain('2026-05-23T17:30:00.000Z')
   })
 
   it('retorna todos os slots sem filtrar quando a chamada de bookings falha', async () => {
