@@ -82,7 +82,66 @@ export async function GET(req: NextRequest) {
 
     logInfo('SLOTS_EXTRACTED', { count: slots.length, slots: slots.slice(0, 5) })
 
-    return NextResponse.json({ slots })
+    // Busca bookings existentes para filtrar períodos já ocupados.
+    // Regra de negócio: um booking em qualquer slot do período bloqueia o período inteiro.
+    const bookingsUrl = new URL(`${CAL_BASE}/v2/bookings`)
+    bookingsUrl.searchParams.set('eventTypeId', eventTypeId)
+    bookingsUrl.searchParams.set('afterStart', startTime)
+    bookingsUrl.searchParams.set('beforeEnd', endTime)
+    bookingsUrl.searchParams.set('status', 'upcoming')
+
+    const bookingsRes = await fetch(bookingsUrl.toString(), {
+      headers: {
+        Authorization: `Bearer ${CAL_TOKEN}`,
+        'cal-api-version': '2024-08-13',
+      },
+    })
+
+    const horaLisboa = (iso: string): number =>
+      parseInt(new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Europe/Lisbon', hour: 'numeric', hour12: false,
+      }).format(new Date(iso)))
+
+    const PERIODOS = [
+      { de: 6,  ate: 12 },
+      { de: 12, ate: 18 },
+      { de: 18, ate: 24 },
+    ]
+
+    let slotsFinais = slots
+
+    if (bookingsRes.ok) {
+      const bookingsJson = await bookingsRes.json()
+      const bookings: { start: string }[] = bookingsJson.data ?? []
+
+      logInfo('BOOKINGS_FETCHED', { count: bookings.length })
+
+      if (bookings.length > 0) {
+        const periodosOcupados = PERIODOS.filter(p =>
+          bookings.some(b => {
+            const h = horaLisboa(b.start)
+            return h >= p.de && h < p.ate
+          })
+        )
+
+        if (periodosOcupados.length > 0) {
+          slotsFinais = slots.filter(s => {
+            const h = horaLisboa(s)
+            return !periodosOcupados.some(p => h >= p.de && h < p.ate)
+          })
+
+          logInfo('SLOTS_AFTER_BOOKING_FILTER', {
+            removidos: slots.length - slotsFinais.length,
+            restantes: slotsFinais.length,
+            periodosOcupados,
+          })
+        }
+      }
+    } else {
+      logInfo('BOOKINGS_FETCH_SKIPPED', { status: bookingsRes.status })
+    }
+
+    return NextResponse.json({ slots: slotsFinais })
   } catch (error) {
     logError('REQUEST_FATAL_ERROR', error)
     return NextResponse.json({ 

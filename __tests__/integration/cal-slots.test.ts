@@ -16,23 +16,29 @@ function makeRequest(params: Record<string, string> = {}): NextRequest {
   return new NextRequest(url.toString())
 }
 
-// Resposta Cal.eu v2 com slots para uma data
-function calResponse(date: string, slots: { start: string }[]) {
+// Resposta de slots (primeira chamada fetch)
+function slotsResponse(date: string, starts: string[]) {
   return {
     ok: true,
     status: 200,
-    json: async () => ({ status: 'success', data: { [date]: slots } }),
+    json: async () => ({
+      status: 'success',
+      data: { [date]: starts.map(s => ({ start: s })) },
+    }),
   } as Response
 }
 
-// Resposta Cal.eu v2 sem slots (dia completamente ocupado)
-function calResponseVazia(date: string) {
+// Resposta de bookings (segunda chamada fetch)
+function bookingsResponse(bookings: { start: string }[]) {
   return {
     ok: true,
     status: 200,
-    json: async () => ({ status: 'success', data: { [date]: [] } }),
+    json: async () => ({ status: 'success', data: bookings }),
   } as Response
 }
+
+// Sem bookings existentes (padrão da maioria dos testes)
+const semBookings = bookingsResponse([])
 
 // Resposta de erro da Cal.eu
 function calResponseErro(status: number, message: string) {
@@ -43,18 +49,19 @@ function calResponseErro(status: number, message: string) {
   } as Response
 }
 
-// ── Testes ────────────────────────────────────────────────────────────────────
+// ── Setup ─────────────────────────────────────────────────────────────────────
 
 describe('GET /api/cal/slots', () => {
   let mockFetch: jest.SpyInstance
 
   beforeEach(() => {
-    mockFetch = jest.spyOn(global, 'fetch').mockResolvedValue(
-      calResponse('2026-01-15', [
-        { start: '2026-01-15T09:00:00.000Z' },
-        { start: '2026-01-15T14:00:00.000Z' },
-      ])
-    )
+    // Por padrão: slots com manhã e tarde disponíveis, nenhum booking existente
+    mockFetch = jest.spyOn(global, 'fetch')
+      .mockResolvedValueOnce(slotsResponse('2026-01-15', [
+        '2026-01-15T09:00:00.000Z',
+        '2026-01-15T14:00:00.000Z',
+      ]))
+      .mockResolvedValueOnce(semBookings)
   })
 
   afterEach(() => {
@@ -100,7 +107,9 @@ describe('GET /api/cal/slots', () => {
   })
 
   it('retorna array vazio quando o dia não tem slots disponíveis', async () => {
-    mockFetch.mockResolvedValue(calResponseVazia('2026-01-15'))
+    mockFetch.mockReset()
+      .mockResolvedValueOnce(slotsResponse('2026-01-15', []))
+      .mockResolvedValueOnce(semBookings)
 
     const res = await GET(makeRequest({ eventTypeId: '1', data: '2026-01-15' }))
     const data = await res.json()
@@ -110,11 +119,13 @@ describe('GET /api/cal/slots', () => {
   })
 
   it('retorna array vazio quando Cal.eu não retorna a data solicitada', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ status: 'success', data: {} }),
-    } as Response)
+    mockFetch.mockReset()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ status: 'success', data: {} }),
+      } as Response)
+      .mockResolvedValueOnce(semBookings)
 
     const res = await GET(makeRequest({ eventTypeId: '1', data: '2026-01-15' }))
     const data = await res.json()
@@ -123,48 +134,204 @@ describe('GET /api/cal/slots', () => {
     expect(data.slots).toEqual([])
   })
 
-  // ── Chamada à Cal.eu ──────────────────────────────────────────────────────
+  // ── Chamada à Cal.eu — slots ──────────────────────────────────────────────
 
-  it('chama Cal.eu com o eventTypeId correto na URL', async () => {
+  it('chama Cal.eu com o eventTypeId correto na URL de slots', async () => {
     await GET(makeRequest({ eventTypeId: '42', data: '2026-01-15' }))
 
-    expect(mockFetch).toHaveBeenCalledTimes(1)
-    const url = mockFetch.mock.calls[0][0] as string
-    expect(url).toContain('eventTypeId=42')
+    const slotsUrl = mockFetch.mock.calls[0][0] as string
+    expect(slotsUrl).toContain('eventTypeId=42')
   })
 
-  it('chama Cal.eu com o fuso Europe/Lisbon', async () => {
+  it('chama Cal.eu com o fuso Europe/Lisbon na URL de slots', async () => {
     await GET(makeRequest({ eventTypeId: '1', data: '2026-01-15' }))
 
-    const url = mockFetch.mock.calls[0][0] as string
-    expect(url).toContain('timeZone=Europe%2FLisbon')
+    const slotsUrl = mockFetch.mock.calls[0][0] as string
+    expect(slotsUrl).toContain('timeZone=Europe%2FLisbon')
   })
 
-  it('inclui o header de autorização na chamada à Cal.eu', async () => {
+  it('inclui o header de autorização', async () => {
     await GET(makeRequest({ eventTypeId: '1', data: '2026-01-15' }))
 
     const options = mockFetch.mock.calls[0][1] as RequestInit
     expect((options.headers as Record<string, string>)['Authorization']).toMatch(/^Bearer /)
   })
 
-  it('inclui o header cal-api-version na chamada à Cal.eu', async () => {
+  it('inclui o header cal-api-version', async () => {
     await GET(makeRequest({ eventTypeId: '1', data: '2026-01-15' }))
 
     const options = mockFetch.mock.calls[0][1] as RequestInit
     expect((options.headers as Record<string, string>)['cal-api-version']).toBeTruthy()
   })
 
-  // ── Erros da Cal.eu ───────────────────────────────────────────────────────
+  // ── Chamada à Cal.eu — bookings ───────────────────────────────────────────
+
+  it('faz segunda chamada para buscar bookings existentes', async () => {
+    await GET(makeRequest({ eventTypeId: '1', data: '2026-01-15' }))
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+  })
+
+  it('busca bookings com o mesmo eventTypeId', async () => {
+    await GET(makeRequest({ eventTypeId: '42', data: '2026-01-15' }))
+
+    const bookingsUrl = mockFetch.mock.calls[1][0] as string
+    expect(bookingsUrl).toContain('eventTypeId=42')
+  })
+
+  it('busca apenas bookings com status upcoming', async () => {
+    await GET(makeRequest({ eventTypeId: '1', data: '2026-01-15' }))
+
+    const bookingsUrl = mockFetch.mock.calls[1][0] as string
+    expect(bookingsUrl).toContain('status=upcoming')
+  })
+
+  // ── Filtro de períodos ocupados ───────────────────────────────────────────
+
+  it('remove slots da manhã quando já existe booking de manhã', async () => {
+    // Slots disponíveis: manhã (09h) e tarde (14h)
+    // Booking existente: 08h (manhã) → bloqueia todo slot de manhã
+    mockFetch.mockReset()
+      .mockResolvedValueOnce(slotsResponse('2026-01-15', [
+        '2026-01-15T09:00:00.000Z',  // 09h Lisboa (manhã)
+        '2026-01-15T09:30:00.000Z',  // 09:30h Lisboa (manhã)
+        '2026-01-15T14:00:00.000Z',  // 14h Lisboa (tarde)
+      ]))
+      .mockResolvedValueOnce(bookingsResponse([
+        { start: '2026-01-15T08:00:00.000Z' },  // 08h Lisboa (manhã) — já ocupado
+      ]))
+
+    const res = await GET(makeRequest({ eventTypeId: '1', data: '2026-01-15' }))
+    const data = await res.json()
+
+    expect(data.slots).not.toContain('2026-01-15T09:00:00.000Z')
+    expect(data.slots).not.toContain('2026-01-15T09:30:00.000Z')
+    expect(data.slots).toContain('2026-01-15T14:00:00.000Z')
+  })
+
+  it('remove slots da tarde quando já existe booking de tarde', async () => {
+    mockFetch.mockReset()
+      .mockResolvedValueOnce(slotsResponse('2026-01-15', [
+        '2026-01-15T09:00:00.000Z',  // manhã
+        '2026-01-15T14:00:00.000Z',  // tarde
+        '2026-01-15T14:30:00.000Z',  // tarde
+      ]))
+      .mockResolvedValueOnce(bookingsResponse([
+        { start: '2026-01-15T13:00:00.000Z' },  // 14h Lisboa (tarde) — já ocupado
+      ]))
+
+    const res = await GET(makeRequest({ eventTypeId: '1', data: '2026-01-15' }))
+    const data = await res.json()
+
+    expect(data.slots).toContain('2026-01-15T09:00:00.000Z')
+    expect(data.slots).not.toContain('2026-01-15T14:00:00.000Z')
+    expect(data.slots).not.toContain('2026-01-15T14:30:00.000Z')
+  })
+
+  it('remove slots da noite quando já existe booking de noite', async () => {
+    mockFetch.mockReset()
+      .mockResolvedValueOnce(slotsResponse('2026-01-15', [
+        '2026-01-15T09:00:00.000Z',  // manhã
+        '2026-01-15T19:00:00.000Z',  // noite
+        '2026-01-15T19:30:00.000Z',  // noite
+      ]))
+      .mockResolvedValueOnce(bookingsResponse([
+        { start: '2026-01-15T18:00:00.000Z' },  // 19h Lisboa (noite) — já ocupado
+      ]))
+
+    const res = await GET(makeRequest({ eventTypeId: '1', data: '2026-01-15' }))
+    const data = await res.json()
+
+    expect(data.slots).toContain('2026-01-15T09:00:00.000Z')
+    expect(data.slots).not.toContain('2026-01-15T19:00:00.000Z')
+    expect(data.slots).not.toContain('2026-01-15T19:30:00.000Z')
+  })
+
+  it('retorna array vazio quando todos os períodos têm booking', async () => {
+    mockFetch.mockReset()
+      .mockResolvedValueOnce(slotsResponse('2026-01-15', [
+        '2026-01-15T09:00:00.000Z',  // manhã
+        '2026-01-15T14:00:00.000Z',  // tarde
+        '2026-01-15T19:00:00.000Z',  // noite
+      ]))
+      .mockResolvedValueOnce(bookingsResponse([
+        { start: '2026-01-15T08:00:00.000Z' },  // manhã
+        { start: '2026-01-15T13:00:00.000Z' },  // tarde
+        { start: '2026-01-15T18:00:00.000Z' },  // noite
+      ]))
+
+    const res = await GET(makeRequest({ eventTypeId: '1', data: '2026-01-15' }))
+    const data = await res.json()
+
+    expect(data.slots).toEqual([])
+  })
+
+  it('reproduz o bug real: 08:00 bookado, 08:30 deve ser filtrado', async () => {
+    // Caso real reportado: booking às 07:00 UTC (08:00 Lisboa WEST)
+    // Cal.eu ainda mostra 08:30 como disponível — deve ser filtrado
+    mockFetch.mockReset()
+      .mockResolvedValueOnce(slotsResponse('2026-05-14', [
+        '2026-05-14T07:00:00.000+01:00',  // 08h Lisboa
+        '2026-05-14T07:30:00.000+01:00',  // 08:30h Lisboa
+        '2026-05-14T12:00:00.000+01:00',  // 13h Lisboa (tarde)
+      ]))
+      .mockResolvedValueOnce(bookingsResponse([
+        { start: '2026-05-14T07:00:00.000Z' },  // booking às 08h Lisboa
+      ]))
+
+    const res = await GET(makeRequest({ eventTypeId: '1', data: '2026-05-14' }))
+    const data = await res.json()
+
+    // 08:00 e 08:30 são manhã — ambos devem ser filtrados
+    expect(data.slots).not.toContain('2026-05-14T07:00:00.000+01:00')
+    expect(data.slots).not.toContain('2026-05-14T07:30:00.000+01:00')
+    // Tarde deve permanecer disponível
+    expect(data.slots).toContain('2026-05-14T12:00:00.000+01:00')
+  })
+
+  it('mantém todos os slots quando não há bookings', async () => {
+    mockFetch.mockReset()
+      .mockResolvedValueOnce(slotsResponse('2026-01-15', [
+        '2026-01-15T09:00:00.000Z',
+        '2026-01-15T14:00:00.000Z',
+        '2026-01-15T19:00:00.000Z',
+      ]))
+      .mockResolvedValueOnce(semBookings)
+
+    const res = await GET(makeRequest({ eventTypeId: '1', data: '2026-01-15' }))
+    const data = await res.json()
+
+    expect(data.slots).toHaveLength(3)
+  })
+
+  it('retorna todos os slots sem filtrar quando a chamada de bookings falha', async () => {
+    mockFetch.mockReset()
+      .mockResolvedValueOnce(slotsResponse('2026-01-15', [
+        '2026-01-15T09:00:00.000Z',
+        '2026-01-15T14:00:00.000Z',
+      ]))
+      .mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({}) } as Response)
+
+    const res = await GET(makeRequest({ eventTypeId: '1', data: '2026-01-15' }))
+    const data = await res.json()
+
+    // Sem filtro por booking quando a API de bookings falha
+    expect(res.status).toBe(200)
+    expect(data.slots).toHaveLength(2)
+  })
+
+  // ── Erros da Cal.eu (slots) ───────────────────────────────────────────────
 
   it('propaga status 401 quando o token é inválido', async () => {
-    mockFetch.mockResolvedValue(calResponseErro(401, 'Unauthorized'))
+    mockFetch.mockReset()
+      .mockResolvedValueOnce(calResponseErro(401, 'Unauthorized'))
 
     const res = await GET(makeRequest({ eventTypeId: '1', data: '2026-01-15' }))
     expect(res.status).toBe(401)
   })
 
   it('propaga status 404 quando o eventTypeId não existe', async () => {
-    mockFetch.mockResolvedValue(calResponseErro(404, 'Event type not found'))
+    mockFetch.mockReset()
+      .mockResolvedValueOnce(calResponseErro(404, 'Event type not found'))
 
     const res = await GET(makeRequest({ eventTypeId: '9999', data: '2026-01-15' }))
     const data = await res.json()
@@ -174,22 +341,22 @@ describe('GET /api/cal/slots', () => {
   })
 
   it('retorna 500 quando fetch lança exceção', async () => {
-    mockFetch.mockRejectedValue(new Error('Network failure'))
+    mockFetch.mockReset()
+      .mockRejectedValueOnce(new Error('Network failure'))
 
     const res = await GET(makeRequest({ eventTypeId: '1', data: '2026-01-15' }))
     expect(res.status).toBe(500)
   })
 
-  // ── Integração com agruparSlotsPorPeriodo ─────────────────────────────────
-  // Verifica que os slots retornados pela rota têm o formato esperado pela função
+  // ── Formato dos slots retornados ──────────────────────────────────────────
 
-  it('slots retornados são strings ISO parsáveis pelo Date', async () => {
+  it('slots retornados são strings parsáveis pelo Date', async () => {
     const res = await GET(makeRequest({ eventTypeId: '1', data: '2026-01-15' }))
     const { slots } = await res.json()
 
     slots.forEach((s: string) => {
       expect(() => new Date(s)).not.toThrow()
-      expect(new Date(s).toISOString()).toBe(s)
+      expect(isNaN(new Date(s).getTime())).toBe(false)
     })
   })
 })
