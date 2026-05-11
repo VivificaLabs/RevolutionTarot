@@ -17,16 +17,21 @@ export async function POST(req: NextRequest) {
 
   const valorNaMoeda = Math.round(valorBRL * COTACOES[moeda] * 100)
 
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: valorNaMoeda,
-    currency: MOEDA_STRIPE[moeda],
-    description: descricao,
-    receipt_email: email || undefined,
-    metadata: { nome: nome || '', moeda },
-  })
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: valorNaMoeda,
+      currency: MOEDA_STRIPE[moeda],
+      description: descricao,
+      receipt_email: email || undefined,
+      metadata: { nome: nome || '', moeda },
+    })
 
-  return NextResponse.json({
-    clientSecret: paymentIntent.client_secret,
-    paymentIntentId: paymentIntent.id,
-  })
+    return NextResponse.json({
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
+    })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Erro ao processar pagamento'
+    return NextResponse.json({ error: msg }, { status: 500 })
+  }
 }

@@ -27,7 +27,16 @@ export interface Tiragem {
   aoVivo: boolean        // se true → use event type "ao-vivasso"
 }
 
+const TIRAGEM_TESTE: Tiragem = {
+  id: 'teste-stripe',
+  nome: '[TESTE] Stripe',
+  subtitulo: 'apenas para testes — não aparece em produção',
+  precoBRL: 3,  // ~€1 cobrado; mínimo Stripe live é €0,50
+  aoVivo: false,
+}
+
 export const TIRAGENS: Tiragem[] = [
+  ...(process.env.NEXT_PUBLIC_ENABLE_TEST_BOOKING === 'true' ? [TIRAGEM_TESTE] : []),
   {
     id: 'tarot-express',
     nome: 'Tarot Express',
@@ -106,6 +115,30 @@ export const PERIODOS_URGENCIA = [
   { label: 'Noite',  horaLisboa: 20 },
 ]
 
+// ── Helper de exibição de horário nos resumos ─────────────────────────────────
+
+export function formatarHorarioResumo(
+  step1: Partial<DadosStep1>,
+  step2: Partial<DadosStep2>,
+): string {
+  if (!step2.data) return ''
+  const tiragem = TIRAGENS.find(t => t.id === step1.tiragemId)
+
+  if (tiragem?.aoVivo && step2.hora != null) {
+    const horaLisboa = `${String(step2.hora).padStart(2, '0')}h Lisboa`
+    const fuso = FUSOS.find(f => f.tz === (step2.fusoTz ?? 'Europe/Lisbon'))
+    if (fuso && fuso.offsetLisboa !== 0) {
+      const horaLocal = ((step2.hora + fuso.offsetLisboa) % 24 + 24) % 24
+      return `· ${horaLisboa} · ${String(horaLocal).padStart(2, '0')}h ${fuso.cidade}`
+    }
+    return `· ${horaLisboa}`
+  }
+
+  if (step2.periodo) return `· ${step2.periodo}`
+
+  return ''
+}
+
 // ── Helpers de preço ──────────────────────────────────────────────────────────
 
 export function precoComUrgencia(precoBRL: number): number {
@@ -121,6 +154,34 @@ export function formatarPreco(valor: number, moeda: Moeda): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   })}`
+}
+
+// ── Agrupamento de slots por período ─────────────────────────────────────────
+
+export interface SlotPorPeriodo {
+  label: string
+  primeiroSlot: string
+}
+
+export function agruparSlotsPorPeriodo(rawSlots: string[]): SlotPorPeriodo[] {
+  const PERIODOS = [
+    { label: 'Manhã', de: 6,  ate: 12 },
+    { label: 'Tarde', de: 12, ate: 18 },
+    { label: 'Noite', de: 18, ate: 24 },
+  ]
+  const result: SlotPorPeriodo[] = []
+  for (const p of PERIODOS) {
+    const disponiveis = rawSlots.filter(s => {
+      const h = parseInt(new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Europe/Lisbon', hour: 'numeric', hour12: false,
+      }).format(new Date(s)))
+      return h >= p.de && h < p.ate
+    })
+    if (disponiveis.length > 0) {
+      result.push({ label: p.label, primeiroSlot: disponiveis[0] })
+    }
+  }
+  return result
 }
 
 // ── Tipos do formulário ───────────────────────────────────────────────────────

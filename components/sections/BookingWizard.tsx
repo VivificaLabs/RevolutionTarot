@@ -3,11 +3,14 @@
 import { useState, useEffect } from 'react'
 import {
   TIRAGENS, IDIOMAS, FUSOS, HORARIOS_AO_VIVO_LISBOA, PERIODOS_URGENCIA,
-  SIMBOLOS, metodosPorMoeda,
-  precoComUrgencia, converterPreco, formatarPreco,
+  SIMBOLOS, metodosPorMoeda, agruparSlotsPorPeriodo,
+  precoComUrgencia, converterPreco, formatarPreco, formatarHorarioResumo,
   type Moeda, type Idioma, type Canal, type MetodoPagamento,
   type DadosStep1, type DadosStep2, type DadosStep3,
 } from '@/lib/booking'
+import { formatarWhatsApp } from '@/lib/input-formatters'
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from '@stripe/react-stripe-js'
 
 // ── Configuração ──────────────────────────────────────────────────────────────
 //
@@ -19,6 +22,21 @@ import {
 //   NEXT_PUBLIC_ENABLE_STRIPE=true
 
 const STRIPE_ENABLED = process.env.NEXT_PUBLIC_ENABLE_STRIPE === 'true'
+const stripePromise = STRIPE_ENABLED
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+  : null
+
+const STRIPE_ELEMENT_STYLE = {
+  style: {
+    base: {
+      color: '#e2e8f0',
+      fontFamily: "'Space Mono', monospace",
+      fontSize: '13px',
+      '::placeholder': { color: '#4a5568' },
+    },
+    invalid: { color: '#f56565' },
+  },
+}
 
 // ── Cal.eu Event Types ────────────────────────────────────────────────────────
 //
@@ -432,6 +450,11 @@ function Step2({
   const [slots, setSlots] = useState<string[]>([])
   const [slotsCarregando, setSlotsCarregando] = useState(false)
   const [slotsErro, setSlotsErro] = useState('')
+  const [slotsUrgencia, setSlotsUrgencia] = useState<string[]>([])
+  const [slotsUrgenciaCarregando, setSlotsUrgenciaCarregando] = useState(false)
+  const [slotsAoVivo, setSlotsAoVivo] = useState<string[]>([])
+  const [slotsAoVivoCarregando, setSlotsAoVivoCarregando] = useState(false)
+  const [slotsAoVivoFetchOk, setSlotsAoVivoFetchOk] = useState(false)
   const [mesCalendario, setMesCalendario] = useState<{ ano: number; mes: number } | null>(null)
 
   useEffect(() => {
@@ -451,20 +474,39 @@ function Step2({
       .finally(() => setSlotsCarregando(false))
   }, [dados.data, ehRegular]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (!urgencia || tiragem?.aoVivo || !dados.data) { setSlotsUrgencia([]); return }
+    const id = CAL_EVENT_TYPES['tiragem-urgente']
+    setSlotsUrgenciaCarregando(true)
+    setSlotsUrgencia([])
+    fetch(`/api/cal/slots?eventTypeId=${id}&data=${dados.data}`)
+      .then(r => r.json())
+      .then(d => { setSlotsUrgencia(d.slots ?? []) })
+      .catch(() => setSlotsUrgencia([]))
+      .finally(() => setSlotsUrgenciaCarregando(false))
+  }, [dados.data, urgencia, tiragem?.aoVivo]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!tiragem?.aoVivo || !dados.data) { setSlotsAoVivo([]); setSlotsAoVivoFetchOk(false); return }
+    const id = CAL_EVENT_TYPES['ao-vivasso']
+    setSlotsAoVivoCarregando(true)
+    setSlotsAoVivo([])
+    setSlotsAoVivoFetchOk(false)
+    fetch(`/api/cal/slots?eventTypeId=${id}&data=${dados.data}`)
+      .then(r => r.json())
+      .then(d => { setSlotsAoVivo(d.slots ?? []); setSlotsAoVivoFetchOk(true) })
+      .catch(() => {})
+      .finally(() => setSlotsAoVivoCarregando(false))
+  }, [dados.data, tiragem?.aoVivo]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Agrupa slots disponíveis em Manhã / Tarde / Noite (hora Lisboa)
-  const slotsPorPeriodo = [
-    { label: 'Manhã', de: 6,  ate: 12 },
-    { label: 'Tarde', de: 12, ate: 18 },
-    { label: 'Noite', de: 18, ate: 24 },
-  ].map(p => {
-    const disponiveis = slots.filter(s => {
-      const h = parseInt(new Intl.DateTimeFormat('en-US', {
-        timeZone: 'Europe/Lisbon', hour: 'numeric', hour12: false,
-      }).format(new Date(s)))
-      return h >= p.de && h < p.ate
-    })
-    return { label: p.label, primeiroSlot: disponiveis[0] ?? null }
-  }).filter(p => p.primeiroSlot !== null)
+  const slotsPorPeriodo = agruparSlotsPorPeriodo(slots)
+  const slotsPorPeriodoUrgencia = agruparSlotsPorPeriodo(slotsUrgencia)
+
+  // Períodos disponíveis para ao vivo: null = fetch não concluído (mostra tudo como fallback)
+  const periodosAoVivoDisponiveis = slotsAoVivoFetchOk
+    ? new Set(agruparSlotsPorPeriodo(slotsAoVivo).map(p => p.label))
+    : null
 
   // Dias permitidos
   const hoje = new Date()
@@ -508,23 +550,13 @@ function Step2({
   const dataSel = dados.data ?? null
   const tudo = !!dataSel && (
     ehRegular
-      ? !!dados.slotISO
+      ? !!dados.slotISO || !!dados.periodo
       : !!(dados.hora !== null && dados.hora !== undefined) || !!dados.periodo
   )
 
   return (
     <div>
-      {/* Resumo */}
-      <div style={S.resumoBox}>
-        <span style={{ color: 'var(--gold)', fontWeight: 700 }}>
-          {tiragem?.nome} · {IDIOMAS.find(i => i.value === step1.idioma)?.label ?? 'Português'}
-          {urgencia ? ' · urgência' : ''}
-        </span>
-        <br />
-        <span style={{ color: 'var(--muted)' }}>
-          {formatarPreco(converterPreco(precoBRL, moeda), moeda)}
-        </span>
-      </div>
+      <ResumoAgendamento step1={step1} precoBRL={precoBRL} moeda={moeda} />
 
       <div style={S.infoBox}>
         {tiragem?.aoVivo
@@ -671,36 +703,53 @@ function Step2({
       {dataSel && tiragem?.aoVivo && (
         <div style={S.fieldGroup}>
           <label style={S.label}>Horário (Lisboa)</label>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {HORARIOS_AO_VIVO_LISBOA.map(h => {
-              const hLocal = h + fuso.offsetLisboa
-              const sel = dados.hora === h
-              return (
-                <button
-                  key={h}
-                  onClick={() => onChange({ ...dados, hora: h })}
-                  style={{
-                    background: sel ? 'var(--cyan)' : 'transparent',
-                    color: sel ? 'var(--bg)' : 'var(--muted)',
-                    border: `1px solid ${sel ? 'var(--cyan)' : 'var(--border)'}`,
-                    padding: '10px 20px',
-                    fontFamily: "'Space Mono', monospace",
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  {String(h).padStart(2,'0')}h Lisboa
-                  {fuso.offsetLisboa !== 0 && (
-                    <span style={{ fontSize: '0.6rem', display: 'block', marginTop: 2 }}>
-                      {String(((hLocal % 24) + 24) % 24).padStart(2,'0')}h local
-                    </span>
-                  )}
-                </button>
-              )
-            })}
-          </div>
+          {slotsAoVivoCarregando && (
+            <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>Buscando horários...</div>
+          )}
+          {!slotsAoVivoCarregando && (() => {
+            const horasDisponiveis = HORARIOS_AO_VIVO_LISBOA.filter(h => {
+              if (!periodosAoVivoDisponiveis) return true // fallback: mostra tudo
+              const periodo = h < 12 ? 'Manhã' : h < 18 ? 'Tarde' : 'Noite'
+              return periodosAoVivoDisponiveis.has(periodo)
+            })
+            if (horasDisponiveis.length === 0) return (
+              <div style={{ fontSize: '0.72rem', color: 'var(--muted)', paddingTop: 4 }}>
+                Sem disponibilidade nessa data. Escolha outra data.
+              </div>
+            )
+            return (
+              <div style={{ display: 'flex', gap: 8 }}>
+                {horasDisponiveis.map(h => {
+                  const hLocal = h + fuso.offsetLisboa
+                  const sel = dados.hora === h
+                  return (
+                    <button
+                      key={h}
+                      onClick={() => onChange({ ...dados, hora: h, periodo: h < 12 ? 'Manhã' : h < 18 ? 'Tarde' : 'Noite' })}
+                      style={{
+                        background: sel ? 'var(--cyan)' : 'transparent',
+                        color: sel ? 'var(--bg)' : 'var(--muted)',
+                        border: `1px solid ${sel ? 'var(--cyan)' : 'var(--border)'}`,
+                        padding: '10px 20px',
+                        fontFamily: "'Space Mono', monospace",
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      {String(h).padStart(2,'0')}h Lisboa
+                      {fuso.offsetLisboa !== 0 && (
+                        <span style={{ fontSize: '0.6rem', display: 'block', marginTop: 2 }}>
+                          {String(((hLocal % 24) + 24) % 24).padStart(2,'0')}h local
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            )
+          })()}
         </div>
       )}
 
@@ -715,7 +764,9 @@ function Step2({
             <div style={{ fontSize: '0.72rem', color: 'var(--magenta)' }}>⚠️ {slotsErro}</div>
           )}
           {!slotsCarregando && !slotsErro && slotsPorPeriodo.length === 0 && (
-            <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>Nenhum horário disponível para este dia.</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--muted)', paddingTop: 4 }}>
+              Sem disponibilidade nessa data. Escolha outra data.
+            </div>
           )}
           {!slotsCarregando && slotsPorPeriodo.length > 0 && (
             <>
@@ -743,7 +794,7 @@ function Step2({
                   )
                 })}
               </div>
-              {dados.slotISO && (
+              {(dados.slotISO || dados.periodo) && (
                 <div style={{ fontSize: '0.68rem', color: 'var(--magenta)', marginTop: 10, lineHeight: 1.5 }}>
                   ⚠️ Horário preferencial — não há garantia de entrega nesse período. A tiragem será entregue com certeza até as 23h de Lisboa do dia selecionado.
                 </div>
@@ -757,36 +808,48 @@ function Step2({
       {dataSel && !tiragem?.aoVivo && urgencia && (
         <div style={S.fieldGroup}>
           <label style={S.label}>Período preferido (Lisboa)</label>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {PERIODOS_URGENCIA.map(({ label, horaLisboa }) => {
-              const hLocal = horaLisboa + fuso.offsetLisboa
-              const sel = dados.periodo === label
-              return (
-                <button
-                  key={label}
-                  onClick={() => onChange({ ...dados, periodo: label, hora: horaLisboa })}
-                  style={{
-                    background: sel ? 'var(--cyan)' : 'transparent',
-                    color: sel ? 'var(--bg)' : 'var(--muted)',
-                    border: `1px solid ${sel ? 'var(--cyan)' : 'var(--border)'}`,
-                    padding: '10px 20px',
-                    fontFamily: "'Space Mono', monospace",
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  {label}
-                  {fuso.offsetLisboa !== 0 && (
-                    <span style={{ fontSize: '0.6rem', display: 'block', marginTop: 2 }}>
-                      {String(((hLocal % 24) + 24) % 24).padStart(2,'0')}h local
-                    </span>
-                  )}
-                </button>
-              )
-            })}
-          </div>
+          {slotsUrgenciaCarregando && (
+            <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>Buscando horários...</div>
+          )}
+          {!slotsUrgenciaCarregando && slotsPorPeriodoUrgencia.length === 0 && (
+            <div style={{ fontSize: '0.72rem', color: 'var(--muted)', paddingTop: 4 }}>
+              Sem disponibilidade nessa data. Escolha outra data.
+            </div>
+          )}
+          {!slotsUrgenciaCarregando && slotsPorPeriodoUrgencia.length > 0 && (
+            <div style={{ display: 'flex', gap: 8 }}>
+              {slotsPorPeriodoUrgencia.map(({ label, primeiroSlot }) => {
+                const periodo = PERIODOS_URGENCIA.find(p => p.label === label)
+                const horaLisboa = periodo?.horaLisboa ?? 0
+                const hLocal = horaLisboa + fuso.offsetLisboa
+                const sel = dados.periodo === label
+                return (
+                  <button
+                    key={label}
+                    onClick={() => onChange({ ...dados, periodo: label, hora: horaLisboa, slotISO: primeiroSlot })}
+                    style={{
+                      background: sel ? 'var(--cyan)' : 'transparent',
+                      color: sel ? 'var(--bg)' : 'var(--muted)',
+                      border: `1px solid ${sel ? 'var(--cyan)' : 'var(--border)'}`,
+                      padding: '10px 20px',
+                      fontFamily: "'Space Mono', monospace",
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {label}
+                    {fuso.offsetLisboa !== 0 && (
+                      <span style={{ fontSize: '0.6rem', display: 'block', marginTop: 2 }}>
+                        {String(((hLocal % 24) + 24) % 24).padStart(2,'0')}h local
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
 
@@ -804,25 +867,48 @@ function Step2({
   )
 }
 
-// ── Helper: formata data/horário para os resumos ──────────────────────────────
+function ResumoAgendamento({
+  step1,
+  step2,
+  precoBRL,
+  moeda,
+  precoInline = false,
+}: {
+  step1: Partial<DadosStep1>
+  step2?: Partial<DadosStep2>
+  precoBRL?: number
+  moeda?: Moeda
+  precoInline?: boolean
+}) {
+  const tiragem   = TIRAGENS.find(t => t.id === step1.tiragemId)
+  const urgencia  = step1.urgencia ?? false
+  const idioma    = IDIOMAS.find(i => i.value === step1.idioma)?.label ?? 'Português'
+  const preco     = precoBRL != null && moeda
+    ? formatarPreco(converterPreco(precoBRL, moeda), moeda)
+    : null
 
-function formatarHorarioResumo(step1: Partial<DadosStep1>, step2: Partial<DadosStep2>): string {
-  if (!step2.data) return ''
-  const tiragem = TIRAGENS.find(t => t.id === step1.tiragemId)
-
-  if (tiragem?.aoVivo && step2.hora != null) {
-    const horaLisboa = `${String(step2.hora).padStart(2, '0')}h Lisboa`
-    const fuso = FUSOS.find(f => f.tz === (step2.fusoTz ?? 'Europe/Lisbon'))
-    if (fuso && fuso.offsetLisboa !== 0) {
-      const horaLocal = ((step2.hora + fuso.offsetLisboa) % 24 + 24) % 24
-      return `· ${horaLisboa} · ${String(horaLocal).padStart(2, '0')}h ${fuso.cidade}`
-    }
-    return `· ${horaLisboa}`
-  }
-
-  if (step2.periodo) return `· ${step2.periodo}`
-
-  return ''
+  return (
+    <div style={S.resumoBox}>
+      <span style={{ color: 'var(--gold)', fontWeight: 700 }}>
+        {tiragem?.nome} · {idioma}{urgencia ? ' · urgência' : ''}
+        {precoInline && preco ? ` · ${preco}` : ''}
+      </span>
+      {!precoInline && preco && (
+        <>
+          <br />
+          <span style={{ color: 'var(--muted)' }}>{preco}</span>
+        </>
+      )}
+      {step2?.data && (
+        <>
+          <br />
+          <span style={{ color: 'var(--muted)', fontSize: '0.7rem' }}>
+            {step2.data} {formatarHorarioResumo(step1, step2)}
+          </span>
+        </>
+      )}
+    </div>
+  )
 }
 
 // ── Step 3 — Informações pessoais ─────────────────────────────────────────────
@@ -855,16 +941,7 @@ function Step3({
 
   return (
     <div>
-      <div style={S.resumoBox}>
-        <span style={{ color: 'var(--gold)', fontWeight: 700 }}>
-          {tiragem?.nome} · {IDIOMAS.find(i => i.value === step1.idioma)?.label}
-          {urgencia ? ' · urgência' : ''} · {formatarPreco(converterPreco(precoBRL, moeda), moeda)}
-        </span>
-        <br />
-        <span style={{ color: 'var(--muted)', fontSize: '0.7rem' }}>
-          {step2.data} {formatarHorarioResumo(step1, step2)}
-        </span>
-      </div>
+      <ResumoAgendamento step1={step1} step2={step2} precoBRL={precoBRL} moeda={moeda} precoInline />
 
       <div style={S.infoBox}>
         <span style={{ color: 'var(--cyan)', fontWeight: 700 }}>Passo 03</span>
@@ -934,7 +1011,7 @@ function Step3({
               type="tel"
               placeholder="Número do WhatsApp"
               value={dados.contatoWhatsapp ?? ''}
-              onChange={e => onChange({ ...dados, contatoWhatsapp: e.target.value })}
+              onChange={e => onChange({ ...dados, contatoWhatsapp: formatarWhatsApp(e.target.value) })}
             />
           </div>
         ) : (
@@ -1062,40 +1139,36 @@ function Step4({
   const descontoValorBRL = precoBRL * (desconto / 100)
   const totalBRL = precoBRL - descontoValorBRL
 
-  const [cartao, setCartao] = useState({ numero: '', validade: '', cvv: '' })
+  const stripe = useStripe()
+  const elements = useElements()
+  const [cardComplete, setCardComplete] = useState({ number: false, expiry: false, cvc: false })
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState('')
 
   // Métodos disponíveis para a moeda selecionada, respeitando flags de feature
   const metodosDisponivelsPorMoeda = metodosPorMoeda(moeda)
-  const metodosDisponiveis = STRIPE_ENABLED 
-    ? metodosDisponivelsPorMoeda 
+  const metodosDisponiveis = STRIPE_ENABLED
+    ? metodosDisponivelsPorMoeda
     : metodosDisponivelsPorMoeda.filter(m => m !== 'cartao')
-  
+
   // Se o método selecionado deixou de estar disponível, reseta a seleção
   if (metodo && !metodosDisponiveis.includes(metodo)) {
     onMetodo(null)
   }
 
   async function confirmarFluxo() {
-    // 1. CRIAR EVENTO NO CAL.EU FIRST (obrigatório)
-    console.log('[STEP4_FLUXO] Etapa 1/3: Criando evento no Cal.eu...')
-    let calIds = { calBookingId: undefined, calBookingUid: undefined }
-    try {
-      calIds = await criarEventoCaleu(step1, step2, step3)
-      console.log('[STEP4_FLUXO] ✅ Cal.eu sucesso:', calIds)
-    } catch (erroCaleu) {
-      console.error('[STEP4_FLUXO] ❌ Cal.eu falhou (bloqueando):', erroCaleu)
-      const msg = erroCaleu instanceof Error ? erroCaleu.message : 'erro desconhecido'
-      setErro(`Erro ao criar evento no calendário: ${msg}`)
-      throw erroCaleu
-    }
-
-    // 2. PROCESSAR PAGAMENTO (se Cartão E Stripe habilitado)
+    // 1. PROCESSAR PAGAMENTO (cartão) — feito ANTES do Cal.eu para não criar
+    //    agendamento sem pagamento confirmado
     let stripePaymentId: string | undefined = undefined
     if (STRIPE_ENABLED && metodo === 'cartao') {
-      console.log('[STEP4_FLUXO] Etapa 2/3: Processando pagamento Stripe...')
+      console.log('[STEP4_FLUXO] Etapa 1/3: Processando pagamento Stripe...')
+      if (!stripe || !elements) throw new Error('Stripe ainda não carregou')
+
+      const cardElement = elements.getElement(CardNumberElement)
+      if (!cardElement) throw new Error('Elemento de cartão não encontrado')
+
       try {
+        // 1a. Criar PaymentIntent no servidor
         const res = await fetch('/api/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1108,20 +1181,39 @@ function Step4({
           }),
         })
         const data = await res.json()
-        if (data.error) {
-          console.error('[STEP4_FLUXO] ❌ Stripe falhou:', data.error)
-          throw new Error(data.error)
-        }
-        stripePaymentId = data.paymentId
+        if (data.error) throw new Error(data.error)
+
+        // 1b. Confirmar pagamento com os dados do cartão via Stripe.js
+        const { error, paymentIntent } = await stripe.confirmCardPayment(data.clientSecret, {
+          payment_method: {
+            card: cardElement,
+            billing_details: { name: step3.nome ?? '', email: step3.email ?? '' },
+          },
+        })
+        if (error) throw new Error(error.message ?? 'Pagamento recusado')
+        stripePaymentId = paymentIntent?.id
         console.log('[STEP4_FLUXO] ✅ Stripe sucesso:', { stripePaymentId })
       } catch (erroStripe) {
-        console.error('[STEP4_FLUXO] ❌ Pagamento falhou (bloqueando):', erroStripe)
+        console.error('[STEP4_FLUXO] ❌ Pagamento falhou:', erroStripe)
         const msg = erroStripe instanceof Error ? erroStripe.message : 'erro desconhecido'
         setErro(`Erro ao processar pagamento: ${msg}`)
         throw erroStripe
       }
     } else {
-      console.log('[STEP4_FLUXO] Etapa 2/3: Pulando (método Pix/Revolut)')
+      console.log('[STEP4_FLUXO] Etapa 1/3: Pulando pagamento (método Pix/Revolut)')
+    }
+
+    // 2. CRIAR EVENTO NO CAL.EU
+    console.log('[STEP4_FLUXO] Etapa 2/3: Criando evento no Cal.eu...')
+    let calIds = { calBookingId: undefined, calBookingUid: undefined }
+    try {
+      calIds = await criarEventoCaleu(step1, step2, step3)
+      console.log('[STEP4_FLUXO] ✅ Cal.eu sucesso:', calIds)
+    } catch (erroCaleu) {
+      console.error('[STEP4_FLUXO] ❌ Cal.eu falhou (bloqueando):', erroCaleu)
+      const msg = erroCaleu instanceof Error ? erroCaleu.message : 'erro desconhecido'
+      setErro(`Erro ao criar evento no calendário: ${msg}`)
+      throw erroCaleu
     }
 
     // 3. SALVAR AGENDAMENTO EM SUPABASE
@@ -1159,10 +1251,14 @@ function Step4({
     }
   }
 
-  const podeProsseguir = !!metodo && (metodo !== 'cartao' || (!!cartao.numero && !!cartao.validade && !!cartao.cvv))
+  const podeProsseguir = !!metodo && (
+    metodo !== 'cartao' || (cardComplete.number && cardComplete.expiry && cardComplete.cvc)
+  )
 
   return (
     <div>
+      <ResumoAgendamento step1={step1} step2={step2} />
+
       {/* Resumo financeiro */}
       <div style={S.resumoBox}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
@@ -1258,31 +1354,28 @@ function Step4({
           </div>
           {metodo === 'cartao' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }} onClick={e => e.stopPropagation()}>
-              <input
-                style={S.input}
-                type="text"
-                placeholder="Número do cartão"
-                maxLength={19}
-                value={cartao.numero}
-                onChange={e => setCartao(c => ({ ...c, numero: e.target.value }))}
-              />
+              <div style={{ ...S.input, display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}>
+                <CardNumberElement
+                  options={{ ...STRIPE_ELEMENT_STYLE, showIcon: true, style: { ...STRIPE_ELEMENT_STYLE.style, base: { ...STRIPE_ELEMENT_STYLE.style.base, iconColor: '#e2e8f0' } } }}
+                  onChange={e => setCardComplete(c => ({ ...c, number: e.complete }))}
+                  className="stripe-element"
+                />
+              </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <input
-                  style={S.input}
-                  type="text"
-                  placeholder="MM/AA"
-                  maxLength={5}
-                  value={cartao.validade}
-                  onChange={e => setCartao(c => ({ ...c, validade: e.target.value }))}
-                />
-                <input
-                  style={S.input}
-                  type="text"
-                  placeholder="CVV"
-                  maxLength={4}
-                  value={cartao.cvv}
-                  onChange={e => setCartao(c => ({ ...c, cvv: e.target.value }))}
-                />
+                <div style={{ ...S.input, display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}>
+                  <CardExpiryElement
+                    options={STRIPE_ELEMENT_STYLE}
+                    onChange={e => setCardComplete(c => ({ ...c, expiry: e.complete }))}
+                    className="stripe-element"
+                  />
+                </div>
+                <div style={{ ...S.input, display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}>
+                  <CardCvcElement
+                    options={STRIPE_ELEMENT_STYLE}
+                    onChange={e => setCardComplete(c => ({ ...c, cvc: e.complete }))}
+                    className="stripe-element"
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -1631,7 +1724,10 @@ export default function BookingWizard() {
             dados={step2}
             onChange={setStep2}
             onNext={() => setStep(2)}
-            onBack={() => setStep(0)}
+            onBack={() => {
+              setStep1({ idioma: 'pt', moeda: 'BRL' })
+              setStep(0)
+            }}
           />
         )}
         {step === 2 && (
@@ -1644,20 +1740,29 @@ export default function BookingWizard() {
               if (d.cupom !== step3.cupom) validarCupom(d.cupom ?? '')
             }}
             onNext={() => setStep(3)}
-            onBack={() => setStep(1)}
+            onBack={() => {
+              setStep2({ fusoTz: 'Europe/Lisbon' })
+              setStep(1)
+            }}
           />
         )}
         {step === 3 && (
-          <Step4
-            step1={step1}
-            step2={step2}
-            step3={step3}
-            desconto={desconto}
-            metodo={metodo}
-            onMetodo={setMetodo}
-            onNext={() => setStep(4)}
-            onBack={() => setStep(2)}
-          />
+          <Elements stripe={stripePromise}>
+            <Step4
+              step1={step1}
+              step2={step2}
+              step3={step3}
+              desconto={desconto}
+              metodo={metodo}
+              onMetodo={setMetodo}
+              onNext={() => setStep(4)}
+              onBack={() => {
+                setStep3({ canal: 'whatsapp', contatoWhatsappPais: '+55' })
+                setDesconto(0)
+                setStep(2)
+              }}
+            />
+          </Elements>
         )}
         {step === 4 && (
           <Step5
