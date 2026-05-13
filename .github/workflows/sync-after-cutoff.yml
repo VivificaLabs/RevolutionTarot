@@ -1,0 +1,37 @@
+name: Sync deploy após cutoff
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  sync-deploy:
+    name: Iguala deploy com main
+    # Só roda quando o PR de deploy→main for mergeado
+    if: |
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.ref == 'deploy' &&
+      contains(github.event.pull_request.title, 'Cutoff semanal')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configurar git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Forçar deploy = main
+        run: |
+          git fetch origin
+          git push origin origin/main:refs/heads/deploy --force
+          echo "✅ deploy sincronizado com main"
