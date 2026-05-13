@@ -1157,6 +1157,17 @@ function Step4({
   }
 
   async function confirmarFluxo() {
+    // 0. VERIFICAR DISPONIBILIDADE — antes de qualquer cobrança
+    console.log('[STEP4_FLUXO] Etapa 0/3: Verificando disponibilidade do horário...')
+    const dispCheck = await verificarSlotDisponivel(step1, step2)
+    if (!dispCheck.disponivel) {
+      const msg = dispCheck.motivo ?? 'Horário não disponível. Por favor, escolha outro.'
+      console.warn('[STEP4_FLUXO] ❌ Horário indisponível — abortando antes de cobrar')
+      setErro(msg)
+      throw new Error(msg)
+    }
+    console.log('[STEP4_FLUXO] ✅ Horário disponível, prosseguindo com pagamento')
+
     // 1. PROCESSAR PAGAMENTO (cartão) — feito ANTES do Cal.eu para não criar
     //    agendamento sem pagamento confirmado
     let stripePaymentId: string | undefined = undefined
@@ -1481,6 +1492,67 @@ function lisboaHoraParaISO(data: string, horaLisboa: number): string {
   const offsetHoras = horaProbeEmLisboa - 12 // +1 no verão, 0 no inverno
   const horaUTC = ((horaLisboa - offsetHoras) % 24 + 24) % 24
   return `${data}T${String(horaUTC).padStart(2, '0')}:00:00.000Z`
+}
+
+// ── Função helper: verificar disponibilidade do slot antes de cobrar ─────────
+//
+// Chama /api/cal/slots para confirmar que o horário ainda está livre.
+// Evita cobrar o Stripe quando o slot já foi reservado por outra pessoa.
+// Em caso de erro de API (rede, timeout), deixa passar — o Cal.eu recusará.
+
+async function verificarSlotDisponivel(
+  step1: Partial<DadosStep1>,
+  step2: Partial<DadosStep2>,
+): Promise<{ disponivel: boolean; motivo?: string }> {
+  const tiragem = TIRAGENS.find(t => t.id === step1.tiragemId)
+  if (!tiragem || !step2.data) return { disponivel: true }
+
+  let tipoEvento: 'ao-vivasso' | 'tiragem-urgente' | 'tiragem-padrao'
+  if (tiragem.aoVivo) {
+    tipoEvento = 'ao-vivasso'
+  } else if (step1.urgencia) {
+    tipoEvento = 'tiragem-urgente'
+  } else {
+    tipoEvento = 'tiragem-padrao'
+  }
+  const eventTypeId = CAL_EVENT_TYPES[tipoEvento]
+
+  try {
+    const res = await fetch(`/api/cal/slots?eventTypeId=${eventTypeId}&data=${step2.data}`)
+    if (!res.ok) return { disponivel: true }
+
+    const { slots }: { slots: string[] } = await res.json()
+
+    if (step2.slotISO) {
+      // Tiragem padrão: slot específico selecionado via Cal.eu
+      if (!slots.includes(step2.slotISO)) {
+        return {
+          disponivel: false,
+          motivo: 'Este horário já foi reservado por outra pessoa. Por favor, volte e escolha outro horário disponível.',
+        }
+      }
+    } else if (step2.hora !== null && step2.hora !== undefined) {
+      // Ao vivo / urgente: hora fixa em Lisboa — verifica se o período ainda tem slots
+      if (slots.length > 0) {
+        const horaEmLisboa = (iso: string): number =>
+          parseInt(new Intl.DateTimeFormat('en-US', {
+            timeZone: 'Europe/Lisbon', hour: 'numeric', hour12: false,
+          }).format(new Date(iso)))
+        const periodoLivre = slots.some(s => horaEmLisboa(s) === step2.hora)
+        if (!periodoLivre) {
+          return {
+            disponivel: false,
+            motivo: 'Este horário já foi reservado por outra pessoa. Por favor, volte e escolha outro horário disponível.',
+          }
+        }
+      }
+    }
+
+    return { disponivel: true }
+  } catch {
+    // Erro de rede ou timeout — não bloqueia, Cal.eu recusará se necessário
+    return { disponivel: true }
+  }
 }
 
 // ── Função helper: criar evento no Cal.eu ────────────────────────────────
