@@ -13,7 +13,10 @@
       "Bash(findstr \"CAL_ET\\\\|CAL_API\")",
       "Bash(curl -s 'https://api.cal.eu/v2/bookings?eventTypeId=249816&afterStart=2026-05-14T00:00:00Z&beforeEnd=2026-05-15T00:00:00Z&status=upcoming' -H 'Authorization: Bearer cal_live_ad3d0633525a2c4508fe61ce556bbabd' -H 'cal-api-version: 2024-08-13')",
       "Bash(python3 -m json.tool)",
-      "Bash(curl -s \"https://api.cal.eu/v2/bookings?eventTypeId=249816&afterStart=2026-05-14T00:00:00Z&beforeEnd=2026-05-15T00:00:00Z&status=upcoming\" -H \"Authorization: Bearer cal_live_ad3d0633525a2c4508fe61ce556bbabd\" -H \"cal-api-version: 2024-08-13\")"
+      "Bash(curl -s \"https://api.cal.eu/v2/bookings?eventTypeId=249816&afterStart=2026-05-14T00:00:00Z&beforeEnd=2026-05-15T00:00:00Z&status=upcoming\" -H \"Authorization: Bearer cal_live_ad3d0633525a2c4508fe61ce556bbabd\" -H \"cal-api-version: 2024-08-13\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Projetos\\\\RevolutionTarot\" -Recurse -Directory)",
+      "Bash(Select-Object -First 20)",
+      "Bash(Format-Table FullName)"
     ]
   }
 }
