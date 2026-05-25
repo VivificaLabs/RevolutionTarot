@@ -22,8 +22,9 @@ import { Elements, useStripe, useElements, CardNumberElement, CardExpiryElement,
 //   NEXT_PUBLIC_ENABLE_STRIPE=true
 
 const STRIPE_ENABLED = process.env.NEXT_PUBLIC_ENABLE_STRIPE === 'true'
+// Resolve to null on failure so Elements never receives a rejected promise
 const stripePromise = STRIPE_ENABLED
-  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!).catch(() => null)
   : null
 
 const STRIPE_ELEMENT_STYLE = {
@@ -1144,6 +1145,16 @@ function Step4({
   const [cardComplete, setCardComplete] = useState({ number: false, expiry: false, cvc: false })
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState('')
+  const [stripeStatus, setStripeStatus] = useState<'carregando' | 'pronto' | 'erro'>('carregando')
+
+  useEffect(() => {
+    if (!STRIPE_ENABLED) { setStripeStatus('pronto'); return }
+    stripePromise?.then(s => setStripeStatus(s ? 'pronto' : 'erro'))
+  }, [])
+
+  useEffect(() => {
+    if (stripe) setStripeStatus('pronto')
+  }, [stripe])
 
   // Métodos disponíveis para a moeda selecionada, respeitando flags de feature
   const metodosDisponivelsPorMoeda = metodosPorMoeda(moeda)
@@ -1222,8 +1233,25 @@ function Step4({
       console.log('[STEP4_FLUXO] ✅ Cal.eu sucesso:', calIds)
     } catch (erroCaleu) {
       console.error('[STEP4_FLUXO] ❌ Cal.eu falhou (bloqueando):', erroCaleu)
+
+      // Estornar o pagamento Stripe automaticamente para não cobrar sem agendamento
+      if (stripePaymentId) {
+        console.log('[STEP4_FLUXO] Iniciando estorno automático do Stripe:', stripePaymentId)
+        try {
+          await fetch('/api/refund', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ paymentIntentId: stripePaymentId }),
+          })
+          console.log('[STEP4_FLUXO] ✅ Estorno Stripe concluído')
+        } catch (erroEstorno) {
+          console.error('[STEP4_FLUXO] ❌ Falha no estorno automático:', erroEstorno)
+        }
+      }
+
       const msg = erroCaleu instanceof Error ? erroCaleu.message : 'erro desconhecido'
-      setErro(`Erro ao criar evento no calendário: ${msg}`)
+      const sufixo = stripePaymentId ? ' O pagamento foi estornado automaticamente.' : ''
+      setErro(`Erro ao criar evento no calendário: ${msg}${sufixo}`)
       throw erroCaleu
     }
 
@@ -1263,7 +1291,9 @@ function Step4({
   }
 
   const podeProsseguir = !!metodo && (
-    metodo !== 'cartao' || (cardComplete.number && cardComplete.expiry && cardComplete.cvc)
+    metodo !== 'cartao' || (
+      stripeStatus === 'pronto' && cardComplete.number && cardComplete.expiry && cardComplete.cvc
+    )
   )
 
   return (
@@ -1365,29 +1395,41 @@ function Step4({
           </div>
           {metodo === 'cartao' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }} onClick={e => e.stopPropagation()}>
-              <div style={{ ...S.input, display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}>
-                <CardNumberElement
-                  options={{ ...STRIPE_ELEMENT_STYLE, showIcon: true, style: { ...STRIPE_ELEMENT_STYLE.style, base: { ...STRIPE_ELEMENT_STYLE.style.base, iconColor: '#e2e8f0' } } }}
-                  onChange={e => setCardComplete(c => ({ ...c, number: e.complete }))}
-                  className="stripe-element"
-                />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <div style={{ ...S.input, display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}>
-                  <CardExpiryElement
-                    options={STRIPE_ELEMENT_STYLE}
-                    onChange={e => setCardComplete(c => ({ ...c, expiry: e.complete }))}
-                    className="stripe-element"
-                  />
+              {stripeStatus === 'erro' ? (
+                <div style={{ fontSize: '0.72rem', color: 'var(--magenta)', padding: '6px 0' }}>
+                  ⚠️ Não foi possível carregar o sistema de pagamentos. Recarregue a página e tente novamente.
                 </div>
-                <div style={{ ...S.input, display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}>
-                  <CardCvcElement
-                    options={STRIPE_ELEMENT_STYLE}
-                    onChange={e => setCardComplete(c => ({ ...c, cvc: e.complete }))}
-                    className="stripe-element"
-                  />
+              ) : stripeStatus === 'carregando' ? (
+                <div style={{ fontSize: '0.72rem', color: 'var(--muted)', padding: '6px 0' }}>
+                  Carregando sistema de pagamento...
                 </div>
-              </div>
+              ) : (
+                <>
+                  <div style={{ ...S.input, display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}>
+                    <CardNumberElement
+                      options={{ ...STRIPE_ELEMENT_STYLE, showIcon: true, style: { ...STRIPE_ELEMENT_STYLE.style, base: { ...STRIPE_ELEMENT_STYLE.style.base, iconColor: '#e2e8f0' } } }}
+                      onChange={e => setCardComplete(c => ({ ...c, number: e.complete }))}
+                      className="stripe-element"
+                    />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div style={{ ...S.input, display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}>
+                      <CardExpiryElement
+                        options={STRIPE_ELEMENT_STYLE}
+                        onChange={e => setCardComplete(c => ({ ...c, expiry: e.complete }))}
+                        className="stripe-element"
+                      />
+                    </div>
+                    <div style={{ ...S.input, display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}>
+                      <CardCvcElement
+                        options={STRIPE_ELEMENT_STYLE}
+                        onChange={e => setCardComplete(c => ({ ...c, cvc: e.complete }))}
+                        className="stripe-element"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
