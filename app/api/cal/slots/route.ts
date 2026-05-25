@@ -152,8 +152,7 @@ export async function GET(req: NextRequest) {
         }
       }
     } else {
-      const errBody = await bookingsRes.text().catch(() => '')
-      logError('BOOKINGS_FETCH_FAILED', { status: bookingsRes.status, body: errBody })
+      logError('BOOKINGS_FETCH_FAILED', { status: bookingsRes.status })
     }
 
     return NextResponse.json({ slots: slotsFinais })
