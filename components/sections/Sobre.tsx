@@ -27,15 +27,15 @@ export default function Sobre() {
           {/* Esquerda */}
           <div>
             <h2 style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: 'clamp(2.2rem, 3.5vw, 3.5rem)',
-              fontWeight: 300,
-              lineHeight: 1.1,
+              fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(0.8rem, 2vw, 1.4rem)',
+              fontWeight: 400,
+              lineHeight: 1.5,
               marginBottom: 28,
               color: 'var(--ink)',
             }}>
               Taróloga de<br />exatas.{' '}
-              <em style={{ fontStyle: 'italic', color: 'var(--gold)' }}>Sem<br />contradição.</em>
+              <em style={{ fontStyle: 'normal', color: 'var(--neon)' }}>Sem<br />contradição.</em>
             </h2>
 
             <p style={{ fontSize: '0.78rem', lineHeight: 1.9, color: 'var(--muted)', marginBottom: 16 }}>
@@ -79,11 +79,11 @@ export default function Sobre() {
             }} />
 
             <p style={{
-              fontFamily: "'Cormorant Garamond', serif",
+              fontFamily: 'var(--font-body)',
               fontStyle: 'italic',
-              fontSize: '1.3rem',
-              fontWeight: 300,
-              lineHeight: 1.55,
+              fontSize: '1rem',
+              fontWeight: 400,
+              lineHeight: 1.7,
               color: 'var(--ink)',
               marginBottom: 12,
             }}>
@@ -91,7 +91,8 @@ export default function Sobre() {
             </p>
 
             <span style={{
-              fontSize: '0.6rem', fontWeight: 700,
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.56rem', fontWeight: 700,
               letterSpacing: '0.14em', textTransform: 'uppercase',
               color: 'var(--muted)',
               display: 'block',

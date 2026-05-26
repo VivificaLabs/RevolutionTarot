@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;0,800;1,400&family=Press+Start+2P&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,15 +6,32 @@
 
 /* ── TOKENS ── */
 :root {
-  --bg:      #240321;
-  --ink:     #f0e6d3;
-  --muted:   #a89090;
-  --cyan:    #00f5d4;
-  --magenta: #ff2d78;
-  --gold:    #c9a84c;
-  --surface: #1a0218;
-  --border:  rgba(0, 245, 212, 0.15);
-  --border2: rgba(201, 168, 76, 0.2);
+  /* Backgrounds */
+  --bg:        #0a0818;
+  --surface:   #100c24;
+  --card:      #130e28;
+
+  /* Texto */
+  --ink:       #f0e6ff;
+  --muted:     #8878b0;
+
+  /* Acentos */
+  --cyan:      #00f5d4;
+  --magenta:   #ff2d78;
+  --purple:    #7b2fbe;
+  --neon:      #b026ff;
+  --accent:    #4ecca3;
+  --lime:      #c8f000;
+
+  /* Bordas e transparências */
+  --border:    rgba(0,245,212,0.12);
+  --border2:   rgba(176,38,255,0.20);
+  --faint:     rgba(0,245,212,0.30);
+
+  /* Tipografia */
+  --font-body:    'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-display: 'Press Start 2P', monospace;
+  --font-mono:    'JetBrains Mono', monospace;
 }
 
 /* ── BASE ── */
@@ -24,11 +41,15 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--bg);
   color: var(--ink);
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-body);
   font-weight: 400;
   line-height: 1.6;
   overflow-x: hidden;
   cursor: crosshair;
+  background-image:
+    linear-gradient(rgba(0,245,212,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,245,212,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
 }
 
 /* ── SCANLINES ── */
@@ -38,7 +59,7 @@ body::before {
   background: repeating-linear-gradient(
     0deg,
     transparent, transparent 2px,
-    rgba(0, 0, 0, 0.08) 2px, rgba(0, 0, 0, 0.08) 4px
+    rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px
   );
   pointer-events: none;
   z-index: 998;
@@ -72,15 +93,14 @@ body::after {
 
 @keyframes glitch {
   0%, 90%, 100% { transform: translate(0); opacity: 0; }
-  92%   { transform: translate(-2px, 1px); opacity: 0.7; }
-  94%   { transform: translate(2px, -1px); opacity: 0.7; }
+  92%   { transform: translate(-2px, 1px); opacity: 0.5; }
+  94%   { transform: translate(2px, -1px); opacity: 0.5; }
   96%   { transform: translate(0); opacity: 0; }
-  98%   { transform: translate(-1px, 2px); opacity: 0.5; }
 }
 
 @keyframes cardglow {
-  0%, 100% { filter: drop-shadow(0 0 8px rgba(0,245,212,0.3)) drop-shadow(0 0 20px rgba(201,168,76,0.2)); }
-  50%       { filter: drop-shadow(0 0 20px rgba(0,245,212,0.6)) drop-shadow(0 0 40px rgba(201,168,76,0.3)); }
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(0,245,212,0.3)) drop-shadow(0 0 20px rgba(176,38,255,0.2)); }
+  50%       { filter: drop-shadow(0 0 20px rgba(0,245,212,0.6)) drop-shadow(0 0 40px rgba(176,38,255,0.3)); }
 }
 
 @keyframes float1 {
@@ -125,6 +145,31 @@ body::after {
   }
 }
 
+@keyframes pixelflash {
+  0%,95%  { opacity: 0.4; }
+  96%     { opacity: 1; }
+  98%     { opacity: 0.6; }
+  100%    { opacity: 0.4; }
+}
+
+@keyframes scanline {
+  0%   { top: -5%; }
+  100% { top: 105%; }
+}
+
+@keyframes glitch-title {
+  0%, 89%, 100% { text-shadow: none; }
+  90%  { text-shadow: -2px 1px 0 var(--cyan); }
+  91%  { text-shadow: 2px -1px 0 var(--magenta); }
+  92%  { text-shadow: none; }
+  94%  { text-shadow: -1px 0 0 var(--neon); }
+  95%  { text-shadow: none; }
+}
+
+.glitch-title {
+  animation: glitch-title 8s ease-in-out infinite;
+}
+
 /* Scrollbar dos mini cards */
 #depoimentos ::-webkit-scrollbar {
   width: 3px;
@@ -151,7 +196,6 @@ body::after {
     cursor: auto;
   }
 
-  /* Remove scanlines em mobile para performance */
   body::before {
     opacity: 0.04;
   }
@@ -160,24 +204,20 @@ body::after {
     opacity: 0.3;
   }
 
-  /* Ajustes de tipografia mobile */
   h1, h2, h3, h4, h5, h6 {
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
   }
 
-  /* Espaçamento reduzido */
   section {
     padding: clamp(40px, 8vw, 60px) clamp(16px, 4vw, 24px);
   }
 
-  /* Botões mais tocáveis em mobile */
   a[href*="#agendar"],
   button {
     min-height: 40px;
     min-width: 40px;
   }
 
-  /* Melhor espaçamento para links */
   a {
     padding: 8px;
   }
@@ -247,5 +287,6 @@ body::after {
     grid-template-columns: 1.2fr 0.8fr !important;
   }
 }
+
 /* Stripe Elements — preenche o container */
 .stripe-element { width: 100%; }

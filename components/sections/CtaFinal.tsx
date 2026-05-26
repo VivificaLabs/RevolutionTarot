@@ -34,7 +34,7 @@ export default function CtaFinal() {
         <div style={{
           position: 'absolute',
           bottom: -20, left: '50%', transform: 'translateX(-50%)',
-          fontFamily: "'Cormorant Garamond', serif",
+          fontFamily: 'var(--font-display)',
           fontSize: '10rem',
           fontWeight: 600,
           color: 'rgba(255,255,255,0.02)',
@@ -47,11 +47,10 @@ export default function CtaFinal() {
         </div>
 
         <h2 style={{
-          fontFamily: "'Cormorant Garamond', serif",
-          fontSize: 'clamp(2.2rem, 5vw, 4.5rem)',
-          fontWeight: 300,
-          fontStyle: 'italic',
-          lineHeight: 1.1,
+          fontFamily: 'var(--font-display)',
+          fontSize: 'clamp(0.8rem, 2.5vw, 1.6rem)',
+          fontWeight: 400,
+          lineHeight: 1.5,
           color: 'var(--ink)',
           marginBottom: 16,
           position: 'relative', zIndex: 1,
@@ -81,7 +80,7 @@ export default function CtaFinal() {
             background: 'var(--magenta)',
             color: '#fff',
             padding: '17px 44px',
-            fontFamily: "'Space Mono', monospace",
+            fontFamily: 'var(--font-mono)',
             fontSize: '0.85rem',
             fontWeight: 700,
             letterSpacing: '0.1em',
