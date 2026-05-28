@@ -157,6 +157,63 @@ const S = {
   },
 }
 
+// ── CheckboxField ─────────────────────────────────────────────────────────────
+
+function CheckboxField({
+  id,
+  checked,
+  onChange,
+  color = 'var(--cyan)',
+  children,
+}: {
+  id: string
+  checked: boolean
+  onChange: (v: boolean) => void
+  color?: string
+  children: React.ReactNode
+}) {
+  return (
+    <label
+      htmlFor={id}
+      style={{ display: 'flex', alignItems: 'flex-start', gap: 12, cursor: 'pointer', userSelect: 'none' }}
+    >
+      <input
+        type="checkbox"
+        id={id}
+        checked={checked}
+        onChange={e => onChange(e.target.checked)}
+        style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }}
+      />
+      <span
+        aria-hidden
+        style={{
+          flexShrink: 0,
+          width: 18,
+          height: 18,
+          marginTop: 2,
+          border: `1px solid ${checked ? color : 'var(--border)'}`,
+          background: checked ? `color-mix(in srgb, ${color} 12%, transparent)` : 'rgba(0,0,0,0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'border-color 0.2s, background 0.2s, box-shadow 0.2s',
+          boxShadow: checked ? `0 0 6px ${color}55` : 'none',
+          clipPath: 'polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 4px 100%, 0 calc(100% - 4px))',
+        }}
+      >
+        {checked && (
+          <span style={{ color, fontSize: '0.65rem', fontFamily: "'Space Mono', monospace", lineHeight: 1, fontWeight: 700 }}>
+            ✓
+          </span>
+        )}
+      </span>
+      <span style={{ fontSize: '0.78rem', color: 'var(--muted)', lineHeight: 1.5 }}>
+        {children}
+      </span>
+    </label>
+  )
+}
+
 // ── Tooltip ───────────────────────────────────────────────────────────────────
 
 function Tooltip({ texto }: { texto: string }) {
@@ -380,17 +437,15 @@ function Step1({
       </div>
 
       {/* Urgência */}
-      <div style={{ ...S.fieldGroup, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-        <input
-          type="checkbox"
+      <div style={S.fieldGroup}>
+        <CheckboxField
           id="urgencia"
           checked={dados.urgencia ?? false}
-          onChange={e => onChange({ ...dados, urgencia: e.target.checked })}
-          style={{ marginTop: 3, accentColor: 'var(--magenta)', cursor: 'pointer' }}
-        />
-        <label htmlFor="urgencia" style={{ fontSize: '0.78rem', color: 'var(--muted)', cursor: 'pointer', lineHeight: 1.5 }}>
+          onChange={v => onChange({ ...dados, urgencia: v })}
+          color="var(--magenta)"
+        >
           Agendamento com urgência (entrega / atendimento prioritário)
-        </label>
+        </CheckboxField>
       </div>
 
       {dados.urgencia && tiragem && (
@@ -1055,18 +1110,16 @@ function Step3({
 
       {/* Indicação */}
       <div style={{ ...S.fieldGroup }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
-          <input
-            type="checkbox"
+        <div style={{ marginBottom: 12 }}>
+          <CheckboxField
             id="indicacao"
             checked={dados.indicacao ?? false}
-            onChange={e => onChange({ ...dados, indicacao: e.target.checked, indicadoPor: '' })}
-            style={{ marginTop: 3, accentColor: 'var(--cyan)', cursor: 'pointer' }}
-          />
-          <label htmlFor="indicacao" style={{ fontSize: '0.78rem', color: 'var(--muted)', cursor: 'pointer', lineHeight: 1.5 }}>
+            onChange={v => onChange({ ...dados, indicacao: v, indicadoPor: '' })}
+            color="var(--cyan)"
+          >
             Fui indicada por alguém
             <Tooltip texto="Conto isso para dar um desconto especial pra quem te indicou. Obrigada por espalhar a revolução! 🔮" />
-          </label>
+          </CheckboxField>
         </div>
         {dados.indicacao && (
           <input
