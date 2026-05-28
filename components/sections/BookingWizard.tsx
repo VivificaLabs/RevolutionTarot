@@ -9,6 +9,7 @@ import {
   type DadosStep1, type DadosStep2, type DadosStep3,
 } from '@/lib/booking'
 import { formatarWhatsApp } from '@/lib/input-formatters'
+import { CheckboxField } from '@/components/ui/CheckboxField'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from '@stripe/react-stripe-js'
 
@@ -94,7 +95,7 @@ const S = {
   option: {
     background: '#100c24',
     color: '#f0e6ff',
-  } as React.CSSProperties,
+  } as React.CSSProperties, 
 
   btnPrimary: {
     background: 'var(--magenta)',
@@ -380,17 +381,15 @@ function Step1({
       </div>
 
       {/* Urgência */}
-      <div style={{ ...S.fieldGroup, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-        <input
-          type="checkbox"
+      <div style={S.fieldGroup}>
+        <CheckboxField
           id="urgencia"
           checked={dados.urgencia ?? false}
-          onChange={e => onChange({ ...dados, urgencia: e.target.checked })}
-          style={{ marginTop: 3, accentColor: 'var(--magenta)', cursor: 'pointer' }}
-        />
-        <label htmlFor="urgencia" style={{ fontSize: '0.78rem', color: 'var(--muted)', cursor: 'pointer', lineHeight: 1.5 }}>
+          onChange={v => onChange({ ...dados, urgencia: v })}
+          color="var(--magenta)"
+        >
           Agendamento com urgência (entrega / atendimento prioritário)
-        </label>
+        </CheckboxField>
       </div>
 
       {dados.urgencia && tiragem && (
@@ -1055,18 +1054,16 @@ function Step3({
 
       {/* Indicação */}
       <div style={{ ...S.fieldGroup }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
-          <input
-            type="checkbox"
+        <div style={{ marginBottom: 12 }}>
+          <CheckboxField
             id="indicacao"
             checked={dados.indicacao ?? false}
-            onChange={e => onChange({ ...dados, indicacao: e.target.checked, indicadoPor: '' })}
-            style={{ marginTop: 3, accentColor: 'var(--cyan)', cursor: 'pointer' }}
-          />
-          <label htmlFor="indicacao" style={{ fontSize: '0.78rem', color: 'var(--muted)', cursor: 'pointer', lineHeight: 1.5 }}>
+            onChange={v => onChange({ ...dados, indicacao: v, indicadoPor: '' })}
+            color="var(--cyan)"
+          >
             Fui indicada por alguém
             <Tooltip texto="Conto isso para dar um desconto especial pra quem te indicou. Obrigada por espalhar a revolução! 🔮" />
-          </label>
+          </CheckboxField>
         </div>
         {dados.indicacao && (
           <input
