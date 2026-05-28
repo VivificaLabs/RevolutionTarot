@@ -95,7 +95,7 @@ const S = {
   option: {
     background: '#100c24',
     color: '#f0e6ff',
-  } as React.CSSProperties,
+  } as React.CSSProperties, 
 
   btnPrimary: {
     background: 'var(--magenta)',
