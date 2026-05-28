@@ -153,7 +153,7 @@ export default function CatalogoClient() {
               color: moeda === m ? 'var(--bg)' : 'var(--muted)',
               border: `1px solid ${moeda === m ? 'var(--cyan)' : 'rgba(0,245,212,0.2)'}`,
               padding: '4px 12px',
-              fontFamily: "'Space Mono', monospace",
+              fontFamily: 'var(--font-mono)',
               fontSize: '0.62rem',
               fontWeight: 700,
               letterSpacing: '0.1em',
@@ -304,10 +304,10 @@ function Card({
       </span>
 
       <div style={{
-        fontFamily: "'Cormorant Garamond', serif",
-        fontSize: '1.7rem', fontStyle: 'italic',
-        fontWeight: 300, color: 'var(--ink)',
-        marginBottom: 6, lineHeight: 1.15,
+        fontFamily: 'var(--font-display)',
+        fontSize: '0.75rem', fontWeight: 400,
+        color: 'var(--ink)',
+        marginBottom: 10, lineHeight: 1.5,
       }}>
         {consulta.nome}
       </div>
@@ -334,10 +334,10 @@ function Card({
       {/* Preço + seletor inline */}
       <div style={{ marginBottom: 20 }}>
         <div style={{
-          fontFamily: "'Space Mono', monospace",
+          fontFamily: 'var(--font-mono)',
           fontSize: consulta.orcamento ? '0.75rem' : '1rem',
           fontWeight: 700,
-          color: consulta.orcamento ? 'var(--muted)' : 'var(--gold)',
+          color: consulta.orcamento ? 'var(--muted)' : 'var(--cyan)',
           letterSpacing: consulta.orcamento ? '0.08em' : 0,
         }}>
           {preco}
@@ -351,7 +351,7 @@ function Card({
           background: 'transparent',
           border: '1px solid rgba(0,245,212,0.25)',
           color: 'var(--cyan)',
-          fontFamily: "'Space Mono', monospace",
+          fontFamily: 'var(--font-mono)',
           fontSize: '0.6rem',
           fontWeight: 700,
           letterSpacing: '0.12em',
@@ -438,7 +438,7 @@ function Modal({
             background: 'transparent',
             border: 'none',
             color: 'var(--muted)',
-            fontFamily: "'Space Mono', monospace",
+            fontFamily: 'var(--font-mono)',
             fontSize: '0.7rem',
             cursor: 'pointer',
             letterSpacing: '0.1em',
@@ -458,10 +458,10 @@ function Modal({
 
         {/* Título */}
         <h2 style={{
-          fontFamily: "'Cormorant Garamond', serif",
-          fontSize: 'clamp(2rem, 4vw, 2.8rem)',
-          fontStyle: 'italic', fontWeight: 300,
-          color: 'var(--ink)', lineHeight: 1.1,
+          fontFamily: 'var(--font-display)',
+          fontSize: 'clamp(0.7rem, 2vw, 1.1rem)',
+          fontWeight: 400,
+          color: 'var(--ink)', lineHeight: 1.5,
           marginBottom: 8,
         }}>
           {consulta.nome}
@@ -483,9 +483,9 @@ function Modal({
         {/* Preço */}
         {!consulta.orcamento && (
           <div style={{
-            fontFamily: "'Space Mono', monospace",
+            fontFamily: 'var(--font-mono)',
             fontSize: '1.1rem', fontWeight: 700,
-            color: 'var(--gold)', marginBottom: 28,
+            color: 'var(--cyan)', marginBottom: 28,
           }}>
             {preco}
           </div>
@@ -537,7 +537,7 @@ function Modal({
             display: 'block',
             background: 'var(--magenta)',
             color: '#fff',
-            fontFamily: "'Space Mono', monospace",
+            fontFamily: 'var(--font-mono)',
             fontSize: '0.75rem',
             fontWeight: 700,
             letterSpacing: '0.1em',

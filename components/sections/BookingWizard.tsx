@@ -31,7 +31,7 @@ const STRIPE_ELEMENT_STYLE = {
   style: {
     base: {
       color: '#e2e8f0',
-      fontFamily: "'Space Mono', monospace",
+      fontFamily: "'JetBrains Mono', monospace",
       fontSize: '13px',
       '::placeholder': { color: '#4a5568' },
     },
@@ -61,7 +61,7 @@ const S = {
     background: 'rgba(0,0,0,0.3)',
     border: '1px solid var(--border)',
     color: 'var(--ink)',
-    fontFamily: "'Space Mono', monospace",
+    fontFamily: 'var(--font-mono)',
     fontSize: '0.78rem',
     padding: '11px 14px',
     outline: 'none',
@@ -80,10 +80,10 @@ const S = {
 
   select: {
     width: '100%',
-    background: '#1a0218',
+    background: '#100c24',
     border: '1px solid var(--border)',
-    color: '#f0e6d3',
-    fontFamily: "'Space Mono', monospace",
+    color: '#f0e6ff',
+    fontFamily: 'var(--font-mono)',
     fontSize: '0.78rem',
     padding: '11px 14px',
     outline: 'none',
@@ -92,14 +92,14 @@ const S = {
   },
 
   option: {
-    background: '#1a0218',
-    color: '#f0e6d3',
+    background: '#100c24',
+    color: '#f0e6ff',
   } as React.CSSProperties,
 
   btnPrimary: {
     background: 'var(--magenta)',
     color: '#fff',
-    fontFamily: "'Space Mono', monospace",
+    fontFamily: 'var(--font-mono)',
     fontSize: '0.7rem',
     fontWeight: 700,
     letterSpacing: '0.1em',
@@ -114,7 +114,7 @@ const S = {
   btnSecondary: {
     background: 'transparent',
     color: 'var(--muted)',
-    fontFamily: "'Space Mono', monospace",
+    fontFamily: 'var(--font-mono)',
     fontSize: '0.7rem',
     fontWeight: 700,
     letterSpacing: '0.1em',
@@ -148,8 +148,8 @@ const S = {
   },
 
   resumoBox: {
-    background: 'rgba(201,168,76,0.06)',
-    border: '1px solid rgba(201,168,76,0.2)',
+    background: 'rgba(0,245,212,0.04)',
+    border: '1px solid var(--border)',
     padding: '14px 18px',
     marginBottom: 28,
     fontSize: '0.75rem',
@@ -176,7 +176,7 @@ function Tooltip({ texto }: { texto: string }) {
           bottom: '130%',
           left: '50%',
           transform: 'translateX(-50%)',
-          background: '#1a0218',
+          background: '#100c24',
           border: '1px solid var(--border)',
           color: 'var(--ink)',
           fontSize: '0.65rem',
@@ -211,7 +211,7 @@ function ProgressBar({ atual }: { atual: number }) {
                 background: i < atual ? 'var(--cyan)' : i === atual ? 'rgba(0,245,212,0.1)' : 'transparent',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '0.6rem',
-                fontFamily: "'Space Mono', monospace",
+                fontFamily: 'var(--font-mono)',
                 fontWeight: 700,
                 color: i < atual ? 'var(--bg)' : i === atual ? 'var(--cyan)' : 'var(--muted)',
                 transition: 'all 0.3s',
@@ -288,7 +288,7 @@ function Step1({
                 color: moeda === m ? 'var(--bg)' : 'var(--muted)',
                 border: `1px solid ${moeda === m ? 'var(--cyan)' : 'rgba(0,245,212,0.2)'}`,
                 padding: '7px 16px',
-                fontFamily: "'Space Mono', monospace",
+                fontFamily: 'var(--font-mono)',
                 fontSize: '0.65rem',
                 fontWeight: 700,
                 letterSpacing: '0.1em',
@@ -325,9 +325,9 @@ function Step1({
               >
                 <div>
                   <div style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: '1.1rem',
-                    fontStyle: 'italic',
+                    fontFamily: 'var(--font-display)',
+                    fontSize: '0.65rem',
+                    fontWeight: 400,
                     color: sel ? 'var(--ink)' : 'var(--muted)',
                   }}>
                     {t.nome}
@@ -337,10 +337,10 @@ function Step1({
                   </div>
                 </div>
                 <div style={{
-                  fontFamily: "'Space Mono', monospace",
+                  fontFamily: 'var(--font-mono)',
                   fontSize: '0.85rem',
                   fontWeight: 700,
-                  color: sel ? 'var(--gold)' : 'var(--muted)',
+                  color: sel ? 'var(--cyan)' : 'var(--muted)',
                 }}>
                   {formatarPreco(converterPreco(t.precoBRL, moeda), moeda)}
                 </div>
@@ -361,11 +361,11 @@ function Step1({
                 key={value}
                 onClick={() => onChange({ ...dados, idioma: value as Idioma })}
                 style={{
-                  background: sel ? 'rgba(201,168,76,0.15)' : 'transparent',
-                  color: sel ? 'var(--gold)' : 'var(--muted)',
-                  border: `1px solid ${sel ? 'var(--gold)' : 'var(--border)'}`,
+                  background: sel ? 'rgba(0,245,212,0.08)' : 'transparent',
+                  color: sel ? 'var(--cyan)' : 'var(--muted)',
+                  border: `1px solid ${sel ? 'var(--cyan)' : 'var(--border)'}`,
                   padding: '7px 16px',
-                  fontFamily: "'Space Mono', monospace",
+                  fontFamily: 'var(--font-mono)',
                   fontSize: '0.65rem',
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -617,7 +617,7 @@ function Step2({
               }}
             >‹</button>
             <span style={{
-              fontFamily: "'Space Mono', monospace",
+              fontFamily: 'var(--font-mono)',
               fontSize: '0.68rem', fontWeight: 700,
               letterSpacing: '0.14em', textTransform: 'uppercase',
               color: 'var(--ink)',
@@ -679,7 +679,7 @@ function Step2({
                       background: selecionado ? 'var(--cyan)' : disponivel ? 'rgba(0,245,212,0.04)' : 'transparent',
                       borderBottom: '1px solid var(--border)',
                       borderRight: di < 6 ? '1px solid var(--border)' : 'none',
-                      outline: ehHoje && !selecionado ? '2px solid rgba(201,168,76,0.55)' : 'none',
+                      outline: ehHoje && !selecionado ? '2px solid rgba(0,245,212,0.55)' : 'none',
                       outlineOffset: '-2px',
                       transition: 'all 0.15s',
                       fontWeight: selecionado || ehHoje ? 700 : 400,
@@ -689,7 +689,7 @@ function Step2({
                     {ehHoje && !selecionado && (
                       <span style={{
                         position: 'absolute', bottom: 3, left: '50%', transform: 'translateX(-50%)',
-                        width: 3, height: 3, borderRadius: '50%', background: 'var(--gold)', display: 'block',
+                        width: 3, height: 3, borderRadius: '50%', background: 'var(--cyan)', display: 'block',
                       }} />
                     )}
                   </div>
@@ -732,7 +732,7 @@ function Step2({
                         color: sel ? 'var(--bg)' : 'var(--muted)',
                         border: `1px solid ${sel ? 'var(--cyan)' : 'var(--border)'}`,
                         padding: '10px 20px',
-                        fontFamily: "'Space Mono', monospace",
+                        fontFamily: 'var(--font-mono)',
                         fontSize: '0.72rem',
                         fontWeight: 700,
                         cursor: 'pointer',
@@ -783,7 +783,7 @@ function Step2({
                         color: sel ? 'var(--bg)' : 'var(--muted)',
                         border: `1px solid ${sel ? 'var(--cyan)' : 'var(--border)'}`,
                         padding: '10px 20px',
-                        fontFamily: "'Space Mono', monospace",
+                        fontFamily: 'var(--font-mono)',
                         fontSize: '0.72rem',
                         fontWeight: 700,
                         cursor: 'pointer',
@@ -833,7 +833,7 @@ function Step2({
                       color: sel ? 'var(--bg)' : 'var(--muted)',
                       border: `1px solid ${sel ? 'var(--cyan)' : 'var(--border)'}`,
                       padding: '10px 20px',
-                      fontFamily: "'Space Mono', monospace",
+                      fontFamily: 'var(--font-mono)',
                       fontSize: '0.72rem',
                       fontWeight: 700,
                       cursor: 'pointer',
@@ -890,7 +890,7 @@ function ResumoAgendamento({
 
   return (
     <div style={S.resumoBox}>
-      <span style={{ color: 'var(--gold)', fontWeight: 700 }}>
+      <span style={{ color: 'var(--cyan)', fontWeight: 700 }}>
         {tiragem?.nome} · {idioma}{urgencia ? ' · urgência' : ''}
         {precoInline && preco ? ` · ${preco}` : ''}
       </span>
@@ -975,7 +975,7 @@ function Step3({
                 color: canal === c ? 'var(--cyan)' : 'var(--muted)',
                 border: `1px solid ${canal === c ? 'var(--cyan)' : 'var(--border)'}`,
                 padding: '8px 20px',
-                fontFamily: "'Space Mono', monospace",
+                fontFamily: 'var(--font-mono)',
                 fontSize: '0.65rem',
                 fontWeight: 700,
                 letterSpacing: '0.1em',
@@ -1090,7 +1090,7 @@ function Step3({
             ...S.input,
             minHeight: 100,
             resize: 'vertical',
-            fontFamily: "'Space Mono', monospace",
+            fontFamily: 'var(--font-mono)',
           }}
           placeholder="Escreva o que quiser — contexto, pergunta principal, o que estiver na cabeça. Opcional."
           value={dados.nota ?? ''}
@@ -1313,8 +1313,8 @@ function Step4({
           </div>
         )}
         <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border2)', paddingTop: 8, marginTop: 4 }}>
-          <span style={{ color: 'var(--gold)', fontWeight: 700 }}>Total</span>
-          <span style={{ color: 'var(--gold)', fontWeight: 700, fontSize: '1.05rem' }}>{formatarPreco(converterPreco(totalBRL, moeda), moeda)}</span>
+          <span style={{ color: 'var(--cyan)', fontWeight: 700 }}>Total</span>
+          <span style={{ color: 'var(--cyan)', fontWeight: 700, fontSize: '1.05rem' }}>{formatarPreco(converterPreco(totalBRL, moeda), moeda)}</span>
         </div>
       </div>
 
@@ -1338,7 +1338,7 @@ function Step4({
           </div>
           {metodo === 'pix' && (
             <div style={{ fontSize: '0.75rem', color: 'var(--muted)', lineHeight: 1.7 }}>
-              Chave: <span style={{ color: 'var(--ink)', fontFamily: "'Space Mono', monospace" }}>revolutiontarot.byolivia@gmail.com</span>
+              Chave: <span style={{ color: 'var(--ink)', fontFamily: 'var(--font-mono)' }}>revolutiontarot.byolivia@gmail.com</span>
               <br />
               Após o pagamento, envie o comprovante para{' '}
               <span style={{ color: 'var(--cyan)' }}>+351 939 189 631</span> no WhatsApp.
@@ -1364,7 +1364,7 @@ function Step4({
           </div>
           {metodo === 'revolut' && (
             <div style={{ fontSize: '0.75rem', color: 'var(--muted)', lineHeight: 1.7 }}>
-              @ Revolut: <span style={{ color: 'var(--ink)', fontFamily: "'Space Mono', monospace" }}>@olimattiazzo</span>
+              @ Revolut: <span style={{ color: 'var(--ink)', fontFamily: 'var(--font-mono)' }}>@olimattiazzo</span>
               <br />
               Após o pagamento, envie o comprovante para{' '}
               <span style={{ color: 'var(--cyan)' }}>+351 939 189 631</span> no WhatsApp.
@@ -1476,13 +1476,12 @@ function Step5({
       <div style={{ fontSize: '3rem', marginBottom: 20 }}>🔮</div>
 
       <h2 style={{
-        fontFamily: "'Cormorant Garamond', serif",
-        fontSize: 'clamp(1.8rem, 3vw, 2.6rem)',
-        fontStyle: 'italic',
-        fontWeight: 300,
+        fontFamily: 'var(--font-display)',
+        fontSize: 'clamp(0.7rem, 2vw, 1.1rem)',
+        fontWeight: 400,
         color: 'var(--ink)',
         marginBottom: 8,
-        lineHeight: 1.2,
+        lineHeight: 1.5,
       }}>
         Agendamento confirmado.
       </h2>
@@ -1494,7 +1493,7 @@ function Step5({
       <div style={{ ...S.resumoBox, textAlign: 'left', maxWidth: 480, margin: '0 auto 32px' }}>
         <div style={{ marginBottom: 6 }}>
           <span style={{ color: 'var(--muted)' }}>Tiragem: </span>
-          <span style={{ color: 'var(--gold)', fontWeight: 700 }}>{tiragem?.nome}</span>
+          <span style={{ color: 'var(--cyan)', fontWeight: 700 }}>{tiragem?.nome}</span>
         </div>
         <div style={{ marginBottom: 6 }}>
           <span style={{ color: 'var(--muted)' }}>Idioma: </span>
@@ -1805,14 +1804,13 @@ export default function BookingWizard() {
             </span>
           </div>
           <h2 style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            fontSize: 'clamp(1.8rem, 3vw, 2.8rem)',
-            fontWeight: 300,
-            fontStyle: 'italic',
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(0.7rem, 2vw, 1.1rem)',
+            fontWeight: 400,
             color: 'var(--ink)',
-            lineHeight: 1.15,
+            lineHeight: 1.5,
           }}>
-            Tá na hora de entender o que você <span style={{ color: 'var(--magenta)', fontStyle: 'normal', fontWeight: 600 }}>já sabe.</span>
+            Tá na hora de entender o que você <span style={{ color: 'var(--magenta)' }}>já sabe.</span>
           </h2>
         </div>
 

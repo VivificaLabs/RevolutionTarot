@@ -39,7 +39,7 @@ export default function Footer() {
       justifyContent: 'space-between',
       alignItems: 'center',
     }} className="md:flex-row">
-      <span style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: '1rem', color: 'var(--ink)', fontWeight: 600 }}>
+      <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.6rem', color: 'var(--ink)', fontWeight: 400 }}>
         Revolution <span style={{ color: 'var(--cyan)' }}>Tarot</span>
       </span>
 
@@ -51,7 +51,7 @@ export default function Footer() {
         ))}
       </div>
 
-      <span style={{ fontSize: '0.6rem', letterSpacing: '0.08em', color: 'rgba(168,144,144,0.4)' }}>
+      <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.75rem', letterSpacing: '0.04em', color: 'rgba(136,120,176,0.4)' }}>
         © 2025 Revolution Tarot // lógica + intuição
       </span>
     </footer>
