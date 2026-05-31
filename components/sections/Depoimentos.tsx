@@ -105,7 +105,7 @@ export default function Depoimentos() {
 
             {/* Frase título */}
             <p style={{
-              fontFamily: "'Space Mono', monospace",
+              fontFamily: 'var(--font-mono)',
               fontSize: '0.7rem',
               fontWeight: 700,
               letterSpacing: '0.12em',
@@ -123,7 +123,7 @@ export default function Depoimentos() {
                 top: -20, left: -20,
                 fontSize: '5rem',
                 color: 'rgba(0,245,212,0.1)',
-                fontFamily: "'Cormorant Garamond', serif",
+                fontFamily: 'var(--font-body)',
                 lineHeight: 1,
                 pointerEvents: 'none',
                 userSelect: 'none',
@@ -131,7 +131,7 @@ export default function Depoimentos() {
                 &quot;
               </span>
               <p style={{
-                fontFamily: "'Cormorant Garamond', serif",
+                fontFamily: 'var(--font-body)',
                 fontSize: 'clamp(1.3rem, 2.2vw, 1.8rem)',
                 fontStyle: 'italic',
                 fontWeight: 300,
@@ -154,7 +154,7 @@ export default function Depoimentos() {
                 {d.emoji}
               </div>
               <span style={{
-                fontFamily: "'Space Mono', monospace",
+                fontFamily: 'var(--font-mono)',
                 fontSize: '0.62rem',
                 fontWeight: 700,
                 letterSpacing: '0.1em',
@@ -244,7 +244,7 @@ function MiniCard({
       }}
     >
       <p style={{
-        fontFamily: "'Cormorant Garamond', serif",
+        fontFamily: 'var(--font-body)',
         fontSize: '1rem',
         fontStyle: 'italic',
         color: ativo ? 'var(--ink)' : 'var(--muted)',

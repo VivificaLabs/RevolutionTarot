@@ -23,6 +23,18 @@ function logError(step: string, error: unknown) {
 
 export const dynamic = 'force-dynamic'
 
+function traduzirErroCaleu(msg: string): string {
+  if (!msg) return 'Erro ao criar evento no calendário.'
+  const m = msg.toLowerCase()
+  if (m.includes('already has booking') || m.includes('not available'))
+    return 'Este horário já está reservado ou indisponível. Por favor, volte e escolha outro horário.'
+  if (m.includes('slot') && (m.includes('unavailable') || m.includes('not found')))
+    return 'O horário selecionado não está mais disponível. Por favor, volte e escolha outro horário.'
+  if (m.includes('event type') && m.includes('not found'))
+    return 'Tipo de agendamento não encontrado. Por favor, contacte o suporte.'
+  return msg
+}
+
 export async function POST(req: NextRequest) {
   try {
     logInfo('REQUEST_START', { url: req.url })
@@ -98,8 +110,9 @@ export async function POST(req: NextRequest) {
 
     if (!res.ok) {
       logError('CALEU_API_ERROR', { status: res.status, response: json })
+      const rawMsg: string = json.error?.message ?? json.message ?? ''
       return NextResponse.json(
-        { error: json.error?.message ?? json.message ?? 'Erro no Cal.eu.' },
+        { error: traduzirErroCaleu(rawMsg) },
         { status: res.status }
       )
     }

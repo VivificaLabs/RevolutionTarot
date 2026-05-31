@@ -178,11 +178,11 @@ describe('GET /api/cal/slots', () => {
     expect(bookingsUrl).not.toContain('eventTypeId')
   })
 
-  it('busca apenas bookings com status upcoming', async () => {
+  it('busca bookings sem filtrar por status (retorna todos os estados)', async () => {
     await GET(makeRequest({ eventTypeId: '1', data: '2026-01-15' }))
 
     const bookingsUrl = mockFetch.mock.calls[1][0] as string
-    expect(bookingsUrl).toContain('status=upcoming')
+    expect(bookingsUrl).not.toContain('status=')
   })
 
   // ── Filtro de períodos ocupados ───────────────────────────────────────────
@@ -365,6 +365,56 @@ describe('GET /api/cal/slots', () => {
     // Sem filtro por booking quando a API de bookings falha
     expect(res.status).toBe(200)
     expect(data.slots).toHaveLength(2)
+  })
+
+  // ── Formato de dados dos bookings ────────────────────────────────────────
+
+  it('respeita o campo startTime (Cal.com v1) além de start (Cal.com v2)', async () => {
+    // Cal.com v1 usa "startTime"; v2 usa "start" — suportamos ambos
+    mockFetch.mockReset()
+      .mockResolvedValueOnce(slotsResponse('2026-01-15', [
+        '2026-01-15T09:00:00.000Z',  // manhã
+        '2026-01-15T14:00:00.000Z',  // tarde
+      ]))
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          status: 'success',
+          data: [{ startTime: '2026-01-15T08:00:00.000Z' }],  // campo v1
+        }),
+      } as Response)
+
+    const res = await GET(makeRequest({ eventTypeId: '1', data: '2026-01-15' }))
+    const data = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(data.slots).not.toContain('2026-01-15T09:00:00.000Z')  // manhã bloqueada
+    expect(data.slots).toContain('2026-01-15T14:00:00.000Z')      // tarde disponível
+  })
+
+  it('aceita data.bookings como array (formato alternativo da Cal.com)', async () => {
+    // Algumas versões retornam { data: { bookings: [...] } } em vez de { data: [...] }
+    mockFetch.mockReset()
+      .mockResolvedValueOnce(slotsResponse('2026-01-15', [
+        '2026-01-15T09:00:00.000Z',  // manhã
+        '2026-01-15T14:00:00.000Z',  // tarde
+      ]))
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          status: 'success',
+          data: { bookings: [{ start: '2026-01-15T08:00:00.000Z' }] },
+        }),
+      } as Response)
+
+    const res = await GET(makeRequest({ eventTypeId: '1', data: '2026-01-15' }))
+    const data = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(data.slots).not.toContain('2026-01-15T09:00:00.000Z')  // manhã bloqueada
+    expect(data.slots).toContain('2026-01-15T14:00:00.000Z')
   })
 
   // ── Erros da Cal.eu (slots) ───────────────────────────────────────────────

@@ -23,6 +23,7 @@ export default function Ticker() {
           <span key={i} style={{
             display: 'inline-flex', alignItems: 'center', gap: 20,
             padding: '0 32px',
+            fontFamily: 'var(--font-mono)',
             fontSize: '0.62rem',
             fontWeight: 700,
             letterSpacing: '0.14em',

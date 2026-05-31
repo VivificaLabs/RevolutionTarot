@@ -82,13 +82,13 @@ export async function GET(req: NextRequest) {
 
     logInfo('SLOTS_EXTRACTED', { count: slots.length, slots: slots.slice(0, 5) })
 
-    // Busca TODOS os bookings do dia (sem filtrar por eventTypeId) para bloquear
-    // períodos ocupados por qualquer tipo de tiragem. Regra de negócio: um booking
-    // em qualquer período bloqueia esse período para todos os event types.
+    // Busca TODOS os bookings do dia sem filtrar por eventTypeId nem por status.
+    // Regra de negócio: um booking em qualquer período bloqueia esse período
+    // para todos os event types. O Cal.com usa "accepted" internamente; omitir
+    // o filtro de status garante que bookings confirmados e pendentes sejam retornados.
     const bookingsUrl = new URL(`${CAL_BASE}/v2/bookings`)
     bookingsUrl.searchParams.set('afterStart', startTime)
     bookingsUrl.searchParams.set('beforeEnd', endTime)
-    bookingsUrl.searchParams.set('status', 'upcoming')
 
     const bookingsRes = await fetch(bookingsUrl.toString(), {
       headers: {
@@ -112,14 +112,28 @@ export async function GET(req: NextRequest) {
 
     if (bookingsRes.ok) {
       const bookingsJson = await bookingsRes.json()
-      const bookings: { start: string }[] = bookingsJson.data ?? []
+
+      logInfo('BOOKINGS_RAW_RESPONSE', {
+        dataType: Array.isArray(bookingsJson.data) ? 'array' : typeof bookingsJson.data,
+        dataKeys: bookingsJson.data && typeof bookingsJson.data === 'object' ? Object.keys(bookingsJson.data) : null,
+        firstItem: Array.isArray(bookingsJson.data) ? bookingsJson.data[0] : null,
+      })
+
+      // Cal.com v2 retorna data como array direto; algumas versões retornam { bookings: [] }
+      const rawData = bookingsJson.data
+      const bookings: { start?: string; startTime?: string }[] = Array.isArray(rawData)
+        ? rawData
+        : (Array.isArray(rawData?.bookings) ? rawData.bookings : [])
 
       logInfo('BOOKINGS_FETCHED', { count: bookings.length })
 
       if (bookings.length > 0) {
         const periodosOcupados = PERIODOS.filter(p =>
           bookings.some(b => {
-            const h = horaLisboa(b.start)
+            // Cal.com v2 usa "start"; v1 usava "startTime" — suportamos ambos
+            const iso = b.start ?? b.startTime ?? ''
+            if (!iso) return false
+            const h = horaLisboa(iso)
             return h >= p.de && h < p.ate
           })
         )
@@ -138,7 +152,7 @@ export async function GET(req: NextRequest) {
         }
       }
     } else {
-      logInfo('BOOKINGS_FETCH_SKIPPED', { status: bookingsRes.status })
+      logError('BOOKINGS_FETCH_FAILED', { status: bookingsRes.status })
     }
 
     return NextResponse.json({ slots: slotsFinais })

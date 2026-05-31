@@ -9,6 +9,7 @@ import {
   type DadosStep1, type DadosStep2, type DadosStep3,
 } from '@/lib/booking'
 import { formatarWhatsApp } from '@/lib/input-formatters'
+import { CheckboxField } from '@/components/ui/CheckboxField'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from '@stripe/react-stripe-js'
 
@@ -22,15 +23,16 @@ import { Elements, useStripe, useElements, CardNumberElement, CardExpiryElement,
 //   NEXT_PUBLIC_ENABLE_STRIPE=true
 
 const STRIPE_ENABLED = process.env.NEXT_PUBLIC_ENABLE_STRIPE === 'true'
+// Resolve to null on failure so Elements never receives a rejected promise
 const stripePromise = STRIPE_ENABLED
-  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!).catch(() => null)
   : null
 
 const STRIPE_ELEMENT_STYLE = {
   style: {
     base: {
       color: '#e2e8f0',
-      fontFamily: "'Space Mono', monospace",
+      fontFamily: "'JetBrains Mono', monospace",
       fontSize: '13px',
       '::placeholder': { color: '#4a5568' },
     },
@@ -60,7 +62,7 @@ const S = {
     background: 'rgba(0,0,0,0.3)',
     border: '1px solid var(--border)',
     color: 'var(--ink)',
-    fontFamily: "'Space Mono', monospace",
+    fontFamily: 'var(--font-mono)',
     fontSize: '0.78rem',
     padding: '11px 14px',
     outline: 'none',
@@ -79,10 +81,10 @@ const S = {
 
   select: {
     width: '100%',
-    background: '#1a0218',
+    background: '#100c24',
     border: '1px solid var(--border)',
-    color: '#f0e6d3',
-    fontFamily: "'Space Mono', monospace",
+    color: '#f0e6ff',
+    fontFamily: 'var(--font-mono)',
     fontSize: '0.78rem',
     padding: '11px 14px',
     outline: 'none',
@@ -91,14 +93,14 @@ const S = {
   },
 
   option: {
-    background: '#1a0218',
-    color: '#f0e6d3',
-  } as React.CSSProperties,
+    background: '#100c24',
+    color: '#f0e6ff',
+  } as React.CSSProperties, 
 
   btnPrimary: {
     background: 'var(--magenta)',
     color: '#fff',
-    fontFamily: "'Space Mono', monospace",
+    fontFamily: 'var(--font-mono)',
     fontSize: '0.7rem',
     fontWeight: 700,
     letterSpacing: '0.1em',
@@ -113,7 +115,7 @@ const S = {
   btnSecondary: {
     background: 'transparent',
     color: 'var(--muted)',
-    fontFamily: "'Space Mono', monospace",
+    fontFamily: 'var(--font-mono)',
     fontSize: '0.7rem',
     fontWeight: 700,
     letterSpacing: '0.1em',
@@ -147,8 +149,8 @@ const S = {
   },
 
   resumoBox: {
-    background: 'rgba(201,168,76,0.06)',
-    border: '1px solid rgba(201,168,76,0.2)',
+    background: 'rgba(0,245,212,0.04)',
+    border: '1px solid var(--border)',
     padding: '14px 18px',
     marginBottom: 28,
     fontSize: '0.75rem',
@@ -175,7 +177,7 @@ function Tooltip({ texto }: { texto: string }) {
           bottom: '130%',
           left: '50%',
           transform: 'translateX(-50%)',
-          background: '#1a0218',
+          background: '#100c24',
           border: '1px solid var(--border)',
           color: 'var(--ink)',
           fontSize: '0.65rem',
@@ -210,7 +212,7 @@ function ProgressBar({ atual }: { atual: number }) {
                 background: i < atual ? 'var(--cyan)' : i === atual ? 'rgba(0,245,212,0.1)' : 'transparent',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '0.6rem',
-                fontFamily: "'Space Mono', monospace",
+                fontFamily: 'var(--font-mono)',
                 fontWeight: 700,
                 color: i < atual ? 'var(--bg)' : i === atual ? 'var(--cyan)' : 'var(--muted)',
                 transition: 'all 0.3s',
@@ -287,7 +289,7 @@ function Step1({
                 color: moeda === m ? 'var(--bg)' : 'var(--muted)',
                 border: `1px solid ${moeda === m ? 'var(--cyan)' : 'rgba(0,245,212,0.2)'}`,
                 padding: '7px 16px',
-                fontFamily: "'Space Mono', monospace",
+                fontFamily: 'var(--font-mono)',
                 fontSize: '0.65rem',
                 fontWeight: 700,
                 letterSpacing: '0.1em',
@@ -324,9 +326,9 @@ function Step1({
               >
                 <div>
                   <div style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: '1.1rem',
-                    fontStyle: 'italic',
+                    fontFamily: 'var(--font-display)',
+                    fontSize: '0.65rem',
+                    fontWeight: 400,
                     color: sel ? 'var(--ink)' : 'var(--muted)',
                   }}>
                     {t.nome}
@@ -336,10 +338,10 @@ function Step1({
                   </div>
                 </div>
                 <div style={{
-                  fontFamily: "'Space Mono', monospace",
+                  fontFamily: 'var(--font-mono)',
                   fontSize: '0.85rem',
                   fontWeight: 700,
-                  color: sel ? 'var(--gold)' : 'var(--muted)',
+                  color: sel ? 'var(--cyan)' : 'var(--muted)',
                 }}>
                   {formatarPreco(converterPreco(t.precoBRL, moeda), moeda)}
                 </div>
@@ -360,11 +362,11 @@ function Step1({
                 key={value}
                 onClick={() => onChange({ ...dados, idioma: value as Idioma })}
                 style={{
-                  background: sel ? 'rgba(201,168,76,0.15)' : 'transparent',
-                  color: sel ? 'var(--gold)' : 'var(--muted)',
-                  border: `1px solid ${sel ? 'var(--gold)' : 'var(--border)'}`,
+                  background: sel ? 'rgba(0,245,212,0.08)' : 'transparent',
+                  color: sel ? 'var(--cyan)' : 'var(--muted)',
+                  border: `1px solid ${sel ? 'var(--cyan)' : 'var(--border)'}`,
                   padding: '7px 16px',
-                  fontFamily: "'Space Mono', monospace",
+                  fontFamily: 'var(--font-mono)',
                   fontSize: '0.65rem',
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -379,17 +381,15 @@ function Step1({
       </div>
 
       {/* Urgência */}
-      <div style={{ ...S.fieldGroup, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-        <input
-          type="checkbox"
+      <div style={S.fieldGroup}>
+        <CheckboxField
           id="urgencia"
           checked={dados.urgencia ?? false}
-          onChange={e => onChange({ ...dados, urgencia: e.target.checked })}
-          style={{ marginTop: 3, accentColor: 'var(--magenta)', cursor: 'pointer' }}
-        />
-        <label htmlFor="urgencia" style={{ fontSize: '0.78rem', color: 'var(--muted)', cursor: 'pointer', lineHeight: 1.5 }}>
+          onChange={v => onChange({ ...dados, urgencia: v })}
+          color="var(--magenta)"
+        >
           Agendamento com urgência (entrega / atendimento prioritário)
-        </label>
+        </CheckboxField>
       </div>
 
       {dados.urgencia && tiragem && (
@@ -616,7 +616,7 @@ function Step2({
               }}
             >‹</button>
             <span style={{
-              fontFamily: "'Space Mono', monospace",
+              fontFamily: 'var(--font-mono)',
               fontSize: '0.68rem', fontWeight: 700,
               letterSpacing: '0.14em', textTransform: 'uppercase',
               color: 'var(--ink)',
@@ -678,7 +678,7 @@ function Step2({
                       background: selecionado ? 'var(--cyan)' : disponivel ? 'rgba(0,245,212,0.04)' : 'transparent',
                       borderBottom: '1px solid var(--border)',
                       borderRight: di < 6 ? '1px solid var(--border)' : 'none',
-                      outline: ehHoje && !selecionado ? '2px solid rgba(201,168,76,0.55)' : 'none',
+                      outline: ehHoje && !selecionado ? '2px solid rgba(0,245,212,0.55)' : 'none',
                       outlineOffset: '-2px',
                       transition: 'all 0.15s',
                       fontWeight: selecionado || ehHoje ? 700 : 400,
@@ -688,7 +688,7 @@ function Step2({
                     {ehHoje && !selecionado && (
                       <span style={{
                         position: 'absolute', bottom: 3, left: '50%', transform: 'translateX(-50%)',
-                        width: 3, height: 3, borderRadius: '50%', background: 'var(--gold)', display: 'block',
+                        width: 3, height: 3, borderRadius: '50%', background: 'var(--cyan)', display: 'block',
                       }} />
                     )}
                   </div>
@@ -731,7 +731,7 @@ function Step2({
                         color: sel ? 'var(--bg)' : 'var(--muted)',
                         border: `1px solid ${sel ? 'var(--cyan)' : 'var(--border)'}`,
                         padding: '10px 20px',
-                        fontFamily: "'Space Mono', monospace",
+                        fontFamily: 'var(--font-mono)',
                         fontSize: '0.72rem',
                         fontWeight: 700,
                         cursor: 'pointer',
@@ -782,7 +782,7 @@ function Step2({
                         color: sel ? 'var(--bg)' : 'var(--muted)',
                         border: `1px solid ${sel ? 'var(--cyan)' : 'var(--border)'}`,
                         padding: '10px 20px',
-                        fontFamily: "'Space Mono', monospace",
+                        fontFamily: 'var(--font-mono)',
                         fontSize: '0.72rem',
                         fontWeight: 700,
                         cursor: 'pointer',
@@ -832,7 +832,7 @@ function Step2({
                       color: sel ? 'var(--bg)' : 'var(--muted)',
                       border: `1px solid ${sel ? 'var(--cyan)' : 'var(--border)'}`,
                       padding: '10px 20px',
-                      fontFamily: "'Space Mono', monospace",
+                      fontFamily: 'var(--font-mono)',
                       fontSize: '0.72rem',
                       fontWeight: 700,
                       cursor: 'pointer',
@@ -889,7 +889,7 @@ function ResumoAgendamento({
 
   return (
     <div style={S.resumoBox}>
-      <span style={{ color: 'var(--gold)', fontWeight: 700 }}>
+      <span style={{ color: 'var(--cyan)', fontWeight: 700 }}>
         {tiragem?.nome} · {idioma}{urgencia ? ' · urgência' : ''}
         {precoInline && preco ? ` · ${preco}` : ''}
       </span>
@@ -974,7 +974,7 @@ function Step3({
                 color: canal === c ? 'var(--cyan)' : 'var(--muted)',
                 border: `1px solid ${canal === c ? 'var(--cyan)' : 'var(--border)'}`,
                 padding: '8px 20px',
-                fontFamily: "'Space Mono', monospace",
+                fontFamily: 'var(--font-mono)',
                 fontSize: '0.65rem',
                 fontWeight: 700,
                 letterSpacing: '0.1em',
@@ -1054,18 +1054,16 @@ function Step3({
 
       {/* Indicação */}
       <div style={{ ...S.fieldGroup }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
-          <input
-            type="checkbox"
+        <div style={{ marginBottom: 12 }}>
+          <CheckboxField
             id="indicacao"
             checked={dados.indicacao ?? false}
-            onChange={e => onChange({ ...dados, indicacao: e.target.checked, indicadoPor: '' })}
-            style={{ marginTop: 3, accentColor: 'var(--cyan)', cursor: 'pointer' }}
-          />
-          <label htmlFor="indicacao" style={{ fontSize: '0.78rem', color: 'var(--muted)', cursor: 'pointer', lineHeight: 1.5 }}>
+            onChange={v => onChange({ ...dados, indicacao: v, indicadoPor: '' })}
+            color="var(--cyan)"
+          >
             Fui indicada por alguém
             <Tooltip texto="Conto isso para dar um desconto especial pra quem te indicou. Obrigada por espalhar a revolução! 🔮" />
-          </label>
+          </CheckboxField>
         </div>
         {dados.indicacao && (
           <input
@@ -1089,7 +1087,7 @@ function Step3({
             ...S.input,
             minHeight: 100,
             resize: 'vertical',
-            fontFamily: "'Space Mono', monospace",
+            fontFamily: 'var(--font-mono)',
           }}
           placeholder="Escreva o que quiser — contexto, pergunta principal, o que estiver na cabeça. Opcional."
           value={dados.nota ?? ''}
@@ -1144,6 +1142,16 @@ function Step4({
   const [cardComplete, setCardComplete] = useState({ number: false, expiry: false, cvc: false })
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState('')
+  const [stripeStatus, setStripeStatus] = useState<'carregando' | 'pronto' | 'erro'>('carregando')
+
+  useEffect(() => {
+    if (!STRIPE_ENABLED) { setStripeStatus('pronto'); return }
+    stripePromise?.then(s => setStripeStatus(s ? 'pronto' : 'erro'))
+  }, [])
+
+  useEffect(() => {
+    if (stripe) setStripeStatus('pronto')
+  }, [stripe])
 
   // Métodos disponíveis para a moeda selecionada, respeitando flags de feature
   const metodosDisponivelsPorMoeda = metodosPorMoeda(moeda)
@@ -1157,6 +1165,17 @@ function Step4({
   }
 
   async function confirmarFluxo() {
+    // 0. VERIFICAR DISPONIBILIDADE — antes de qualquer cobrança
+    console.log('[STEP4_FLUXO] Etapa 0/3: Verificando disponibilidade do horário...')
+    const dispCheck = await verificarSlotDisponivel(step1, step2)
+    if (!dispCheck.disponivel) {
+      const msg = dispCheck.motivo ?? 'Horário não disponível. Por favor, escolha outro.'
+      console.warn('[STEP4_FLUXO] ❌ Horário indisponível — abortando antes de cobrar')
+      setErro(msg)
+      throw new Error(msg)
+    }
+    console.log('[STEP4_FLUXO] ✅ Horário disponível, prosseguindo com pagamento')
+
     // 1. PROCESSAR PAGAMENTO (cartão) — feito ANTES do Cal.eu para não criar
     //    agendamento sem pagamento confirmado
     let stripePaymentId: string | undefined = undefined
@@ -1211,8 +1230,25 @@ function Step4({
       console.log('[STEP4_FLUXO] ✅ Cal.eu sucesso:', calIds)
     } catch (erroCaleu) {
       console.error('[STEP4_FLUXO] ❌ Cal.eu falhou (bloqueando):', erroCaleu)
+
+      // Estornar o pagamento Stripe automaticamente para não cobrar sem agendamento
+      if (stripePaymentId) {
+        console.log('[STEP4_FLUXO] Iniciando estorno automático do Stripe:', stripePaymentId)
+        try {
+          await fetch('/api/refund', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ paymentIntentId: stripePaymentId }),
+          })
+          console.log('[STEP4_FLUXO] ✅ Estorno Stripe concluído')
+        } catch (erroEstorno) {
+          console.error('[STEP4_FLUXO] ❌ Falha no estorno automático:', erroEstorno)
+        }
+      }
+
       const msg = erroCaleu instanceof Error ? erroCaleu.message : 'erro desconhecido'
-      setErro(`Erro ao criar evento no calendário: ${msg}`)
+      const sufixo = stripePaymentId ? ' O pagamento foi estornado automaticamente.' : ''
+      setErro(`Erro ao criar evento no calendário: ${msg}${sufixo}`)
       throw erroCaleu
     }
 
@@ -1252,7 +1288,9 @@ function Step4({
   }
 
   const podeProsseguir = !!metodo && (
-    metodo !== 'cartao' || (cardComplete.number && cardComplete.expiry && cardComplete.cvc)
+    metodo !== 'cartao' || (
+      stripeStatus === 'pronto' && cardComplete.number && cardComplete.expiry && cardComplete.cvc
+    )
   )
 
   return (
@@ -1272,8 +1310,8 @@ function Step4({
           </div>
         )}
         <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border2)', paddingTop: 8, marginTop: 4 }}>
-          <span style={{ color: 'var(--gold)', fontWeight: 700 }}>Total</span>
-          <span style={{ color: 'var(--gold)', fontWeight: 700, fontSize: '1.05rem' }}>{formatarPreco(converterPreco(totalBRL, moeda), moeda)}</span>
+          <span style={{ color: 'var(--cyan)', fontWeight: 700 }}>Total</span>
+          <span style={{ color: 'var(--cyan)', fontWeight: 700, fontSize: '1.05rem' }}>{formatarPreco(converterPreco(totalBRL, moeda), moeda)}</span>
         </div>
       </div>
 
@@ -1297,7 +1335,7 @@ function Step4({
           </div>
           {metodo === 'pix' && (
             <div style={{ fontSize: '0.75rem', color: 'var(--muted)', lineHeight: 1.7 }}>
-              Chave: <span style={{ color: 'var(--ink)', fontFamily: "'Space Mono', monospace" }}>revolutiontarot.byolivia@gmail.com</span>
+              Chave: <span style={{ color: 'var(--ink)', fontFamily: 'var(--font-mono)' }}>revolutiontarot.byolivia@gmail.com</span>
               <br />
               Após o pagamento, envie o comprovante para{' '}
               <span style={{ color: 'var(--cyan)' }}>+351 939 189 631</span> no WhatsApp.
@@ -1323,7 +1361,7 @@ function Step4({
           </div>
           {metodo === 'revolut' && (
             <div style={{ fontSize: '0.75rem', color: 'var(--muted)', lineHeight: 1.7 }}>
-              @ Revolut: <span style={{ color: 'var(--ink)', fontFamily: "'Space Mono', monospace" }}>@olimattiazzo</span>
+              @ Revolut: <span style={{ color: 'var(--ink)', fontFamily: 'var(--font-mono)' }}>@olimattiazzo</span>
               <br />
               Após o pagamento, envie o comprovante para{' '}
               <span style={{ color: 'var(--cyan)' }}>+351 939 189 631</span> no WhatsApp.
@@ -1354,29 +1392,41 @@ function Step4({
           </div>
           {metodo === 'cartao' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }} onClick={e => e.stopPropagation()}>
-              <div style={{ ...S.input, display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}>
-                <CardNumberElement
-                  options={{ ...STRIPE_ELEMENT_STYLE, showIcon: true, style: { ...STRIPE_ELEMENT_STYLE.style, base: { ...STRIPE_ELEMENT_STYLE.style.base, iconColor: '#e2e8f0' } } }}
-                  onChange={e => setCardComplete(c => ({ ...c, number: e.complete }))}
-                  className="stripe-element"
-                />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <div style={{ ...S.input, display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}>
-                  <CardExpiryElement
-                    options={STRIPE_ELEMENT_STYLE}
-                    onChange={e => setCardComplete(c => ({ ...c, expiry: e.complete }))}
-                    className="stripe-element"
-                  />
+              {stripeStatus === 'erro' ? (
+                <div style={{ fontSize: '0.72rem', color: 'var(--magenta)', padding: '6px 0' }}>
+                  ⚠️ Não foi possível carregar o sistema de pagamentos. Recarregue a página e tente novamente.
                 </div>
-                <div style={{ ...S.input, display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}>
-                  <CardCvcElement
-                    options={STRIPE_ELEMENT_STYLE}
-                    onChange={e => setCardComplete(c => ({ ...c, cvc: e.complete }))}
-                    className="stripe-element"
-                  />
+              ) : stripeStatus === 'carregando' ? (
+                <div style={{ fontSize: '0.72rem', color: 'var(--muted)', padding: '6px 0' }}>
+                  Carregando sistema de pagamento...
                 </div>
-              </div>
+              ) : (
+                <>
+                  <div style={{ ...S.input, display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}>
+                    <CardNumberElement
+                      options={{ ...STRIPE_ELEMENT_STYLE, showIcon: true, style: { ...STRIPE_ELEMENT_STYLE.style, base: { ...STRIPE_ELEMENT_STYLE.style.base, iconColor: '#e2e8f0' } } }}
+                      onChange={e => setCardComplete(c => ({ ...c, number: e.complete }))}
+                      className="stripe-element"
+                    />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div style={{ ...S.input, display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}>
+                      <CardExpiryElement
+                        options={STRIPE_ELEMENT_STYLE}
+                        onChange={e => setCardComplete(c => ({ ...c, expiry: e.complete }))}
+                        className="stripe-element"
+                      />
+                    </div>
+                    <div style={{ ...S.input, display: 'flex', alignItems: 'center', boxSizing: 'border-box' }}>
+                      <CardCvcElement
+                        options={STRIPE_ELEMENT_STYLE}
+                        onChange={e => setCardComplete(c => ({ ...c, cvc: e.complete }))}
+                        className="stripe-element"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -1423,13 +1473,12 @@ function Step5({
       <div style={{ fontSize: '3rem', marginBottom: 20 }}>🔮</div>
 
       <h2 style={{
-        fontFamily: "'Cormorant Garamond', serif",
-        fontSize: 'clamp(1.8rem, 3vw, 2.6rem)',
-        fontStyle: 'italic',
-        fontWeight: 300,
+        fontFamily: 'var(--font-display)',
+        fontSize: 'clamp(0.7rem, 2vw, 1.1rem)',
+        fontWeight: 400,
         color: 'var(--ink)',
         marginBottom: 8,
-        lineHeight: 1.2,
+        lineHeight: 1.5,
       }}>
         Agendamento confirmado.
       </h2>
@@ -1441,7 +1490,7 @@ function Step5({
       <div style={{ ...S.resumoBox, textAlign: 'left', maxWidth: 480, margin: '0 auto 32px' }}>
         <div style={{ marginBottom: 6 }}>
           <span style={{ color: 'var(--muted)' }}>Tiragem: </span>
-          <span style={{ color: 'var(--gold)', fontWeight: 700 }}>{tiragem?.nome}</span>
+          <span style={{ color: 'var(--cyan)', fontWeight: 700 }}>{tiragem?.nome}</span>
         </div>
         <div style={{ marginBottom: 6 }}>
           <span style={{ color: 'var(--muted)' }}>Idioma: </span>
@@ -1481,6 +1530,67 @@ function lisboaHoraParaISO(data: string, horaLisboa: number): string {
   const offsetHoras = horaProbeEmLisboa - 12 // +1 no verão, 0 no inverno
   const horaUTC = ((horaLisboa - offsetHoras) % 24 + 24) % 24
   return `${data}T${String(horaUTC).padStart(2, '0')}:00:00.000Z`
+}
+
+// ── Função helper: verificar disponibilidade do slot antes de cobrar ─────────
+//
+// Chama /api/cal/slots para confirmar que o horário ainda está livre.
+// Evita cobrar o Stripe quando o slot já foi reservado por outra pessoa.
+// Em caso de erro de API (rede, timeout), deixa passar — o Cal.eu recusará.
+
+async function verificarSlotDisponivel(
+  step1: Partial<DadosStep1>,
+  step2: Partial<DadosStep2>,
+): Promise<{ disponivel: boolean; motivo?: string }> {
+  const tiragem = TIRAGENS.find(t => t.id === step1.tiragemId)
+  if (!tiragem || !step2.data) return { disponivel: true }
+
+  let tipoEvento: 'ao-vivasso' | 'tiragem-urgente' | 'tiragem-padrao'
+  if (tiragem.aoVivo) {
+    tipoEvento = 'ao-vivasso'
+  } else if (step1.urgencia) {
+    tipoEvento = 'tiragem-urgente'
+  } else {
+    tipoEvento = 'tiragem-padrao'
+  }
+  const eventTypeId = CAL_EVENT_TYPES[tipoEvento]
+
+  try {
+    const res = await fetch(`/api/cal/slots?eventTypeId=${eventTypeId}&data=${step2.data}`)
+    if (!res.ok) return { disponivel: true }
+
+    const { slots }: { slots: string[] } = await res.json()
+
+    if (step2.slotISO) {
+      // Tiragem padrão: slot específico selecionado via Cal.eu
+      if (!slots.includes(step2.slotISO)) {
+        return {
+          disponivel: false,
+          motivo: 'Este horário já foi reservado por outra pessoa. Por favor, volte e escolha outro horário disponível.',
+        }
+      }
+    } else if (step2.hora !== null && step2.hora !== undefined) {
+      // Ao vivo / urgente: hora fixa em Lisboa — verifica se o período ainda tem slots
+      if (slots.length > 0) {
+        const horaEmLisboa = (iso: string): number =>
+          parseInt(new Intl.DateTimeFormat('en-US', {
+            timeZone: 'Europe/Lisbon', hour: 'numeric', hour12: false,
+          }).format(new Date(iso)))
+        const periodoLivre = slots.some(s => horaEmLisboa(s) === step2.hora)
+        if (!periodoLivre) {
+          return {
+            disponivel: false,
+            motivo: 'Este horário já foi reservado por outra pessoa. Por favor, volte e escolha outro horário disponível.',
+          }
+        }
+      }
+    }
+
+    return { disponivel: true }
+  } catch {
+    // Erro de rede ou timeout — não bloqueia, Cal.eu recusará se necessário
+    return { disponivel: true }
+  }
 }
 
 // ── Função helper: criar evento no Cal.eu ────────────────────────────────
@@ -1691,14 +1801,13 @@ export default function BookingWizard() {
             </span>
           </div>
           <h2 style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            fontSize: 'clamp(1.8rem, 3vw, 2.8rem)',
-            fontWeight: 300,
-            fontStyle: 'italic',
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(0.7rem, 2vw, 1.1rem)',
+            fontWeight: 400,
             color: 'var(--ink)',
-            lineHeight: 1.15,
+            lineHeight: 1.5,
           }}>
-            Tá na hora de entender o que você <span style={{ color: 'var(--magenta)', fontStyle: 'normal', fontWeight: 600 }}>já sabe.</span>
+            Tá na hora de entender o que você <span style={{ color: 'var(--magenta)' }}>já sabe.</span>
           </h2>
         </div>
 
