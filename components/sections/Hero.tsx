@@ -1,3 +1,4 @@
+import { WHATSAPP_AGENDAR_URL } from '@/lib/contato'
 
 export default function Hero() {
   return (
@@ -113,7 +114,7 @@ export default function Hero() {
 
         {/* Botões */}
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <a href="#agendar" style={{
+          <a href={WHATSAPP_AGENDAR_URL} target="_blank" rel="noopener noreferrer" style={{
             background: 'var(--magenta)',
             color: '#fff',
             padding: '14px 30px',
@@ -144,7 +145,7 @@ export default function Hero() {
             gap: 8,
             transition: 'all 0.2s',
           }}>
-            Ver consultas →
+            Ver catálogo →
           </a>
         </div>
       </div>
@@ -195,7 +196,7 @@ export default function Hero() {
               justifyContent: 'center',
             }}>
               <img
-                src="/images/photo.jpg"
+                src="/images/photo.jpeg"
                 alt="Foto da tarotoga"
                 style={{
                   width: '100%',

@@ -31,7 +31,14 @@
       "Bash(node -e \"const src = require\\('fs'\\).readFileSync\\('./node_modules/@stripe/react-stripe-js/dist/react-stripe.js', 'utf8'\\); const lines = src.split\\('\\\\n'\\); const idx = lines.findIndex\\(l => l.includes\\('Failed to load Stripe'\\)\\); console.log\\('Line:', idx\\); console.log\\(lines.slice\\(Math.max\\(0,idx-3\\), idx+10\\).join\\('\\\\n'\\)\\)\")",
       "Bash(node -e \"const src = require\\('fs'\\).readFileSync\\('./node_modules/@stripe/stripe-js/dist/stripe-js/stripe.js', 'utf8'\\); const lines = src.split\\('\\\\n'\\); const idx = lines.findIndex\\(l => l.includes\\('Failed to load'\\)\\); if\\(idx>=0\\) { console.log\\('Line:', idx\\); console.log\\(lines.slice\\(Math.max\\(0,idx-5\\), idx+10\\).join\\('\\\\n'\\)\\); } else { console.log\\('Not found in that file'\\); const files = require\\('fs'\\).readdirSync\\('./node_modules/@stripe/stripe-js/dist/'\\); console.log\\(files\\); }\")",
       "Bash(node -e \"const src = require\\('fs'\\).readFileSync\\('./node_modules/@stripe/react-stripe-js/dist/react-stripe.js', 'utf8'\\); const lines = src.split\\('\\\\n'\\); const idx = lines.findIndex\\(l => l.includes\\('parseStripeProp'\\) || l.includes\\('useStripeContextManager'\\) || l.includes\\('ElementsContext'\\)\\); console.log\\('Line:', idx, ':', lines[idx]\\); console.log\\(lines.slice\\(idx, idx+60\\).join\\('\\\\n'\\)\\);\")",
-      "Bash(node -e \"const src = require\\('fs'\\).readFileSync\\('./node_modules/@stripe/react-stripe-js/dist/react-stripe.js', 'utf8'\\); const lines = src.split\\('\\\\n'\\); const idx = lines.findIndex\\(l => l.includes\\('function Elements'\\) || l.includes\\('var Elements'\\)\\); console.log\\('Line:', idx, ':', lines[idx]\\); console.log\\(lines.slice\\(idx, idx+80\\).join\\('\\\\n'\\)\\);\")"
+      "Bash(node -e \"const src = require\\('fs'\\).readFileSync\\('./node_modules/@stripe/react-stripe-js/dist/react-stripe.js', 'utf8'\\); const lines = src.split\\('\\\\n'\\); const idx = lines.findIndex\\(l => l.includes\\('function Elements'\\) || l.includes\\('var Elements'\\)\\); console.log\\('Line:', idx, ':', lines[idx]\\); console.log\\(lines.slice\\(idx, idx+80\\).join\\('\\\\n'\\)\\);\")",
+      "Bash(python3 -)",
+      "Bash(npx tsc *)",
+      "Bash(npx next *)",
+      "Bash(sed -i '' 's|  a\\\\[href\\\\*=\"#agendar\"\\\\],|  a[href*=\"wa.me\"],|' app/globals.css && git diff --stat)"
+    ],
+    "additionalDirectories": [
+      "/Users/olimattiazzo/Developer/RevolutionTarot/app"
     ]
   }
 }

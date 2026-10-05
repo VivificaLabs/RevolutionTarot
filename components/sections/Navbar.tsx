@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { WHATSAPP_AGENDAR_URL } from '@/lib/contato'
 
 const NAV_LINKS = [
   { label: 'Catálogo',    href: '#catalogo'    },
   { label: 'O que dizem', href: '#depoimentos' },
-  { label: 'Agende já',   href: '#agendar'     },
+  { label: 'Agende já',   href: WHATSAPP_AGENDAR_URL },
   { label: 'A Tarologa',  href: '#tarologa'    },
   { label: 'FAQ',         href: '#faq'         },
   { label: 'Blog',        href: '#blog'        },
@@ -100,7 +101,7 @@ export default function Navbar() {
       }} className="hidden md:flex">
         {NAV_LINKS.map(({ label, href }) => (
           <li key={href}>
-            <a href={href} style={{
+            <a href={href} {...(href.startsWith('http') && { target: '_blank', rel: 'noopener noreferrer' })} style={{
               fontSize: '0.62rem',
               fontWeight: 400,
               letterSpacing: '0.12em',
@@ -142,7 +143,7 @@ export default function Navbar() {
           ))}
         </div>
 
-        <a href="#agendar" style={{
+        <a href={WHATSAPP_AGENDAR_URL} target="_blank" rel="noopener noreferrer" style={{
           background: 'transparent',
           color: 'var(--cyan)',
           padding: '7px 16px',
@@ -206,7 +207,8 @@ export default function Navbar() {
             {NAV_LINKS.map(({ label, href }) => (
               <li key={href}>
                 <a 
-                  href={href} 
+                  href={href}
+                  {...(href.startsWith('http') && { target: '_blank', rel: 'noopener noreferrer' })}
                   onClick={closeMenu}
                   style={{
                     fontSize: '0.9rem',
@@ -226,7 +228,7 @@ export default function Navbar() {
           </ul>
 
           <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid rgba(0,245,212,0.2)' }}>
-            <a href="#agendar" onClick={closeMenu} style={{
+            <a href={WHATSAPP_AGENDAR_URL} target="_blank" rel="noopener noreferrer" onClick={closeMenu} style={{
               background: 'var(--cyan)',
               color: 'var(--bg)',
               padding: '12px 20px',
