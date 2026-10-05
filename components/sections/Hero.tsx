@@ -145,7 +145,7 @@ export default function Hero() {
             gap: 8,
             transition: 'all 0.2s',
           }}>
-            Ver consultas →
+            Ver catálogo →
           </a>
         </div>
       </div>
@@ -196,7 +196,7 @@ export default function Hero() {
               justifyContent: 'center',
             }}>
               <img
-                src="/images/photo.jpg"
+                src="/images/photo.jpeg"
                 alt="Foto da tarotoga"
                 style={{
                   width: '100%',

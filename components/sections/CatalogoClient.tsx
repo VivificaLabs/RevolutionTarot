@@ -10,7 +10,7 @@ type Moeda = 'BRL' | 'USD' | 'EUR'
 interface Consulta {
   num: string
   nome: string
-  subtitulo: string
+  subtitulo?: string
   descCurta: string
   descLonga: string
   exemplos: string[]
@@ -23,8 +23,8 @@ interface Consulta {
 const CONSULTAS: Consulta[] = [
   {
     num: '// 001',
-    nome: 'Zoom no Caos',
-    subtitulo: 'Tiragem por área',
+    nome: 'Tiragem por área',
+    subtitulo: "Profissional, relacionamentos, você escolhe",
     descCurta: 'Escolhe uma parte da sua vida que tá precisando de atenção e deixa as cartas entregarem o exposed.',
     descLonga: 'Sabe quando a vida, num geral, tá boa, mas tem uma partezinha específica incomodando? A gente vai abrir o baralho pensando nela. Pode ser sua espiritualidade, relacionamentos, financeiro, profissional, decisões... ou até mesmo autoconhecimento num geral. Você me conta o que tá acontecendo e eu vejo o que está sendo sinalizado. O foco é específico, mas o impacto é profundo.',
     exemplos: [
@@ -36,8 +36,8 @@ const CONSULTAS: Consulta[] = [
   },
   {
     num: '// 002',
-    nome: 'Tarot Express',
-    subtitulo: 'Tiragem objetiva',
+    nome: 'Tiragem objetiva',
+    subtitulo: "Uma pergunta",
     descCurta: 'Quando a pergunta é simples, mas a resposta... nem sempre. Uma tiragem mais compacta, mas com profundidade.',
     descLonga: 'Você tem uma situação específica na cabeça e não quer análise longa — quer saber o que as cartas têm a dizer sobre aquilo agora. Papo retíssimo, focado no que é urgente. Ideal pra quem precisa de uma resposta direta para uma questão que precisa ser resolvida logo.',
     exemplos: [
@@ -49,8 +49,8 @@ const CONSULTAS: Consulta[] = [
   },
   {
     num: '// 003',
-    nome: 'Spoilers Controlados',
-    subtitulo: 'Tiragem periódica para 3 meses',
+    nome: 'Tiragem periódica',
+    subtitulo: "Conselhos para 3 meses",
     descCurta: 'O futuro chega rapidinho, então é bom estar preparada. Uma leitura com tendências e alertas para os próximos 90 dias.',
     descLonga: 'A ideia dessa tiragem é saber quais são as energias, os temas e os pontos de atenção que vão estar presentes nos próximos meses, assim você consegue se preparar, aproveitar as oportunidades e se blindar de perrengues. É uma leitura mais estratégica, pra quem quer ter um norte pra seguir, mas sem depender de tiragem toda semana.',
     exemplos: [
@@ -62,8 +62,8 @@ const CONSULTAS: Consulta[] = [
   },
   {
     num: '// 004',
-    nome: 'Diagnóstico Místico',
-    subtitulo: 'Tiragem geral',
+    nome: 'Tiragem geral',
+    subtitulo: "Racional, emocional, criativo, material e espiritual",
     descCurta: 'Pra quem tá perdida no personagem. Vasculhamos as principais áreas da sua vida pra entender o que tá te travando.',
     descLonga: 'É a tiragem pra quem quer algo mais amplo, uma olhada mais abrangente na vida toda: racional, emocional, criativo, material, espiritual e um conselho final. O objetivo é entender o que pode estar bloqueado e o que está radiando mais forte atualmente, e como lidar com cada uma dessas situações. É o tipo de leitura que olha no fundo da sua alma e diz: "vamos conversar?".',
     exemplos: [
@@ -75,8 +75,8 @@ const CONSULTAS: Consulta[] = [
   },
   {
     num: '// 005',
-    nome: 'Ao vivásso',
-    subtitulo: 'Videochamada - 50 minutos',
+    nome: 'Videochamada',
+    subtitulo: 'Duração: 50min',
     descCurta: '50 minutos de trocação franca de perguntas e respostas. Livre mesmo: pode ser várias perguntas objetivas, uma área só... o que você preferir!',
     descLonga: 'A leitura acontece em tempo real, na videochamada. Você pode fazer perguntas, pedir que eu aprofunde em alguma carta, trazer contexto à medida que a leitura avança. É o formato mais dinâmico — e o que mais parece um papo de amiga que também lê cartas.',
     exemplos: [
@@ -89,7 +89,7 @@ const CONSULTAS: Consulta[] = [
   {
     num: '// 006',
     nome: 'Orçamento Personalizado',
-    subtitulo: 'sob consulta',
+    subtitulo: 'Sob consulta',
     descCurta: 'Não achou o que precisava? Me conta o que você quer e a gente monta uma leitura sob medida.',
     descLonga: 'Às vezes o que você precisa não cabe num formato fixo. Talvez seja uma leitura pra duas pessoas, uma combinação de tiragens, um tema muito específico ou um ritual de fechamento de ciclo. Me conta o que você tem em mente e eu te digo quanto, como e quando.',
     exemplos: [
@@ -308,22 +308,24 @@ function Card({
         fontFamily: 'var(--font-display)',
         fontSize: '0.75rem', fontWeight: 400,
         color: 'var(--ink)',
-        marginBottom: 10, lineHeight: 1.5,
+        marginBottom: consulta.subtitulo ? 10 : 16, lineHeight: 1.5,
       }}>
         {consulta.nome}
       </div>
 
-      <span style={{
-        fontSize: '0.6rem',
-        fontWeight: 700,
-        letterSpacing: '0.14em',
-        textTransform: 'uppercase',
-        color: 'var(--muted)',
-        display: 'block',
-        marginBottom: 16,
-      }}>
-        {consulta.subtitulo}
-      </span>
+      {consulta.subtitulo && (
+        <span style={{
+          fontSize: '0.6rem',
+          fontWeight: 700,
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--muted)',
+          display: 'block',
+          marginBottom: 16,
+        }}>
+          {consulta.subtitulo}
+        </span>
+      )}
 
       <p style={{
         fontSize: '0.72rem', color: 'var(--muted)',
@@ -463,23 +465,25 @@ function Modal({
           fontSize: 'clamp(0.7rem, 2vw, 1.1rem)',
           fontWeight: 400,
           color: 'var(--ink)', lineHeight: 1.5,
-          marginBottom: 8,
+          marginBottom: consulta.subtitulo ? 8 : 20,
         }}>
           {consulta.nome}
         </h2>
 
         {/* Subtítulo */}
-        <span style={{
-          fontSize: '0.62rem',
-          fontWeight: 700,
-          letterSpacing: '0.16em',
-          textTransform: 'uppercase',
-          color: 'var(--muted)',
-          display: 'block',
-          marginBottom: 20,
-        }}>
-          {consulta.subtitulo}
-        </span>
+        {consulta.subtitulo && (
+          <span style={{
+            fontSize: '0.62rem',
+            fontWeight: 700,
+            letterSpacing: '0.16em',
+            textTransform: 'uppercase',
+            color: 'var(--muted)',
+            display: 'block',
+            marginBottom: 20,
+          }}>
+            {consulta.subtitulo}
+          </span>
+        )}
 
         {/* Preço */}
         {!consulta.orcamento && (
