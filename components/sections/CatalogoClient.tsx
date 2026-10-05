@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { WHATSAPP_AGENDAR_URL } from '@/lib/contato'
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -531,7 +532,9 @@ function Modal({
 
         {/* CTA */}
         <a
-          href={consulta.orcamento ? 'http://wa.me/351939189631' : '#agendar'}
+          href={consulta.orcamento ? 'http://wa.me/351939189631' : WHATSAPP_AGENDAR_URL}
+          target="_blank"
+          rel="noopener noreferrer"
           onClick={onFechar}
           style={{
             display: 'block',
