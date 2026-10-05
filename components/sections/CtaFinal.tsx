@@ -1,15 +1,9 @@
 'use client'
 
-import { useRef } from 'react'
-import BookingWizard from './BookingWizard'
+import { WHATSAPP_AGENDAR_URL } from '@/lib/contato'
 
+// Formulário de agendamento (BookingWizard) desativado — agendamento agora via WhatsApp.
 export default function CtaFinal() {
-  const wizardRef = useRef<HTMLDivElement>(null)
-
-  function scrollParaWizard() {
-    wizardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
   return (
     <section id="agendar">
 
@@ -74,8 +68,10 @@ export default function CtaFinal() {
           com as cartas que você precisa ouvir.
         </p>
 
-        <button
-          onClick={scrollParaWizard}
+        <a
+          href={WHATSAPP_AGENDAR_URL}
+          target="_blank"
+          rel="noopener noreferrer"
           style={{
             background: 'var(--magenta)',
             color: '#fff',
@@ -85,7 +81,7 @@ export default function CtaFinal() {
             fontWeight: 700,
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
-            border: 'none',
+            textDecoration: 'none',
             cursor: 'pointer',
             display: 'inline-block',
             clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))',
@@ -96,12 +92,7 @@ export default function CtaFinal() {
           onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
         >
           [ quero minha tiragem ]
-        </button>
-      </div>
-
-      {/* ── Wizard ───────────────────────────────────────────── */}
-      <div ref={wizardRef}>
-        <BookingWizard />
+        </a>
       </div>
 
     </section>
