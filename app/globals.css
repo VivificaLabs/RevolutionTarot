@@ -288,5 +288,20 @@ body::after {
   }
 }
 
+/* Navbar: troca para o hamburger antes do md, os links não cabem abaixo de 1200px */
+.navbar-desktop {
+  display: none;
+}
+
+@media (min-width: 1200px) {
+  .navbar-desktop {
+    display: flex;
+  }
+
+  .navbar-mobile {
+    display: none !important;
+  }
+}
+
 /* Stripe Elements — preenche o container */
 .stripe-element { width: 100%; }

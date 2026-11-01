@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { WHATSAPP_AGENDAR_URL } from '@/lib/contato'
+import { REVOLEITURAS_URL, WHATSAPP_AGENDAR_URL } from '@/lib/contato'
 
 const NAV_LINKS = [
   { label: 'Catálogo',    href: '#catalogo'    },
@@ -12,7 +12,16 @@ const NAV_LINKS = [
   { label: 'FAQ',         href: '#faq'         },
   { label: 'Blog',        href: '#blog'        },
   { label: 'Produtos',    href: '#produtos'    },
+  { label: 'Revoleituras', href: REVOLEITURAS_URL, newPageIcon: true },
 ]
+
+function IconExternalLink() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'inline-block', width: 11, height: 11, marginLeft: 5, verticalAlign: '-1px', fill: 'none', stroke: 'currentColor', strokeWidth: 2.5 }}>
+      <path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6" />
+    </svg>
+  )
+}
 
 function IconWhatsApp() {
   return (
@@ -50,8 +59,8 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleResize = () => {
-      // Fecha o menu quando entra no breakpoint desktop (md: 768px)
-      if (window.innerWidth >= 768) {
+      // Fecha o menu quando entra no breakpoint desktop do navbar (1200px)
+      if (window.innerWidth >= 1200) {
         setMenuOpen(false)
         // Volta para a homepage
         window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -94,14 +103,14 @@ export default function Navbar() {
       </Link>
 
       {/* Links centrais — Escondido em mobile */}
-      <ul style={{ 
-        gap: 28, 
-        listStyle: 'none', 
-        alignItems: 'center' 
-      }} className="hidden md:flex">
-        {NAV_LINKS.map(({ label, href }) => (
+      <ul style={{
+        gap: 'clamp(14px, 1.8vw, 28px)',
+        listStyle: 'none',
+        alignItems: 'center'
+      }} className="navbar-desktop">
+        {NAV_LINKS.map(({ label, href, newPageIcon }) => (
           <li key={href}>
-            <a href={href} {...(href.startsWith('http') && { target: '_blank', rel: 'noopener noreferrer' })} style={{
+            <a href={href} {...(href.startsWith('http') && { target: '_blank', rel: 'noopener noreferrer' })} aria-label={newPageIcon ? `${label} (abre em nova aba)` : undefined} style={{
               fontSize: '0.62rem',
               fontWeight: 400,
               letterSpacing: '0.12em',
@@ -109,18 +118,20 @@ export default function Navbar() {
               color: 'var(--muted)',
               textDecoration: 'none',
               transition: 'color 0.2s',
+              whiteSpace: 'nowrap',
             }}
             onMouseEnter={e => (e.currentTarget.style.color = 'var(--cyan)')}
             onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted)')}
             >
               {label}
+              {newPageIcon && <IconExternalLink />}
             </a>
           </li>
         ))}
       </ul>
 
       {/* Social + CTA — Escondido em mobile */}
-      <div className="hidden md:flex">
+      <div className="navbar-desktop">
         <div style={{ display: 'flex', gap: 8, marginRight: 14 }}>
           {[
             { label: 'WhatsApp', icon: <IconWhatsApp />, href: 'http://wa.me/351939189631' },
@@ -177,7 +188,7 @@ export default function Navbar() {
             padding: 0,
             zIndex: 201,
           }}
-          className="md:hidden flex"
+          className="navbar-mobile flex"
         >
           <div style={{ width: 24, height: 2, background: 'var(--cyan)', transition: 'all 0.3s' }} />
           <div style={{ width: 20, height: 2, background: 'var(--cyan)', transition: 'all 0.3s' }} />
@@ -204,11 +215,12 @@ export default function Navbar() {
           height: '100vh',
         }}>
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {NAV_LINKS.map(({ label, href }) => (
+            {NAV_LINKS.map(({ label, href, newPageIcon }) => (
               <li key={href}>
-                <a 
+                <a
                   href={href}
                   {...(href.startsWith('http') && { target: '_blank', rel: 'noopener noreferrer' })}
+                  aria-label={newPageIcon ? `${label} (abre em nova aba)` : undefined}
                   onClick={closeMenu}
                   style={{
                     fontSize: '0.9rem',
@@ -222,6 +234,7 @@ export default function Navbar() {
                     borderBottom: '1px solid rgba(0,245,212,0.15)',
                   }}>
                   {label}
+                  {newPageIcon && <IconExternalLink />}
                 </a>
               </li>
             ))}
@@ -290,7 +303,7 @@ export default function Navbar() {
             zIndex: 202,
             transition: 'all 0.2s',
           }}
-          className="md:hidden"
+          className="navbar-mobile"
         >
           ✕
         </button>
