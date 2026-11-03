@@ -4,10 +4,11 @@ import { useState } from 'react'
 import { SITE_URL } from '@/lib/contato'
 
 const NAV_LINKS = [
-  { label: 'Como funciona',  href: '#como-funciona'  },
-  { label: 'Livro do Mês',   href: '#livro-do-mes'   },
-  { label: 'Agenda',         href: '#agenda'         },
-  { label: 'Próximos meses', href: '#proximos-meses' },
+  { label: 'Como Funciona', href: '#como-funciona' },
+  { label: 'Livro do Mês',  href: '#livro-do-mes'  },
+  { label: 'Agenda',        href: '#agenda'        },
+  { label: 'Anteriormente', href: '#anteriormente' },
+  { label: 'FAQ e regras',  href: '#faq-regras'    },
 ]
 
 export default function RevoleiturasNavbar() {

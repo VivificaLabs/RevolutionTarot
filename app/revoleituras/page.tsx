@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
+import type { ReactNode } from 'react'
 import RevoleiturasNavbar from '@/components/revoleituras/RevoleiturasNavbar'
-import { REVOLEITURAS_URL } from '@/lib/contato'
+import { REVOLEITURAS_URL, WHATSAPP_REVOLEITURAS_URL } from '@/lib/contato'
 import './revoleituras.css'
 
 const TITLE = 'Revoleituras | Revolution Tarot'
@@ -44,6 +45,20 @@ const BENEFICIOS = [
   'Leitura e propagação do clube → gera desconto nas tiragens de Tarot',
 ]
 
+const DESCONTOS: { titulo: string; texto: ReactNode }[] = [
+  { titulo: '+3% de desconto', texto: <>Ao postar uma <strong>foto com um dos livros</strong> nos stories marcando a página</> },
+  { titulo: '+5% de desconto', texto: <>Quando compartilhar <strong>uma citação do livro</strong> (foto nos stories, post nas redes...)</> },
+  { titulo: '+5% de desconto', texto: <>Se fizer <strong>resenha em um post exclusivo</strong>, no feed do seu perfil</> },
+]
+
+function IconWhatsApp() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="rl-btn-icon">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+    </svg>
+  )
+}
+
 // Glifo fa-check (Font Awesome Free, CC BY 4.0)
 function IconCheck() {
   return (
@@ -53,12 +68,12 @@ function IconCheck() {
   )
 }
 
-function SectionHeading({ num, title }: { num: string; title: string }) {
+function SectionHeading({ num, title, subtitle }: { num: string; title: string; subtitle?: string }) {
   return (
     <header className="rl-section-heading">
       <span className="rl-section-num">{`// ${num}`}</span>
       <h2>{title}</h2>
-      <p className="rl-subtitle">{LOREM_SHORT}</p>
+      {subtitle && <p className="rl-subtitle">{subtitle}</p>}
     </header>
   )
 }
@@ -74,14 +89,14 @@ export default function RevoleiturasPage() {
           <h1 className="glitch-title">Revoleituras</h1>
           <p className="rl-hero-tagline">Chega de catarse política de 4 em 4 anos. A revolução começa agora.</p>
 
-          <div className="rl-hero-columns">
+          <div className="rl-columns">
             <div className="rl-hero-text">
               <p>E se a gente usar o poder da internet pra se organizar, ler juntos e discutir ideias progressistas? Enviesados pra esquerda, obviamente. ☭</p>
               <p>Todo mês teremos um tema central e sugestões de livros para lermos em conjunto e discutirmos ideias, pontos de vista e aprendermos juntos sobre aspectos políticos que talvez não sejam nossa zona de conforto, mas que sem dúvida precisam ser conhecidos para que não haja mais desespero nas próximas eleições.</p>
               <p className="rl-hero-signature">Organizado por Olivia Mattiazzo, programadora, taróloga, mestranda em Matemática e ansiosa por fazer a diferença.</p>
             </div>
 
-            <aside className="rl-hero-box">
+            <aside className="rl-box">
               <figure className="rl-quote">
                 <blockquote>Uma ideia torna-se uma força material quando ganha as massas organizadas.</blockquote>
                 <figcaption>{`// a partir de Karl Marx`}</figcaption>
@@ -100,20 +115,38 @@ export default function RevoleiturasPage() {
         </section>
 
         <section id="como-funciona">
-          <SectionHeading num="01" title="Como funciona" />
-          <div className="rl-grid">
-            {['01', '02', '03'].map(step => (
-              <article key={step} className="rl-card">
-                <span className="rl-section-num">{step}</span>
-                <h3>Lorem ipsum</h3>
-                <p>{LOREM}</p>
-              </article>
-            ))}
+          <SectionHeading num="01" title="Como Funciona" />
+
+          <div className="rl-columns">
+            <div className="rl-como-texto">
+              <p>Todo mês, teremos um tema diferente e sugestões de obras — tanto uma principal, quanto secundárias, e também audiovisuais. Não tem data para finalizar nem encontro mensal, porque eu entendo que todo mundo tem vida pra além daqui. Temos uma comunidade montada no WhatsApp para irmos conversando sobre as ideias do livro e partilhar quotes que achamos interessantes, bem como insights que tivemos a partir da leitura. A participação no Revoleituras é totalmente gratuita, mas tem coisas que você pode fazer que podem te render até 13% de desconto em leituras de Tarot comigo 👀</p>
+              <div className="rl-actions">
+                <a href="#faq-regras" className="rl-btn rl-btn--primary">Mais detalhes em: FAQ e regras para utilização dos descontos ⏩</a>
+                <a href={WHATSAPP_REVOLEITURAS_URL} target="_blank" rel="noopener noreferrer" className="rl-btn rl-btn--whatsapp">
+                  <IconWhatsApp />
+                  Dúvidas? Entre em contato diretamente comigo
+                </a>
+              </div>
+            </div>
+
+            <div className="rl-descontos">
+              <h3 className="rl-subtitle">Como funcionam os descontos?</h3>
+              <p>A acumulação de desconto funciona da seguinte forma:</p>
+
+              {DESCONTOS.map(({ titulo, texto }, i) => (
+                <article key={i} className="rl-box rl-box--small">
+                  <h4>{titulo}</h4>
+                  <p>{texto}</p>
+                </article>
+              ))}
+
+              <p className="rl-note">Lembre-se sempre de marcar a página <a href="https://instagram.com/revolution.tarot" target="_blank" rel="noopener noreferrer">@revolution.tarot</a> para que eu possa ver a publicação e contabilizar sua participação!</p>
+            </div>
           </div>
         </section>
 
         <section id="livro-do-mes">
-          <SectionHeading num="02" title="Livro do Mês" />
+          <SectionHeading num="02" title="Livro do Mês" subtitle={LOREM_SHORT} />
           <div className="rl-book">
             <div className="rl-cover" aria-hidden="true">[ capa ]</div>
             <div>
@@ -125,7 +158,7 @@ export default function RevoleiturasPage() {
         </section>
 
         <section id="agenda">
-          <SectionHeading num="03" title="Agenda" />
+          <SectionHeading num="03" title="Agenda" subtitle={LOREM_SHORT} />
           <ul className="rl-agenda">
             {[1, 2, 3, 4].map(row => (
               <li key={row}>
@@ -137,8 +170,8 @@ export default function RevoleiturasPage() {
           </ul>
         </section>
 
-        <section id="proximos-meses">
-          <SectionHeading num="04" title="Próximos meses" />
+        <section id="anteriormente">
+          <SectionHeading num="04" title="Anteriormente" subtitle={LOREM_SHORT} />
           <div className="rl-grid">
             {[1, 2, 3].map(month => (
               <article key={month} className="rl-card">
@@ -146,6 +179,18 @@ export default function RevoleiturasPage() {
                 <h3>Lorem ipsum</h3>
                 <p>{LOREM}</p>
               </article>
+            ))}
+          </div>
+        </section>
+
+        <section id="faq-regras">
+          <SectionHeading num="05" title="FAQ e regras" subtitle="Tudo sobre o clube e a utilização dos descontos" />
+          <div className="rl-faq">
+            {[1, 2, 3, 4].map(item => (
+              <details key={item}>
+                <summary>Lorem ipsum dolor sit amet?</summary>
+                <p>{LOREM}</p>
+              </details>
             ))}
           </div>
         </section>
