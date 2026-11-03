@@ -44,7 +44,7 @@ body:has(.revoleituras) {
 
 /* ── FUNDO PEROLADO ── */
 
-/* Brilho sedoso: manchas escarlates que se movem devagar sobre o vinho */
+/* Gradiente estático: só aparece se o navegador não tiver WebGL */
 .revoleituras::before {
   content: '';
   position: fixed;
@@ -56,7 +56,6 @@ body:has(.revoleituras) {
     radial-gradient(ellipse 50% 28% at 42% 74%, rgba(214,20,48,0.45), transparent 70%),
     radial-gradient(ellipse 30% 30% at 86% 82%, rgba(150,14,36,0.65), transparent 70%),
     linear-gradient(135deg, var(--rl-base) 0%, var(--rl-wine) 38%, var(--rl-base) 62%, var(--rl-wine) 100%);
-  animation: rl-silk 45s ease-in-out infinite alternate;
 }
 
 /* Partículas: pó perolado fino + brilhos maiores e mais raros */
@@ -74,14 +73,19 @@ body:has(.revoleituras) {
   animation: rl-shimmer 9s ease-in-out infinite alternate;
 }
 
-@keyframes rl-silk {
-  from { transform: translate3d(-4%, -3%, 0) scale(1); }
-  to   { transform: translate3d(4%, 3%, 0) scale(1.08); }
-}
-
 @keyframes rl-shimmer {
   from { opacity: 0.28; }
   to   { opacity: 0.40; }
+}
+
+/* Bandeira: desenhada em WebGL pelo FlagBackground */
+.rl-flag {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
 /* Glitch do título: mais forte que o do site principal. Offsets em em para escalar com o título */
@@ -99,7 +103,6 @@ body:has(.revoleituras) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .revoleituras::before,
   .revoleituras::after,
   .revoleituras .glitch-title {
     animation: none;

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
+import FlagBackground from '@/components/revoleituras/FlagBackground'
 import RevoleiturasNavbar from '@/components/revoleituras/RevoleiturasNavbar'
 import { REVOLEITURAS_URL, WHATSAPP_REVOLEITURAS_URL } from '@/lib/contato'
 import './revoleituras.css'
@@ -81,6 +82,7 @@ function SectionHeading({ num, title, subtitle }: { num: string; title: string; 
 export default function RevoleiturasPage() {
   return (
     <div className="revoleituras" id="topo">
+      <FlagBackground />
       <RevoleiturasNavbar />
 
       <main>
