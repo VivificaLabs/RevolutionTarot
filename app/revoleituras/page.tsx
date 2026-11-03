@@ -37,6 +37,22 @@ const LOREM = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do e
 const LOREM_LONG = `${LOREM} Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.`
 const LOREM_SHORT = 'Dolor sit amet consectetur'
 
+const BENEFICIOS = [
+  'Um tema por mês, várias opções de livros',
+  'Sugestões de obras audiovisuais para complementar os estudos',
+  'Comunidade no WhatsApp para discussão',
+  'Leitura e propagação do clube → gera desconto nas tiragens de Tarot',
+]
+
+// Glifo fa-check (Font Awesome Free, CC BY 4.0)
+function IconCheck() {
+  return (
+    <svg viewBox="0 0 448 512" aria-hidden="true" className="rl-check">
+      <path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z" />
+    </svg>
+  )
+}
+
 function SectionHeading({ num, title }: { num: string; title: string }) {
   return (
     <header className="rl-section-heading">
@@ -54,9 +70,33 @@ export default function RevoleiturasPage() {
 
       <main>
         <section className="rl-hero">
+          <p className="rl-subtitle rl-hero-kicker">Clube do Livro</p>
           <h1 className="glitch-title">Revoleituras</h1>
-          <p className="rl-subtitle">{LOREM_SHORT}</p>
-          <p className="rl-hero-text">{LOREM}</p>
+          <p className="rl-hero-tagline">Chega de catarse política de 4 em 4 anos. A revolução começa agora.</p>
+
+          <div className="rl-hero-columns">
+            <div className="rl-hero-text">
+              <p>E se a gente usar o poder da internet pra se organizar, ler juntos e discutir ideias progressistas? Enviesados pra esquerda, obviamente. ☭</p>
+              <p>Todo mês teremos um tema central e sugestões de livros para lermos em conjunto e discutirmos ideias, pontos de vista e aprendermos juntos sobre aspectos políticos que talvez não sejam nossa zona de conforto, mas que sem dúvida precisam ser conhecidos para que não haja mais desespero nas próximas eleições.</p>
+              <p className="rl-hero-signature">Organizado por Olivia Mattiazzo, programadora, taróloga, mestranda em Matemática e ansiosa por fazer a diferença.</p>
+            </div>
+
+            <aside className="rl-hero-box">
+              <figure className="rl-quote">
+                <blockquote>Uma ideia torna-se uma força material quando ganha as massas organizadas.</blockquote>
+                <figcaption>{`// a partir de Karl Marx`}</figcaption>
+              </figure>
+
+              <ul className="rl-checklist">
+                {BENEFICIOS.map(item => (
+                  <li key={item}>
+                    <IconCheck />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </aside>
+          </div>
         </section>
 
         <section id="como-funciona">
