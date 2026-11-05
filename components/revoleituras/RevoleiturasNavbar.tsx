@@ -5,14 +5,16 @@ import { SITE_URL } from '@/lib/contato'
 
 const NAV_LINKS = [
   { label: 'Como Funciona', href: '#como-funciona' },
-  { label: 'Livro do Mês',  href: '#livro-do-mes'  },
   { label: 'Agenda',        href: '#agenda'        },
+  { label: 'Livro do Mês',  href: '#livro-do-mes'  },
+  { label: 'Em Breve',      href: '#em-breve'      },
   { label: 'Anteriormente', href: '#anteriormente' },
   { label: 'FAQ e regras',  href: '#faq-regras'    },
 ]
 
-export default function RevoleiturasNavbar() {
+export default function RevoleiturasNavbar({ ocultos }: { ocultos: string[] }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const links = NAV_LINKS.filter(({ href }) => !ocultos.includes(href))
 
   const closeMenu = () => setMenuOpen(false)
 
@@ -21,7 +23,7 @@ export default function RevoleiturasNavbar() {
       <a href="#topo" className="rl-nav-title" onClick={closeMenu}>Revoleituras</a>
 
       <ul className="rl-nav-links">
-        {NAV_LINKS.map(({ label, href }) => (
+        {links.map(({ label, href }) => (
           <li key={href}><a href={href}>{label}</a></li>
         ))}
       </ul>
@@ -41,7 +43,7 @@ export default function RevoleiturasNavbar() {
       {menuOpen && (
         <div className="rl-nav-mobile">
           <ul>
-            {NAV_LINKS.map(({ label, href }) => (
+            {links.map(({ label, href }) => (
               <li key={href}><a href={href} onClick={closeMenu}>{label}</a></li>
             ))}
           </ul>

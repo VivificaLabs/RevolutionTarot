@@ -14,6 +14,7 @@
 
   /* Acentos */
   --rl-green:   #25d366;
+  --rl-tag:     #00f5d4;
 
   /* Bordas */
   --rl-border:  rgba(255,222,89,0.25);
@@ -216,7 +217,7 @@ body:has(.revoleituras) {
   border: 1px solid var(--rl-title);
 }
 
-@media (max-width: 1149px) {
+@media (max-width: 1279px) {
   .rl-nav { grid-template-columns: 1fr auto; }
   .rl-nav-links,
   .revoleituras .rl-nav-back { display: none; }
@@ -268,10 +269,12 @@ body:has(.revoleituras) {
 }
 
 /* ── SEÇÕES ── */
+/* Cada seção ocupa pelo menos uma tela (descontando o menu fixo), para as vizinhas não aparecerem ao navegar pelo menu */
 .revoleituras section {
   max-width: 1120px;
+  min-height: calc(100vh - 64px);
   margin: 0 auto;
-  padding: clamp(56px, 8vw, 96px) clamp(16px, 4vw, 48px);
+  padding: clamp(16px, 2vw, 24px) clamp(16px, 4vw, 48px);
   scroll-margin-top: 64px;
 }
 
@@ -388,14 +391,11 @@ body:has(.revoleituras) {
 
 /* ── COMO FUNCIONA ── */
 
-/* Ocupa uma tela inteira (descontando o menu fixo), sem a próxima seção aparecer embaixo */
 .revoleituras #como-funciona {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-height: calc(100vh - 64px);
   padding-top: clamp(20px, 2.5vw, 32px);
-  padding-bottom: clamp(16px, 2vw, 24px);
 }
 
 #como-funciona .rl-section-heading {
@@ -525,52 +525,287 @@ body:has(.revoleituras) {
   margin-bottom: clamp(28px, 4vw, 48px);
 }
 
-/* ── CARDS ── */
-.rl-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
-  gap: 20px;
+/* ── CARROSSÉIS ── */
+.rl-seta {
+  flex-shrink: 0;
+  align-self: center;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--rl-title);
+  border: 1px solid var(--rl-title);
+  color: var(--rl-base);
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.rl-card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 24px;
-  background: var(--rl-panel);
+.rl-seta svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+}
+
+.rl-seta:hover:not(:disabled) {
+  background: transparent;
+  color: var(--rl-title);
+}
+
+.rl-seta:disabled {
+  background: transparent;
+  border-color: var(--rl-border);
+  color: var(--rl-border);
+  cursor: default;
+}
+
+.rl-capa {
+  width: 100%;
+  height: auto;
   border: 1px solid var(--rl-border);
 }
 
 /* ── LIVRO DO MÊS ── */
+#livro-do-mes .rl-section-heading {
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.revoleituras p.rl-tema-descricao {
+  margin-bottom: 16px;
+}
+
+.rl-livro {
+  display: flex;
+  gap: clamp(16px, 3vw, 32px);
+}
+
+/* A seta muda de lado no segundo slide. Trocar só a ordem mantém o foco do teclado no botão */
+.rl-livro--extras .rl-seta {
+  order: -1;
+}
+
+.rl-livro-slides {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+}
+
+.rl-slide {
+  grid-area: 1 / 1;
+  min-width: 0;
+  transition: opacity 0.3s, transform 0.3s, visibility 0.3s;
+}
+
+.rl-slide[data-ativo='false'] {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateX(16px);
+}
+
+/* A capa encolhe em telas baixas para a seção caber sem rolar. 345px é o espaço de todo o resto da seção */
 .rl-book {
   display: grid;
-  grid-template-columns: minmax(180px, 280px) 1fr;
+  grid-template-columns: clamp(170px, calc((100vh - 345px) * 2 / 3), 280px) 1fr;
   gap: clamp(24px, 4vw, 48px);
   align-items: start;
 }
 
-.rl-book > div:last-child {
+.rl-book-info {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
-.rl-cover {
-  aspect-ratio: 2 / 3;
+.revoleituras p.rl-autores {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--rl-muted);
+}
+
+.rl-obras {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.rl-obras h3 {
+  margin-bottom: 12px;
+}
+
+.rl-obras ul {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 20px;
+  list-style: square;
+  line-height: 1.5;
+}
+
+.rl-obras li::marker {
+  color: var(--rl-title);
+}
+
+.revoleituras p.rl-obras-nota {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--rl-muted);
+}
+
+.rl-obras-nota-rotulo {
+  font-family: var(--rl-font-title);
+  font-size: 0.75rem;
+  font-style: normal;
+  text-transform: uppercase;
+  color: var(--rl-title);
+}
+
+.rl-descritor {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--rl-title);
+}
+
+.rl-paginas,
+.rl-tag {
+  display: inline-block;
+  padding: 1px 6px;
   font-family: var(--font-mono);
   font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  color: var(--rl-muted);
-  background: var(--rl-panel);
-  border: 1px solid var(--rl-border);
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0;
+  white-space: nowrap;
+  vertical-align: 0.1em;
+  background: var(--rl-title);
+  color: #000;
+}
+
+.rl-tag {
+  background: var(--rl-tag);
+}
+
+.revoleituras .rl-obras a {
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.revoleituras .rl-obras a:hover {
+  color: var(--rl-title);
 }
 
 @media (max-width: 639px) {
+  .rl-livro { flex-direction: column; }
   .rl-book { grid-template-columns: 1fr; }
-  .rl-book .rl-cover { max-width: 220px; }
+  .rl-book .rl-capa { max-width: 220px; }
+  .rl-seta { align-self: flex-end; }
+  .rl-livro--extras .rl-seta { order: 0; align-self: flex-start; }
+}
+
+/* Links dentro das descrições vindas do JSON */
+.revoleituras .rl-link {
+  color: var(--rl-title);
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.revoleituras .rl-link:hover {
+  color: var(--rl-ink);
+}
+
+/* ── EM BREVE ── */
+
+/* O conteúdo é curto, então fica centralizado em vez de deixar um vazio embaixo */
+.revoleituras #em-breve {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.rl-em-breve-tema {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rl-em-breve-livro {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 479px) {
+  .rl-em-breve-livro {
+    grid-template-columns: 84px 1fr;
+    gap: 14px;
+  }
+}
+
+/* ── ANTERIORMENTE ── */
+
+#anteriormente .rl-section-heading {
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.rl-anteriores {
+  display: flex;
+  gap: clamp(8px, 1.5vw, 16px);
+}
+
+.rl-anteriores-trilha {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.rl-anteriores-trilha::-webkit-scrollbar {
+  display: none;
+}
+
+.rl-card {
+  flex: 0 0 calc((100% - 40px) / 3);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  background: var(--rl-panel);
+  border: 1px solid var(--rl-border);
+  scroll-snap-align: start;
+}
+
+/* A capa segue a altura da tela. 395px é o espaço do resto da seção, contando um título de livro de até 3 linhas */
+.rl-card .rl-capa {
+  align-self: center;
+  width: auto;
+  height: clamp(180px, calc(100vh - 395px), 340px);
+}
+
+.revoleituras .rl-card p:not(.rl-subtitle) {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Abaixo disso, 3 caixas ficariam estreitas demais para a descrição curta caber em 3 linhas */
+@media (max-width: 1199px) {
+  .rl-card { flex-basis: calc((100% - 20px) / 2); }
+}
+
+/* No celular as setas vão para baixo, para a caixa aproveitar a largura toda */
+@media (max-width: 767px) {
+  .rl-anteriores { flex-wrap: wrap; justify-content: center; }
+  .rl-anteriores-trilha { order: -1; flex-basis: 100%; }
+  .rl-card { flex-basis: min(300px, 100%); }
+  .rl-card .rl-capa { height: clamp(150px, calc(100vh - 430px), 340px); }
 }
 
 /* ── FAQ & REGRAS ── */

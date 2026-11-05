@@ -1,8 +1,16 @@
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
+import Image from 'next/image'
+import AnterioresCarrossel from '@/components/revoleituras/AnterioresCarrossel'
+import BadgePaginas from '@/components/revoleituras/BadgePaginas'
 import FlagBackground from '@/components/revoleituras/FlagBackground'
+import LivroCarrossel from '@/components/revoleituras/LivroCarrossel'
 import RevoleiturasNavbar from '@/components/revoleituras/RevoleiturasNavbar'
+import Tags from '@/components/revoleituras/Tags'
+import TextoComLinks from '@/components/revoleituras/TextoComLinks'
 import { REVOLEITURAS_URL, WHATSAPP_REVOLEITURAS_URL } from '@/lib/contato'
+import { formatarMes, juntarNomes, separarEdicoes } from '@/lib/revoleituras'
+import { carregarEdicoes, dataDeHoje } from '@/lib/revoleituras-conteudo'
 import './revoleituras.css'
 
 const TITLE = 'Revoleituras | Revolution Tarot'
@@ -35,8 +43,10 @@ export const viewport: Viewport = {
   themeColor: '#1f0308',
 }
 
+// Confere a data a cada hora, para os temas trocarem sozinhos no dia 15 e na virada do mês
+export const revalidate = 3600
+
 const LOREM = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
-const LOREM_LONG = `${LOREM} Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.`
 const LOREM_SHORT = 'Dolor sit amet consectetur'
 
 const BENEFICIOS = [
@@ -80,10 +90,21 @@ function SectionHeading({ num, title, subtitle }: { num: string; title: string; 
 }
 
 export default function RevoleiturasPage() {
+  const { atual, anteriores, emBreve, proximoLancamento } = separarEdicoes(carregarEdicoes(), dataDeHoje())
+  const temAnteriores = anteriores.length > 0
+  const ocultos = [
+    ...(atual ? [] : ['#livro-do-mes']),
+    ...(temAnteriores ? [] : ['#anteriormente']),
+  ]
+
+  // Numeração das seções visíveis, sem buracos quando alguma estiver escondida
+  let contador = 0
+  const proximoNumero = () => String(++contador).padStart(2, '0')
+
   return (
     <div className="revoleituras" id="topo">
       <FlagBackground />
-      <RevoleiturasNavbar />
+      <RevoleiturasNavbar ocultos={ocultos} />
 
       <main>
         <section className="rl-hero">
@@ -100,8 +121,8 @@ export default function RevoleiturasPage() {
 
             <aside className="rl-box">
               <figure className="rl-quote">
-                <blockquote>Uma ideia torna-se uma força material quando ganha as massas organizadas.</blockquote>
-                <figcaption>{`// a partir de Karl Marx`}</figcaption>
+                <blockquote>Nada a temer senão o correr da luta<br />Nada a fazer senão esquecer o medo</blockquote>
+                <figcaption>{`// Caçador de Mim, Milton Nascimento`}</figcaption>
               </figure>
 
               <ul className="rl-checklist">
@@ -117,7 +138,7 @@ export default function RevoleiturasPage() {
         </section>
 
         <section id="como-funciona">
-          <SectionHeading num="01" title="Como Funciona" />
+          <SectionHeading num={proximoNumero()} title="Como Funciona" />
 
           <div className="rl-columns">
             <div className="rl-como-texto">
@@ -147,20 +168,8 @@ export default function RevoleiturasPage() {
           </div>
         </section>
 
-        <section id="livro-do-mes">
-          <SectionHeading num="02" title="Livro do Mês" subtitle={LOREM_SHORT} />
-          <div className="rl-book">
-            <div className="rl-cover" aria-hidden="true">[ capa ]</div>
-            <div>
-              <h3>Lorem ipsum dolor</h3>
-              <p>{LOREM_LONG}</p>
-              <p>{LOREM}</p>
-            </div>
-          </div>
-        </section>
-
         <section id="agenda">
-          <SectionHeading num="03" title="Agenda" subtitle={LOREM_SHORT} />
+          <SectionHeading num={proximoNumero()} title="Agenda" subtitle={LOREM_SHORT} />
           <ul className="rl-agenda">
             {[1, 2, 3, 4].map(row => (
               <li key={row}>
@@ -172,21 +181,57 @@ export default function RevoleiturasPage() {
           </ul>
         </section>
 
-        <section id="anteriormente">
-          <SectionHeading num="04" title="Anteriormente" subtitle={LOREM_SHORT} />
-          <div className="rl-grid">
-            {[1, 2, 3].map(month => (
-              <article key={month} className="rl-card">
-                <div className="rl-cover" aria-hidden="true">[ capa ]</div>
-                <h3>Lorem ipsum</h3>
-                <p>{LOREM}</p>
+        {atual && (
+          <section id="livro-do-mes">
+            <SectionHeading num={proximoNumero()} title="Livro do Mês" subtitle={`${formatarMes(atual.mes)} - ${atual.tema.titulo}`} />
+            <p className="rl-tema-descricao"><TextoComLinks texto={atual.tema.descricao} /></p>
+            <LivroCarrossel edicao={atual} />
+          </section>
+        )}
+
+        <section id="em-breve">
+          <SectionHeading num={proximoNumero()} title="Em Breve" />
+          {emBreve ? (
+            <div className="rl-columns">
+              <div className="rl-em-breve-tema">
+                <h3 className="rl-subtitle">{`${formatarMes(emBreve.mes)} - ${emBreve.tema.titulo}`}</h3>
+                <p><TextoComLinks texto={emBreve.tema.descricaoCurta} /></p>
+              </div>
+
+              <article className="rl-box rl-em-breve-livro">
+                <Image
+                  src={`/revoleituras/capas/${emBreve.obraPrincipal.capa}`}
+                  alt={`Capa do livro ${emBreve.obraPrincipal.titulo}`}
+                  width={600}
+                  height={900}
+                  sizes="140px"
+                  className="rl-capa"
+                />
+                <div className="rl-book-info">
+                  <h3>{emBreve.obraPrincipal.titulo} <BadgePaginas paginas={emBreve.obraPrincipal.nroPaginas} /><Tags tags={emBreve.obraPrincipal.tags} /></h3>
+                  <p className="rl-autores">de {juntarNomes(emBreve.obraPrincipal.autores)}</p>
+                  <p><TextoComLinks texto={emBreve.obraPrincipal.descricaoCurta} /></p>
+                </div>
               </article>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <p className="rl-note">
+              {proximoLancamento
+                ? `O tema de ${formatarMes(proximoLancamento.mes)} será revelado em ${proximoLancamento.data}.`
+                : 'O próximo tema será revelado em breve.'}
+            </p>
+          )}
         </section>
 
+        {temAnteriores && (
+          <section id="anteriormente">
+            <SectionHeading num={proximoNumero()} title="Anteriormente" />
+            <AnterioresCarrossel edicoes={anteriores} />
+          </section>
+        )}
+
         <section id="faq-regras">
-          <SectionHeading num="05" title="FAQ e regras" subtitle="Tudo sobre o clube e a utilização dos descontos" />
+          <SectionHeading num={proximoNumero()} title="FAQ e regras" subtitle="Tudo sobre o clube e a utilização dos descontos" />
           <div className="rl-faq">
             {[1, 2, 3, 4].map(item => (
               <details key={item}>
