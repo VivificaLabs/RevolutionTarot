@@ -314,7 +314,11 @@ body:has(.revoleituras) {
 .rl-hero-text {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
+}
+
+.rl-hero-text .rl-btn {
+  align-self: center;
 }
 
 .revoleituras p.rl-hero-signature {
@@ -746,66 +750,202 @@ body:has(.revoleituras) {
   }
 }
 
-/* ── ANTERIORMENTE ── */
+/* ── ACERVO ── */
 
-#anteriormente .rl-section-heading {
+#acervo .rl-section-heading {
   gap: 6px;
   margin-bottom: 16px;
 }
 
-.rl-anteriores {
+.rl-acervo {
   display: flex;
-  gap: clamp(8px, 1.5vw, 16px);
-}
-
-.rl-anteriores-trilha {
-  flex: 1;
-  min-width: 0;
-  display: flex;
+  flex-wrap: wrap;
   gap: 20px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
+  list-style: none;
 }
 
-.rl-anteriores-trilha::-webkit-scrollbar {
+.rl-acervo li {
+  position: relative;
+}
+
+.rl-acervo-item {
+  position: relative;
+  display: block;
+  width: 110px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.rl-acervo-item .rl-capa {
+  border: 2px solid rgba(255,222,89,0.45);
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.rl-acervo-item:hover .rl-capa,
+.rl-acervo-item:focus-visible .rl-capa {
+  border-color: var(--rl-title);
+  transform: translateY(-4px);
+}
+
+/* Card que aparece ao pousar o mouse. O lado é escolhido no componente, conforme o espaço na tela */
+.rl-acervo-card {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 12px);
+  z-index: 10;
+  width: 260px;
+  /* Escondido com display: none para não alargar a página quando a capa está perto da borda */
   display: none;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  text-align: left;
+  background: rgba(20,2,6,0.97);
+  border: 1px solid var(--rl-title);
+  pointer-events: none;
 }
 
-.rl-card {
-  flex: 0 0 calc((100% - 40px) / 3);
+.rl-acervo-item[data-lado='esquerda'] .rl-acervo-card {
+  left: auto;
+  right: calc(100% + 12px);
+}
+
+.rl-acervo-item:hover .rl-acervo-card,
+.rl-acervo-item:focus-visible .rl-acervo-card {
+  display: flex;
+}
+
+.rl-acervo-card-tema {
+  font-family: var(--rl-font-title);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--rl-title);
+}
+
+.rl-acervo-card-livro {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--rl-ink);
+}
+
+.rl-acervo-card-autores {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--rl-muted);
+}
+
+/* Dica discreta, sem cara de link: quem é clicável é a capa */
+.rl-acervo-card-acao {
+  margin-top: 4px;
+  padding-top: 8px;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--rl-muted);
+  opacity: 0.8;
+  border-top: 1px solid var(--rl-border);
+}
+
+/* Em telas de toque não existe "pousar o mouse": o toque abre direto o acervo do mês */
+@media (hover: none) {
+  .rl-acervo-card { display: none; }
+}
+
+@media (max-width: 767px) {
+  .rl-acervo { gap: 14px; }
+  .rl-acervo-item { width: 90px; }
+}
+
+/* ── MODAL DO ACERVO ── */
+.rl-modal {
+  width: min(760px, calc(100vw - 32px));
+  max-width: none;
+  max-height: 85vh;
+  margin: auto;
+  padding: 0;
+  overflow-y: auto;
+  color: var(--rl-ink);
+  background: var(--rl-base);
+  border: 1px solid var(--rl-title);
+}
+
+.rl-modal::backdrop {
+  background: rgba(10,1,4,0.75);
+  backdrop-filter: blur(4px);
+}
+
+/* Faixa fixa no topo: o botão de fechar fica sempre visível e o texto rola por baixo dela */
+.rl-modal-topo {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 12px 8px;
+  background: var(--rl-base);
+}
+
+.rl-modal-fechar {
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: 1px solid var(--rl-title);
+  color: var(--rl-title);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.rl-modal-conteudo {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 18px;
-  background: var(--rl-panel);
-  border: 1px solid var(--rl-border);
-  scroll-snap-align: start;
+  gap: 16px;
+  padding: 0 clamp(20px, 4vw, 36px) clamp(20px, 4vw, 36px);
 }
 
-/* A capa segue a altura da tela. 395px é o espaço do resto da seção, contando um título de livro de até 3 linhas */
-.rl-card .rl-capa {
-  align-self: center;
-  width: auto;
-  height: clamp(180px, calc(100vh - 395px), 340px);
+.revoleituras h2.rl-modal-titulo {
+  font-size: clamp(1.1rem, 3vw, 1.6rem);
+  line-height: 1.3;
 }
 
-.revoleituras .rl-card p:not(.rl-subtitle) {
-  font-size: 0.9rem;
-  line-height: 1.5;
+.rl-modal-principal {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 16px;
+  align-items: start;
+  padding: 16px;
+  background: rgba(255,222,89,0.06);
 }
 
-/* Abaixo disso, 3 caixas ficariam estreitas demais para a descrição curta caber em 3 linhas */
-@media (max-width: 1199px) {
-  .rl-card { flex-basis: calc((100% - 20px) / 2); }
+.rl-modal-rotulo {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rl-muted);
 }
 
-/* No celular as setas vão para baixo, para a caixa aproveitar a largura toda */
-@media (max-width: 767px) {
-  .rl-anteriores { flex-wrap: wrap; justify-content: center; }
-  .rl-anteriores-trilha { order: -1; flex-basis: 100%; }
-  .rl-card { flex-basis: min(300px, 100%); }
-  .rl-card .rl-capa { height: clamp(150px, calc(100vh - 430px), 340px); }
+.rl-modal .rl-obras {
+  margin-top: 8px;
+}
+
+/* Comentário de quem recomendou, abaixo da obra */
+.rl-recomendacao {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--rl-muted);
+}
+
+.rl-recomendacao cite {
+  font-style: normal;
+  font-weight: 700;
 }
 
 /* ── FAQ & REGRAS ── */
@@ -814,7 +954,7 @@ body:has(.revoleituras) {
 }
 
 .rl-faq summary {
-  padding: 18px 0;
+  padding: 13px 0;
   font-family: var(--font-mono);
   font-weight: 700;
   color: var(--rl-title);
@@ -825,25 +965,71 @@ body:has(.revoleituras) {
   padding-bottom: 18px;
 }
 
+.rl-faq-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-bottom: 18px;
+}
+
+#faq-regras .rl-columns {
+  align-items: start;
+}
+
+.rl-faq-contato {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.revoleituras .rl-faq-contato p {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--rl-title);
+}
+
+.rl-regras {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rl-regras h3.rl-subtitle {
+  margin-bottom: 4px;
+}
+
+.revoleituras .rl-box--small p.rl-regra-exemplo {
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--rl-muted);
+}
+
 /* ── AGENDA ── */
 .rl-agenda { list-style: none; }
 
 .rl-agenda li {
   display: grid;
-  grid-template-columns: 80px 1fr 2fr;
-  gap: 16px;
-  align-items: baseline;
+  grid-template-columns: 190px 1fr 1fr;
+  gap: 8px 24px;
+  align-items: center;
   padding: 18px 0;
   border-bottom: 1px solid var(--rl-border);
 }
 
-.rl-agenda-date {
-  font-family: var(--font-mono);
-  font-weight: 700;
-  color: var(--rl-muted);
+.rl-agenda .rl-btn {
+  justify-self: start;
 }
 
-@media (max-width: 639px) {
-  .rl-agenda li { grid-template-columns: 64px 1fr; }
-  .rl-agenda li p { grid-column: 2; }
+@media (max-width: 767px) {
+  .rl-agenda li { grid-template-columns: 1fr; }
+}
+
+.revoleituras p.rl-agenda-nota {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--rl-muted);
 }

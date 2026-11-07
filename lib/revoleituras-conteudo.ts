@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { hojeEmBrasilia, validarEdicao, type Edicao } from './revoleituras'
+import { hojeEmLisboa, validarEdicao, type Edicao } from './revoleituras'
 
 export const PASTA_EDICOES = path.join(process.cwd(), 'content/revoleituras')
 export const PASTA_CAPAS = path.join(process.cwd(), 'public/revoleituras/capas')
@@ -8,7 +8,7 @@ export const PASTA_CAPAS = path.join(process.cwd(), 'public/revoleituras/capas')
 // Para ver o site em outra data, use REVOLEITURAS_DATA_SIMULADA=AAAA-MM-DD no .env.local. Nunca vale em produção
 export function dataDeHoje() {
   const simulada = process.env.NODE_ENV !== 'production' && process.env.REVOLEITURAS_DATA_SIMULADA
-  return simulada || hojeEmBrasilia()
+  return simulada || hojeEmLisboa()
 }
 
 // Só roda no servidor. Um arquivo com erro derruba o build de propósito: o deploy falha e o site fica na versão anterior

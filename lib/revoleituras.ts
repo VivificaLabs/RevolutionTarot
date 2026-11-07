@@ -4,6 +4,22 @@ export const LIMITES = {
   descricaoMedia: 500,
   descricaoCurta: 100,
   observacaoLivrosComplementares: 200,
+  tituloCurto: 30,
+  comentario: 200,
+}
+
+export interface RecomendacaoMembro {
+  descritor?: string
+  emoji?: string
+  titulo: string
+  autores?: string[]
+  ondeEncontrar?: string
+  url?: string
+  nroPaginas?: number
+  tags?: string[]
+  observacao?: string
+  sugeridoPor: string
+  comentario?: string
 }
 
 export interface LivroComplementar {
@@ -31,6 +47,7 @@ export interface Edicao {
   mes: string
   tema: {
     titulo: string
+    tituloCurto?: string
     descricaoCurta: string
     descricao: string
   }
@@ -46,6 +63,7 @@ export interface Edicao {
   livrosComplementares: LivroComplementar[]
   observacaoLivrosComplementares?: string
   audiovisual: ObraAudiovisual[]
+  recomendacoesMembros?: RecomendacaoMembro[]
 }
 
 const MESES = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ']
@@ -53,6 +71,7 @@ const MESES = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'O
 export const REGEX_MES = /^\d{4}-(0[1-9]|1[0-2])$/
 
 const DIA_LANCAMENTO = 15
+const DIA_LIMITE_POSTAGEM = 25
 
 // "2026-12" -> "DEZ/26"
 export function formatarMes(mes: string) {
@@ -66,10 +85,10 @@ export function juntarNomes(nomes: string[]) {
   return `${nomes.slice(0, -1).join(', ')} e ${nomes[nomes.length - 1]}`
 }
 
-// "AAAA-MM-DD" no horário de Brasília
-export function hojeEmBrasilia(agora = new Date()) {
+// "AAAA-MM-DD" no horário de Lisboa
+export function hojeEmLisboa(agora = new Date()) {
   const partes = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/Sao_Paulo',
+    timeZone: 'Europe/Lisbon',
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -100,6 +119,33 @@ export function separarEdicoes(edicoes: Edicao[], hoje: string) {
     anteriores: publicadas.slice(1),
     emBreve: jaLancou ? edicoes.find(edicao => edicao.mes === seguinte) ?? null : null,
     proximoLancamento: jaLancou ? null : { mes: seguinte, data: `${DIA_LANCAMENTO}/${mes.slice(5)}` },
+  }
+}
+
+// Próximas datas da Agenda. A data do dia ainda conta como "próxima" e só avança no dia seguinte
+export function calcularAgenda(hoje: string, atual: Edicao | null, emBreve: Edicao | null) {
+  const mes = hoje.slice(0, 7)
+  const dia = Number(hoje.slice(8))
+  const seguinte = proximoMes(mes)
+  const comecaHoje = dia === 1
+  const lancamento = `${DIA_LANCAMENTO}/${(dia <= DIA_LANCAMENTO ? mes : seguinte).slice(5)}`
+
+  let livro: { titulo: string; secao: string } | null = null
+  if (comecaHoje && atual?.mes === mes) livro = { titulo: atual.obraPrincipal.titulo, secao: '#livro-do-mes' }
+  if (!comecaHoje && emBreve) livro = { titulo: emBreve.obraPrincipal.titulo, secao: '#em-breve' }
+
+  // Antes da primeira leitura ainda não há o que postar: o prazo só conta a partir do mês em que ela começa
+  const mesPrazo = atual && dia <= DIA_LIMITE_POSTAGEM ? mes : seguinte
+
+  return {
+    lancamento,
+    inicio: `01/${(comecaHoje ? mes : seguinte).slice(5)}`,
+    prazoPostagem: `${DIA_LIMITE_POSTAGEM}/${mesPrazo.slice(5)}`,
+    livro,
+    // No dia 1º a linha de início já aponta para o Livro do Mês
+    emLeitura: atual && livro?.secao !== '#livro-do-mes' ? atual.obraPrincipal.titulo : null,
+    // Antes do lançamento o livro ainda é segredo: a Agenda só diz quando ele será revelado
+    revelacao: !comecaHoje && dia < DIA_LANCAMENTO ? lancamento : null,
   }
 }
 
@@ -201,6 +247,7 @@ export function validarEdicao(dados: unknown, nomeArquivo: string): string[] {
 
   const tema = (edicao.tema ?? {}) as Record<string, unknown>
   validarTexto(erros, tema.titulo, 'tema.titulo')
+  if (tema.tituloCurto !== undefined) validarTexto(erros, tema.tituloCurto, 'tema.tituloCurto', LIMITES.tituloCurto)
   validarDescricao(erros, tema.descricaoCurta, 'tema.descricaoCurta', LIMITES.temaDescricaoCurta)
   validarDescricao(erros, tema.descricao, 'tema.descricao', LIMITES.temaDescricao)
 
@@ -231,6 +278,19 @@ export function validarEdicao(dados: unknown, nomeArquivo: string): string[] {
     validarObra(erros, obra, campo)
     validarTexto(erros, obra.ondeEncontrar, `${campo}.ondeEncontrar`)
   })
+
+  // Pode ser livro (autores, páginas) ou obra audiovisual (onde encontrar): os dois formatos são opcionais
+  if (edicao.recomendacoesMembros !== undefined) {
+    comoLista(edicao.recomendacoesMembros, 'recomendacoesMembros', erros).forEach((obra, i) => {
+      const campo = `recomendacoesMembros[${i}]`
+      validarObra(erros, obra, campo)
+      if (obra.autores !== undefined) validarAutores(erros, obra.autores, `${campo}.autores`)
+      if (obra.ondeEncontrar !== undefined) validarTexto(erros, obra.ondeEncontrar, `${campo}.ondeEncontrar`)
+      validarPaginas(erros, obra.nroPaginas, `${campo}.nroPaginas`)
+      validarTexto(erros, obra.sugeridoPor, `${campo}.sugeridoPor`)
+      if (obra.comentario !== undefined) validarTexto(erros, obra.comentario, `${campo}.comentario`, LIMITES.comentario)
+    })
+  }
 
   return erros
 }

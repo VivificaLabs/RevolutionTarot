@@ -8,7 +8,7 @@
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import { dividirLinks, formatarMes, hojeEmBrasilia, juntarNomes, LIMITES, proximoMes, separarEdicoes, validarEdicao, type Edicao } from '@/lib/revoleituras'
+import { calcularAgenda, dividirLinks, formatarMes, hojeEmLisboa, juntarNomes, LIMITES, proximoMes, separarEdicoes, validarEdicao, type Edicao } from '@/lib/revoleituras'
 import { carregarEdicoes, dataDeHoje } from '@/lib/revoleituras-conteudo'
 
 function criarEdicao(mes = '2026-12'): Edicao {
@@ -74,15 +74,15 @@ describe('dividirLinks', () => {
   })
 })
 
-describe('hojeEmBrasilia', () => {
-  it('usa o horário de Brasília na virada do mês', () => {
-    expect(hojeEmBrasilia(new Date('2027-01-01T02:00:00Z'))).toBe('2026-12-31')
-    expect(hojeEmBrasilia(new Date('2027-01-01T03:00:00Z'))).toBe('2027-01-01')
+describe('hojeEmLisboa', () => {
+  it('usa o horário de inverno de Lisboa na virada do mês', () => {
+    expect(hojeEmLisboa(new Date('2026-12-31T23:59:00Z'))).toBe('2026-12-31')
+    expect(hojeEmLisboa(new Date('2027-01-01T00:00:00Z'))).toBe('2027-01-01')
   })
 
-  it('usa o horário de Brasília no dia do lançamento', () => {
-    expect(hojeEmBrasilia(new Date('2026-11-15T02:00:00Z'))).toBe('2026-11-14')
-    expect(hojeEmBrasilia(new Date('2026-11-15T03:00:00Z'))).toBe('2026-11-15')
+  it('usa o horário de verão de Lisboa no dia do lançamento', () => {
+    expect(hojeEmLisboa(new Date('2027-07-14T22:59:00Z'))).toBe('2027-07-14')
+    expect(hojeEmLisboa(new Date('2027-07-14T23:00:00Z'))).toBe('2027-07-15')
   })
 })
 
@@ -104,7 +104,7 @@ describe('dataDeHoje', () => {
 
   it('ignora a data simulada em produção', () => {
     process.env = { ...ambiente, NODE_ENV: 'production', REVOLEITURAS_DATA_SIMULADA: '2000-01-01' }
-    expect(dataDeHoje()).toBe(hojeEmBrasilia())
+    expect(dataDeHoje()).toBe(hojeEmLisboa())
   })
 })
 
@@ -173,6 +173,63 @@ describe('separarEdicoes', () => {
 
   it('funciona sem nenhum arquivo', () => {
     expect(separarEdicoes([], '2026-12-01')).toEqual({ atual: null, anteriores: [], emBreve: null, proximoLancamento: { mes: '2027-01', data: '15/12' } })
+  })
+})
+
+// ── AGENDA ────────────────────────────────────────────────────────────────────
+
+describe('calcularAgenda', () => {
+  const dezembro = criarEdicao('2026-12')
+  const janeiro = criarEdicao('2027-01')
+
+  it('antes do dia 15 mostra as próximas datas sem revelar o livro', () => {
+    expect(calcularAgenda('2026-11-05', null, null)).toEqual({
+      lancamento: '15/11', inicio: '01/12', prazoPostagem: '25/12', livro: null, emLeitura: null, revelacao: '15/11',
+    })
+  })
+
+  it('no dia 15 mantém a data do dia e já mostra o livro em Em Breve', () => {
+    expect(calcularAgenda('2026-11-15', null, dezembro)).toEqual({
+      lancamento: '15/11', inicio: '01/12', prazoPostagem: '25/12', livro: { titulo: 'Livro', secao: '#em-breve' }, emLeitura: null, revelacao: null,
+    })
+  })
+
+  it('depois do dia 15 avança o lançamento para o mês seguinte', () => {
+    expect(calcularAgenda('2026-11-16', null, dezembro).lancamento).toBe('15/12')
+  })
+
+  it('no dia 1º aponta para o Livro do Mês, sem repetir o livro em leitura', () => {
+    expect(calcularAgenda('2026-12-01', dezembro, null)).toEqual({
+      lancamento: '15/12', inicio: '01/12', prazoPostagem: '25/12', livro: { titulo: 'Livro', secao: '#livro-do-mes' }, emLeitura: null, revelacao: null,
+    })
+  })
+
+  it('no dia 2 avança o início, esconde o próximo livro e mostra o livro em leitura', () => {
+    expect(calcularAgenda('2026-12-02', dezembro, null)).toEqual({
+      lancamento: '15/12', inicio: '01/01', prazoPostagem: '25/12', livro: null, emLeitura: 'Livro', revelacao: '15/12',
+    })
+  })
+
+  it('o prazo de postagem vale até o próprio dia 25 e depois avança', () => {
+    expect(calcularAgenda('2026-12-25', dezembro, janeiro).prazoPostagem).toBe('25/12')
+    expect(calcularAgenda('2026-12-26', dezembro, janeiro).prazoPostagem).toBe('25/01')
+  })
+
+  it('vira o ano, com o livro em leitura e o próximo lado a lado', () => {
+    expect(calcularAgenda('2026-12-20', dezembro, janeiro)).toEqual({
+      lancamento: '15/01', inicio: '01/01', prazoPostagem: '25/12',
+      livro: { titulo: 'Livro', secao: '#em-breve' }, emLeitura: 'Livro', revelacao: null,
+    })
+  })
+
+  it('sem arquivo depois do dia 15 não promete data de revelação', () => {
+    expect(calcularAgenda('2026-12-20', dezembro, null)).toEqual({
+      lancamento: '15/01', inicio: '01/01', prazoPostagem: '25/12', livro: null, emLeitura: 'Livro', revelacao: null,
+    })
+  })
+
+  it('no dia 1º sem arquivo do mês não aponta para um livro antigo', () => {
+    expect(calcularAgenda('2027-01-01', dezembro, null).livro).toBeNull()
   })
 })
 
@@ -256,6 +313,31 @@ describe('validarEdicao', () => {
     for (const url of ['exemplo.com', 'javascript:alert(1)', '']) {
       expect(validar(e => { e.livrosComplementares[0].url = url })).toContain('livrosComplementares[0].url')
     }
+  })
+
+  it('aceita tituloCurto opcional de até 30 caracteres', () => {
+    expect(validar(e => { e.tema.tituloCurto = 'Constituição' })).toBe('')
+    expect(validar(e => { e.tema.tituloCurto = 'a'.repeat(31) })).toContain('tema.tituloCurto tem 31 caracteres (máximo 30)')
+    expect(validar(e => { e.tema.tituloCurto = '' })).toContain('tema.tituloCurto é obrigatório')
+  })
+
+  it('aceita recomendações de membros nos formatos de livro e de audiovisual', () => {
+    expect(validar(e => {
+      e.recomendacoesMembros = [
+        { descritor: 'BR', emoji: '📚', titulo: 'Livro', autores: ['Autora'], nroPaginas: 120, sugeridoPor: 'Fulana', comentario: 'Gostei' },
+        { titulo: 'Filme', ondeEncontrar: 'YouTube', url: 'https://youtube.com/x', sugeridoPor: 'Siclana' },
+      ]
+    })).toBe('')
+  })
+
+  it('recusa recomendação sem quem sugeriu ou com campos inválidos', () => {
+    const base = { titulo: 'Livro', sugeridoPor: 'Fulana' }
+    expect(validar(e => { e.recomendacoesMembros = [{ titulo: 'Livro' }] })).toContain('recomendacoesMembros[0].sugeridoPor é obrigatório')
+    expect(validar(e => { e.recomendacoesMembros = [{ ...base, comentario: 'a'.repeat(201) }] })).toContain('recomendacoesMembros[0].comentario tem 201')
+    expect(validar(e => { e.recomendacoesMembros = [{ ...base, autores: [] }] })).toContain('recomendacoesMembros[0].autores')
+    expect(validar(e => { e.recomendacoesMembros = [{ ...base, url: 'exemplo.com' }] })).toContain('recomendacoesMembros[0].url')
+    expect(validar(e => { e.recomendacoesMembros = [{ ...base, nroPaginas: '12' }] })).toContain('recomendacoesMembros[0].nroPaginas')
+    expect(validar(e => { e.recomendacoesMembros = 'nada' })).toContain('recomendacoesMembros precisa ser uma lista')
   })
 
   it('aceita observação opcional da lista de livros, com link fora da contagem', () => {

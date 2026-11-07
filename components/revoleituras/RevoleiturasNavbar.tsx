@@ -8,7 +8,7 @@ const NAV_LINKS = [
   { label: 'Agenda',        href: '#agenda'        },
   { label: 'Livro do Mês',  href: '#livro-do-mes'  },
   { label: 'Em Breve',      href: '#em-breve'      },
-  { label: 'Anteriormente', href: '#anteriormente' },
+  { label: 'Acervo',        href: '#acervo'        },
   { label: 'FAQ e regras',  href: '#faq-regras'    },
 ]
 
