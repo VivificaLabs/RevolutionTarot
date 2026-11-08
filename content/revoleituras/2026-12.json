@@ -1,0 +1,77 @@
+{
+  "mes": "2026-12",
+  "tema": {
+    "titulo": "Mas assim… a gente entende a Constituição?",
+    "tituloCurto": "Constituição",
+    "descricaoCurta": "Constituição... escutamos muito essa palavra, mas realmente conhecemos sua história? Sua importância? O que ela define, garante, protege?",
+    "descricao": "Durante as eleições brasileiras, [teve candidato falando em mudá-la](https://g1.globo.com/go/goias/eleicoes/2026/noticia/2026/10/06/flavio-bolsonaro-fala-em-usar-maioria-na-camara-e-no-senado-para-mudar-constituicao-e-redemocratizar-o-pais.ghtml). Portugal está nas ruas pela Habitação, também um direito constitucional. Muito se fala nesse conceito tão importante para qualquer país. Mas... a gente realmente entende o que é a Constituição e sua importância?"
+  },
+  "obraPrincipal": {
+    "titulo": "A Carta: Para Entender a Constituição Brasileira",
+    "autores": ["Naercio Menezes Filho", "André Portela Souza"],
+    "descricaoMedia": "Compreender a Constituição brasileira é um passo decisivo para a defesa das regras do jogo democrático, questionadas de maneira temerária, tanto à esquerda como à direita, nos últimos anos em nosso país. O debate sobre a crise da democracia no Brasil gira em torno de uma questão: a Constituição de 1988 está ou não sob ameaça? Mas como aprofundar esse debate sem conhecê-la em detalhe, bem como suas transformações ao longo das últimas três décadas?",
+    "descricaoCurta": "Como aprofundar o debate sobre a Constituição sem conhecê-la? Bem como suas transformações?",
+    "capa": "2026-12.jpg",
+    "nroPaginas": 280
+  },
+  "livrosComplementares": [
+    {
+      "titulo": "Política é para todos",
+      "autores": ["Gabriela Prioli"],
+      "nroPaginas": 272
+    },
+    {
+      "emoji": "🇧🇷",
+      "titulo": "Constituição em Miúdos",
+      "autores": ["Senado Federal"],
+      "url": "https://www2.senado.leg.br/bdsf/bitstream/handle/id/649385/Constituicao_miudos_5ed.pdf",
+      "nroPaginas": 120,
+      "tags": ["gratuito"]
+    },
+    {
+      "emoji": "🇧🇷",
+      "titulo": "Constituição e Democracia: 25 anos da Constituição brasileira",
+      "autores": ["Marcelo Cattoni", "Adriana Campos"],
+      "nroPaginas": 169
+    },
+    {
+      "descritor": "ES",
+      "emoji": "🇪🇸",
+      "titulo": "La Constitución, explicada superfacil: ¡Para que la entienda hasta tu cuñado!",
+      "autores": ["Dani Fontecha"],
+      "nroPaginas": 176
+    }
+  ],
+  "observacaoLivrosComplementares": "Não foram encontradas edições digitais de livros que destrinchem a Constituição Portuguesa em meios alternativos.",
+  "audiovisual": [
+    {
+      "descritor": "BR",
+      "emoji": "📽️",
+      "titulo": "Filme documentário sobre o processo constituinte de 1988",
+      "ondeEncontrar": "YouTube da OAB-RJ",
+      "url": "https://www.youtube.com/watch?v=zCbnNR9FWHg"
+    },
+    {
+      "descritor": "BR",
+      "emoji": "📽️",
+      "titulo": "A Constituição da Cidadania -- Documentário Completo",
+      "ondeEncontrar": "YouTube da TV Senado",
+      "url": "https://www.youtube.com/watch?v=yDRPI0a3uZQ"
+    },
+    {
+      "descritor": "PT",
+      "emoji": "📽️",
+      "titulo": "As Constituições",
+      "ondeEncontrar": "RTP",
+      "url": "https://www.rtp.pt/programa/tv/p35061"
+    },
+    {
+      "descritor": "PT",
+      "emoji": "📽️",
+      "titulo": "Os Direitos na Constituição da República · 50 Anos",
+      "ondeEncontrar": "Site da República Portuguesa",
+      "url": "https://50anos25abril.pt/iniciativas/campanha-os-direitos-na-constituicao-da-republica-50-anos/",
+      "observacao": "Conteúdo infantil"
+    }
+  ]
+}
